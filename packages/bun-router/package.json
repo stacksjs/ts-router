@@ -70,7 +70,7 @@
     "typecheck": "bun --bun tsc --noEmit"
   },
   "dependencies": {
-    "bunfig": "^0.10.0",
+    "bunfig": "^0.14.1",
     "cac": "^6.7.14",
     "chalk": "^5.4.1",
     "openapi-types": "^12.1.3",
