@@ -164,7 +164,8 @@ export default class AuthMiddleware implements Middleware {
     }
 
     // Authentication successful, continue to next middleware or route handler
-    return next()
+    const response = await next()
+    return response || new Response('Not Found', { status: 404 })
   }
 }
 

@@ -51,7 +51,7 @@ export default class Session {
       req.cookies.set(sessionConfig?.name || 'session', sessionId, cookieOptions)
     }
 
-    return response
+    return response || new Response('Not Found', { status: 404 })
   }
 
   private parseCookies(req: Request): Record<string, string> {

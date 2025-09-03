@@ -70,6 +70,7 @@
     "typecheck": "bun --bun tsc --noEmit"
   },
   "dependencies": {
+    "bun-query-builder": "link:bun-query-builder",
     "bunfig": "^0.15.0",
     "cac": "^6.7.14",
     "chalk": "^5.6.0",

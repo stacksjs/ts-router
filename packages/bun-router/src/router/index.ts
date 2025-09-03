@@ -3,6 +3,7 @@ import { registerFileStreaming } from './file-streaming'
 import { registerGroupOrganization } from './group-organization'
 import { registerHttpMethods, registerRedirectMethods } from './http-methods'
 import { registerMiddlewareHandling } from './middleware'
+import { registerModelBinding } from './model-binding'
 import { registerRouteBuilding } from './route-building'
 import { registerRouteMatching } from './route-matching'
 import { registerServerHandling } from './server'
@@ -21,6 +22,7 @@ registerFileStreaming(Router)
 registerGroupOrganization(Router)
 registerServerHandling(Router)
 registerRouteBuilding(Router)
+registerModelBinding(Router)
 
 // Export the enhanced Router class
 export { Router }

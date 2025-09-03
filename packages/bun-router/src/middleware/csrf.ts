@@ -6,40 +6,44 @@ export default class Csrf {
   private static tokens = new Map<string, string>()
 
   async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
-    const csrfConfig = config.server?.security?.csrf
+    const csrfConfig = config.server?.security?.csrf || {} as any
 
-    // Skip if CSRF protection is disabled
-    if (!csrfConfig || !csrfConfig.enabled) {
-      return next()
+    // Skip CSRF protection for safe methods
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+      const response = await next()
+      return response || new Response('Not Found', { status: 404 })
     }
 
     // Skip for methods that don't modify state
     const method = req.method.toUpperCase()
-    const ignoredMethods = ['GET', 'HEAD', 'OPTIONS', ...(csrfConfig.ignoreMethods || [])]
+    const ignoredMethods = ['GET', 'HEAD', 'OPTIONS', ...(csrfConfig?.ignoreMethods || [])]
 
     if (ignoredMethods.includes(method)) {
       // For safe methods, generate a new token for the response
-      const token = this.generateToken(csrfConfig.secret || 'csrf-secret')
+      const token = this.generateToken(csrfConfig?.secret || 'csrf-secret')
 
       // Continue to next middleware
       const response = await next()
+      if (!response) {
+        return new Response('Not Found', { status: 404 })
+      }
 
       // Add CSRF token cookie to response
-      const cookieName = csrfConfig.cookie?.name || 'csrf-token'
+      const cookieName = csrfConfig?.cookie?.name || 'csrf-token'
       const cookieOptions = []
 
       cookieOptions.push(`${cookieName}=${token}`)
       cookieOptions.push('Path=/')
 
-      if (csrfConfig.cookie?.options?.httpOnly) {
+      if (csrfConfig?.cookie?.options?.httpOnly) {
         cookieOptions.push('HttpOnly')
       }
 
-      if (csrfConfig.cookie?.options?.secure) {
+      if (csrfConfig?.cookie?.options?.secure) {
         cookieOptions.push('Secure')
       }
 
-      if (csrfConfig.cookie?.options?.sameSite) {
+      if (csrfConfig?.cookie?.options?.sameSite) {
         cookieOptions.push(`SameSite=${csrfConfig.cookie.options.sameSite}`)
       }
 
@@ -65,7 +69,7 @@ export default class Csrf {
 
     // Get token from cookies for comparison
     const cookies = this.parseCookies(req)
-    const cookieToken = cookies[csrfConfig.cookie?.name || 'csrf-token']
+    const cookieToken = cookies[csrfConfig?.cookie?.name || 'csrf-token']
 
     // Verify the token
     if (!token || !cookieToken || token !== cookieToken || !Csrf.tokens.has(token)) {
@@ -79,7 +83,8 @@ export default class Csrf {
     }
 
     // Continue to next middleware if token is valid
-    return next()
+    const response = await next()
+    return response || new Response('Not Found', { status: 404 })
   }
 
   private generateToken(secret: string): string {
