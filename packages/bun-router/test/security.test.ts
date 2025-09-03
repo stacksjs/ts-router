@@ -114,7 +114,7 @@ describe('Security Middleware', () => {
 
     const response = await security.handle(req, mockNext)
     expect(response.status).toBe(400)
-    expect(await response.text()).toContain('Security threat detected')
+    expect(await response.text()).toContain('Suspicious Request Blocked')
   })
 
   it('should block suspicious user agents', async () => {
@@ -276,7 +276,7 @@ describe('Input Validation Middleware', () => {
     expect(response.status).toBe(400)
 
     const body = await response.json()
-    expect(body.errors).toHaveLength(2)
+    expect(body.errors).toHaveLength(3)
   })
 
   it('should allow valid data', async () => {

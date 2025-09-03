@@ -207,10 +207,10 @@ export default class Security {
 
     // Command injection patterns
     this.commandInjectionPatterns = [
-      /[;&|`$(){}[\]]/g,
-      /\b(cat|ls|pwd|id|whoami|uname|ps|netstat|ifconfig|ping|nslookup|dig|curl|wget)\b/gi,
-      /\b(cmd|powershell|bash|sh|zsh|fish)\b/gi,
-      /\b(exec|system|shell_exec|passthru|eval)\b/gi,
+      /[;&|`${}[\]]/g, // Removed parentheses to avoid false positives with user agents
+      /\b(cat|ls|pwd|id|whoami|uname|ps|netstat|ifconfig|ping|nslookup|dig|curl|wget)\s/gi,
+      /\b(cmd|powershell|bash|sh|zsh|fish)\s/gi,
+      /\b(exec|system|shell_exec|passthru|eval)\s*\(/gi,
       /\$\{.*\}/g, // Template injection
       /#\{.*\}/g, // Ruby template injection
     ]

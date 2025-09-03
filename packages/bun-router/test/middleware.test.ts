@@ -250,7 +250,7 @@ describe('Route-specific middleware', () => {
       })
     }
 
-    await router.get('/multiple', () => new Response('Multiple middleware'), [firstMiddleware, secondMiddleware])
+    await router.get('/multiple', () => new Response('Multiple middleware'), 'web', undefined, [firstMiddleware, secondMiddleware])
 
     const response = await router.handleRequest(new Request('http://localhost/multiple'))
     expect(response.status).toBe(200)

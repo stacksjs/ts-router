@@ -245,6 +245,9 @@ export default class Helmet {
           : referrer.policy || 'strict-origin-when-cross-origin'
         headers.set('Referrer-Policy', policy)
       }
+      else {
+        headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+      }
     }
 
     // X-XSS-Protection

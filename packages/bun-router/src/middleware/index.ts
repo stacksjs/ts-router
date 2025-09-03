@@ -8,6 +8,8 @@ import Auth, {
   jwtAuth,
   oauth2Auth,
 } from './auth'
+import Cors from './cors'
+import Csrf from './csrf'
 import JsonBody from './json_body'
 import { rateLimit as createRateLimit } from './rate_limit'
 import RequestId from './request_id'
@@ -21,6 +23,9 @@ export { default as Cors } from './cors'
 export { default as Csrf } from './csrf'
 export { default as DDoSProtection } from './ddos_protection'
 export { ddosProtection } from './ddos_protection'
+export { default as FileSecurity } from './file_security'
+export { default as FileUpload } from './file_upload'
+export { documentUpload, fileUpload, imageUpload, multipleFileUpload, singleFileUpload } from './file_upload'
 export { default as Helmet } from './helmet'
 export { default as InputValidation } from './input_validation'
 export { inputValidation } from './input_validation'

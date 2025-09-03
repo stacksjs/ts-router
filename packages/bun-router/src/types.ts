@@ -674,50 +674,85 @@ export interface EnhancedRequest extends Request {
    * Route parameters extracted from the URL
    */
   params: Record<string, string>
-
   /**
-   * The matched route object (added by the router during request handling)
+   * Query parameters from the URL
    */
-  route?: Route
-
+  query: Record<string, string | string[]>
   /**
-   * Request ID (added by RequestId middleware)
-   */
-  requestId?: string
-
-  /**
-   * JSON body payload (added by JsonBody middleware)
+   * Parsed JSON body (if Content-Type is application/json)
    */
   jsonBody?: any
-
   /**
-   * Session data (added by Session middleware)
+   * Form body data (if Content-Type is multipart/form-data or application/x-www-form-urlencoded)
+   */
+  formBody?: Record<string, any>
+  /**
+   * Uploaded files (if Content-Type is multipart/form-data)
+   */
+  files?: UploadedFile[]
+  /**
+   * Session data (if session middleware is used)
    */
   session?: any
-
   /**
-   * Cookie utilities
+   * User data (if authentication middleware is used)
    */
-  cookies: {
-    get: (name: string) => string | undefined
-    set: (name: string, value: string, options?: CookieOptions) => void
-    delete: (name: string, options?: CookieOptions) => void
-    getAll: () => Record<string, string>
-  }
-
+  user?: any
   /**
-   * Internal cookie tracking
+   * Additional context data that can be set by middleware
    */
-  _cookiesToSet?: { name: string, value: string, options: any }[]
-  _cookiesToDelete?: { name: string, options: any }[]
-
+  context?: Record<string, any>
+  /**
+   * Request ID for tracing
+   */
+  requestId?: string
+  /**
+   * IP address of the client
+   */
+  ip?: string
+  /**
+   * User agent string
+   */
+  userAgent?: string
+  /**
+   * Cookies parsed from the request
+   */
+  cookies?: Record<string, string>
+  /**
+   * Flash messages (temporary messages for the next request)
+   */
+  flash?: Record<string, any>
+  /**
+   * CSRF token
+   */
+  csrfToken?: string
+  /**
+   * Request start time for performance monitoring
+   */
+  startTime?: number
+  /**
+   * Trace ID for distributed tracing
+   */
+  traceId?: string
+  /**
+   * Span ID for distributed tracing
+   */
+  spanId?: string
   /**
    * Security middleware additions
    */
   nonce?: string
   validatedBody?: any
-  traceId?: string
-  spanId?: string
+}
+
+export interface UploadedFile {
+  fieldName: string
+  originalName: string
+  filename: string
+  path: string
+  size: number
+  mimetype: string
+  buffer: ArrayBuffer
 }
 
 export type RouteHandler = (req: EnhancedRequest) => Response | Promise<Response>

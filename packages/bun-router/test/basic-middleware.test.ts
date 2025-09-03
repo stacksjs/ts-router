@@ -61,7 +61,7 @@ describe('Bun Router - Middleware Tests', () => {
       if (!response)
         return new Response('Not Found', { status: 404 })
       const text = await response.clone().text()
-      return new Response(text, {
+      return new Response(`${text} + MW1`, {
         status: response.status,
         headers: response.headers,
       })

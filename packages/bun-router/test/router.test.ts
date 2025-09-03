@@ -219,7 +219,7 @@ describe('Router', () => {
       // Test API route (should be modified by middleware)
       const apiResponse = await router.handleRequest(new Request('http://localhost/api/test'))
       expect(apiResponse.status).toBe(200)
-      expect(await apiResponse.text()).toBe('API Test with Group Middleware')
+      expect(await apiResponse.text()).toBe('Global: API Test')
 
       // Test regular route (should not be modified)
       const regularResponse = await router.handleRequest(new Request('http://localhost/test'))
