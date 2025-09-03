@@ -745,3 +745,124 @@ export interface PatternMatchResult {
     groups: Record<string, string>
   }
 }
+
+/**
+ * Streaming response options
+ */
+export interface StreamingOptions {
+  headers?: Record<string, string>
+  status?: number
+}
+
+/**
+ * SSE (Server-Sent Events) data structure
+ */
+export interface SSEData {
+  data: any
+  event?: string
+  id?: string
+  retry?: number
+}
+
+/**
+ * Direct streaming writer interface
+ */
+export interface DirectStreamWriter {
+  write: (chunk: string | Uint8Array) => void
+  close: () => void
+}
+
+/**
+ * Buffered streaming writer interface
+ */
+export interface BufferedStreamWriter {
+  write: (chunk: string | Uint8Array) => void
+  flush: () => void
+  end: () => void
+}
+
+/**
+ * Buffered streaming options
+ */
+export interface BufferedStreamOptions {
+  highWaterMark?: number
+  asUint8Array?: boolean
+}
+
+/**
+ * Async generator function type for streaming
+ */
+export type StreamGenerator<T = any> = () => AsyncGenerator<T, void, unknown>
+
+/**
+ * Direct stream handler function type
+ */
+export type DirectStreamHandler = (writer: DirectStreamWriter) => Promise<void>
+
+/**
+ * Buffered stream handler function type
+ */
+export type BufferedStreamHandler = (writer: BufferedStreamWriter) => Promise<void>
+
+/**
+ * Transform function type for stream transformation
+ */
+export type TransformFunction<T = Uint8Array, R = string | Uint8Array> = (chunk: T) => R | Promise<R>
+
+// Module augmentation to add streaming methods to Router class
+declare module './router/core' {
+  interface Router {
+    /**
+     * Create a streaming route using async generators (default streaming method)
+     */
+    stream: (path: string, generator: StreamGenerator, options?: StreamingOptions) => Promise<void>
+
+    /**
+     * Create a JSON streaming route (NDJSON format)
+     */
+    streamJSON: (path: string, generator: StreamGenerator<any>, options?: StreamingOptions) => Promise<void>
+
+    /**
+     * Create a Server-Sent Events streaming route
+     */
+    streamSSE: (path: string, generator: StreamGenerator<SSEData>, options?: StreamingOptions) => Promise<void>
+
+    /**
+     * Create a direct streaming route for high-performance streaming
+     */
+    streamDirect: (path: string, handler: DirectStreamHandler, options?: StreamingOptions) => Promise<void>
+
+    /**
+     * Create a buffered streaming route using ArrayBufferSink
+     */
+    streamBuffered: (path: string, handler: BufferedStreamHandler, options?: BufferedStreamOptions) => Promise<void>
+
+    /**
+     * Stream a file with basic file serving
+     */
+    streamFile: (path: string, options?: StreamingOptions) => Response
+
+    /**
+     * Stream a file with HTTP range request support
+     */
+    streamFileWithRanges: (path: string, req: Request) => Promise<Response>
+
+    /**
+     * Create a transform stream for request processing
+     */
+    transformStream: <T = Uint8Array, R = string | Uint8Array>(
+      transform: TransformFunction<T, R>,
+      options?: StreamingOptions
+    ) => (req: Request) => Response
+
+    /**
+     * Stream response using async generators
+     */
+    streamResponse: (generator: StreamGenerator, options?: StreamingOptions) => Response
+
+    /**
+     * Stream response using async iterator
+     */
+    streamAsyncIterator: (iterator: AsyncIterable<any>, options?: StreamingOptions) => Response
+  }
+}
