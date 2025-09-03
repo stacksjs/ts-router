@@ -683,7 +683,7 @@ export default class PerformanceMonitor implements Middleware {
   public async handle(req: EnhancedRequest, next: NextFunction): Promise<Response | null> {
     // Skip if disabled
     if (!this.options.enabled) {
-        return next()
+      return next()
     }
 
     // Check sampling rate - but ensure sampleRate is properly used
