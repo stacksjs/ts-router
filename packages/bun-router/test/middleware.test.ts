@@ -199,7 +199,8 @@ describe('Route-specific middleware', () => {
     // Test middleware that adds a header
     const testMiddleware = async (req: EnhancedRequest, next: NextFunction) => {
       const response = await next()
-      if (!response) return new Response('Not Found', { status: 404 })
+      if (!response)
+        return new Response('Not Found', { status: 404 })
       const headers = new Headers(response.headers)
       headers.set('X-Test-Middleware', 'applied')
       return new Response(response.body, {
@@ -225,7 +226,8 @@ describe('Route-specific middleware', () => {
 
     const firstMiddleware = async (req: EnhancedRequest, next: NextFunction) => {
       const response = await next()
-      if (!response) return new Response('Not Found', { status: 404 })
+      if (!response)
+        return new Response('Not Found', { status: 404 })
       const headers = new Headers(response.headers)
       headers.set('X-First-Middleware', 'applied')
       return new Response(response.body, {
@@ -237,7 +239,8 @@ describe('Route-specific middleware', () => {
 
     const secondMiddleware = async (req: EnhancedRequest, next: NextFunction) => {
       const response = await next()
-      if (!response) return new Response('Not Found', { status: 404 })
+      if (!response)
+        return new Response('Not Found', { status: 404 })
       const headers = new Headers(response.headers)
       headers.set('X-Second-Middleware', 'applied')
       return new Response(response.body, {
@@ -248,7 +251,7 @@ describe('Route-specific middleware', () => {
     }
 
     await router.get('/multiple', () => new Response('Multiple middleware'), [firstMiddleware, secondMiddleware])
-    
+
     const response = await router.handleRequest(new Request('http://localhost/multiple'))
     expect(response.status).toBe(200)
     expect(response.headers.get('X-First-Middleware')).toBe('applied')
@@ -261,7 +264,8 @@ describe('Route-specific middleware', () => {
     // First middleware that adds a header
     const firstMiddleware = async (req: EnhancedRequest, next: NextFunction) => {
       const response = await next()
-      if (!response) return new Response('Not Found', { status: 404 })
+      if (!response)
+        return new Response('Not Found', { status: 404 })
       const headers = new Headers(response.headers)
       headers.set('X-Fluid-First', 'first')
       return new Response(response.body, {
@@ -274,7 +278,8 @@ describe('Route-specific middleware', () => {
     // Second middleware that adds another header
     const secondMiddleware = async (req: EnhancedRequest, next: NextFunction) => {
       const response = await next()
-      if (!response) return new Response('Not Found', { status: 404 })
+      if (!response)
+        return new Response('Not Found', { status: 404 })
       const headers = new Headers(response.headers)
       headers.set('X-Fluid-Second', 'second')
       return new Response(response.body, {

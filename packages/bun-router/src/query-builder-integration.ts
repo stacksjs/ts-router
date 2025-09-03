@@ -15,8 +15,8 @@ export class QueryBuilderIntegration {
    * Register a model resolver and inject the query builder
    */
   registerResolver<TModel extends Model>(
-    name: string, 
-    resolver: QueryBuilderModelResolver<TModel>
+    name: string,
+    resolver: QueryBuilderModelResolver<TModel>,
   ): void {
     // Inject the query builder instance
     resolver.queryBuilder = this.queryBuilder
@@ -37,7 +37,7 @@ export class QueryBuilderIntegration {
     name: string,
     id: string | number,
     keyName?: string,
-    context: Record<string, Model> = {}
+    context: Record<string, Model> = {},
   ): Promise<TModel | null> {
     const resolver = this.getResolver<TModel>(name)
     if (!resolver) {
@@ -50,7 +50,7 @@ export class QueryBuilderIntegration {
         .select()
         .from(resolver.table)
         .where(keyName || resolver.getRouteKeyName?.() || 'id', '=', id)
-      
+
       const constrainedQuery = resolver.applyConstraints(query, context)
       return await constrainedQuery.first() || null
     }
@@ -66,7 +66,7 @@ export class QueryBuilderIntegration {
     name: string,
     id: string | number,
     keyName?: string,
-    context: Record<string, Model> = {}
+    context: Record<string, Model> = {},
   ): Promise<TModel> {
     const model = await this.resolveModel<TModel>(name, id, keyName, context)
     if (!model) {
@@ -91,7 +91,7 @@ export function createBasicResolver<TModel extends Model>(
   options: {
     keyName?: string
     transform?: (row: any) => TModel
-  } = {}
+  } = {},
 ): QueryBuilderModelResolver<TModel> {
   const { keyName = 'id', transform } = options
 
@@ -110,11 +110,13 @@ export function createBasicResolver<TModel extends Model>(
           .from(this.table)
           .where(searchKey, '=', id)
           .first()
-        
-        if (!result) return null
-        
+
+        if (!result)
+          return null
+
         return transform ? transform(result) : result as TModel
-      } catch (error) {
+      }
+      catch (error) {
         console.error(`Error finding ${tableName}:`, error)
         return null
       }
@@ -130,6 +132,6 @@ export function createBasicResolver<TModel extends Model>(
 
     getRouteKeyName(): string {
       return keyName
-    }
+    },
   }
 }

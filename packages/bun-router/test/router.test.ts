@@ -171,7 +171,8 @@ describe('Router', () => {
         // Call next to get the original response
         const response = await next()
         // Get the original text
-        if (!response) return new Response('Not Found', { status: 404 })
+        if (!response)
+          return new Response('Not Found', { status: 404 })
         const originalText = await response.clone().text()
         const modifiedText = `Modified: ${originalText}`
         return new Response(modifiedText, {
@@ -197,7 +198,8 @@ describe('Router', () => {
         // Get the original response
         const response = await next()
         // Get the original text
-        if (!response) return new Response('Not Found', { status: 404 })
+        if (!response)
+          return new Response('Not Found', { status: 404 })
         const text = await response.clone().text()
         const modifiedText = `Global: ${text}`
         return new Response(modifiedText, {

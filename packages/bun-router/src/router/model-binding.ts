@@ -3,7 +3,6 @@ import type {
   ModelBindingConfig,
   ModelClass,
   ModelResolver,
-  QueryBuilderModelResolver,
   RouteBindingOptions,
 } from '../model-binding'
 import type { EnhancedRequest, MiddlewareHandler } from '../types'
@@ -42,7 +41,8 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         if (typeof resolverOrClass === 'function') {
           // It's a resolver function
           modelRegistry.bind(name, resolverOrClass as unknown as (value: string) => Promise<Model | null>)
-        } else {
+        }
+        else {
           // It's a model class, create a resolver function
           const resolver = (value: string) => (resolverOrClass as any).find(value)
           modelRegistry.bind(name, resolver)
@@ -142,7 +142,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         method: string,
         path: string,
         handler: any,
-_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
         const middleware = _options?.middleware || []
 
@@ -169,7 +169,7 @@ _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] }
         this: Router,
         path: string,
         handler: any,
-_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
         // Use base get method for now
         return this.get(path, handler)
@@ -186,7 +186,7 @@ _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] }
         this: Router,
         path: string,
         handler: any,
-_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
         // Use base post method for now
         return this.post(path, handler)
@@ -203,7 +203,7 @@ _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] }
         this: Router,
         path: string,
         handler: any,
-_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
         // Use base put method for now
         return this.put(path, handler)
@@ -220,7 +220,7 @@ _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] }
         this: Router,
         path: string,
         handler: any,
-_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
         // Use base delete method for now
         return this.delete(path, handler)
@@ -237,7 +237,7 @@ _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] }
         this: Router,
         path: string,
         handler: any,
-_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
         // Use base patch method for now
         return this.patch(path, handler)
