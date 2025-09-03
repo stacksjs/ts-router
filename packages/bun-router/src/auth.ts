@@ -457,7 +457,11 @@ export class OAuth2Helper {
 /**
  * Authentication helpers namespace
  */
-const Auth = {
+const Auth: {
+  JWT: typeof JWT
+  ApiKeyManager: typeof ApiKeyManager
+  OAuth2Helper: typeof OAuth2Helper
+} = {
   JWT,
   ApiKeyManager,
   OAuth2Helper,

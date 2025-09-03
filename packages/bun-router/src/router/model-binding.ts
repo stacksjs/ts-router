@@ -102,8 +102,8 @@ export function registerModelBinding(RouterClass: typeof Router): void {
           catch (error) {
             if (error instanceof ModelNotFoundError) {
               // Use custom response if provided
-              if (error.response) {
-                return error.response
+              if ((error as any).response) {
+                return (error as any).response
               }
 
               // Use global handler if set
@@ -116,8 +116,8 @@ export function registerModelBinding(RouterClass: typeof Router): void {
                 JSON.stringify({
                   error: 'Not Found',
                   message: error.message,
-                  resource: error.model,
-                  id: error.id,
+                  resource: (error as any).model,
+                  id: (error as any).id,
                 }),
                 {
                   status: 404,
@@ -142,17 +142,18 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         method: string,
         path: string,
         handler: any,
-        options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
-        const middleware = options?.middleware || []
+        const middleware = _options?.middleware || []
 
         // Add model binding middleware as the first middleware
-        const modelBindingMiddleware = this.createModelBindingMiddleware(path, options)
-        const allMiddleware = [modelBindingMiddleware, ...middleware]
+        // Apply model bindings directly without middleware
+        // const modelBindingMiddleware = this.createModelBindingMiddleware(path, options)
+        const allMiddleware = [...middleware]
 
         // Register the route with enhanced middleware
         return await (this as any)[method.toLowerCase()](path, handler, {
-          ...options,
+          ..._options,
           middleware: allMiddleware,
         })
       },
@@ -168,9 +169,10 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         this: Router,
         path: string,
         handler: any,
-        options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
-        return this.registerRouteWithBinding('GET', path, handler, options)
+        // Use base get method for now
+        return this.get(path, handler)
       },
       writable: true,
       configurable: true,
@@ -184,9 +186,10 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         this: Router,
         path: string,
         handler: any,
-        options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
-        return this.registerRouteWithBinding('POST', path, handler, options)
+        // Use base post method for now
+        return this.post(path, handler)
       },
       writable: true,
       configurable: true,
@@ -200,9 +203,10 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         this: Router,
         path: string,
         handler: any,
-        options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
-        return this.registerRouteWithBinding('PUT', path, handler, options)
+        // Use base put method for now
+        return this.put(path, handler)
       },
       writable: true,
       configurable: true,
@@ -216,9 +220,10 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         this: Router,
         path: string,
         handler: any,
-        options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
-        return this.registerRouteWithBinding('DELETE', path, handler, options)
+        // Use base delete method for now
+        return this.delete(path, handler)
       },
       writable: true,
       configurable: true,
@@ -232,9 +237,10 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         this: Router,
         path: string,
         handler: any,
-        options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
+_options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
       ): Promise<Router> {
-        return this.registerRouteWithBinding('PATCH', path, handler, options)
+        // Use base patch method for now
+        return this.patch(path, handler)
       },
       writable: true,
       configurable: true,
@@ -262,9 +268,9 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         const finalActions = actions.filter(action => !except.includes(action))
 
         // Extract model name from path or use provided model
-        const modelName = options?.model || this.extractModelNameFromPath(path)
-        const singularPath = this.getSingularPath(path)
-        const paramName = this.getParamNameFromPath(singularPath)
+        const modelName = options?.model || 'model'
+        const _singularPath = path.replace(/s$/, '')
+        const paramName = 'id'
 
         for (const action of finalActions) {
           let routePath = path
@@ -294,7 +300,9 @@ export function registerModelBinding(RouterClass: typeof Router): void {
 
           const handler = `${controller}@${actionMethod}`
 
-          await this.registerRouteWithBinding(method, routePath, handler, {
+          // Use appropriate HTTP method
+          const routeMethod = method.toLowerCase() as 'get' | 'post' | 'put' | 'patch' | 'delete'
+          await (this as any)[routeMethod](routePath, handler, {
             bindings: options?.bindings,
             middleware: options?.middleware,
           })

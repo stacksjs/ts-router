@@ -171,9 +171,10 @@ describe('Router', () => {
         // Call next to get the original response
         const response = await next()
         // Get the original text
+        if (!response) return new Response('Not Found', { status: 404 })
         const originalText = await response.clone().text()
-        // Create a new response with modified text
-        return new Response(`${originalText} with Middleware`, {
+        const modifiedText = `Modified: ${originalText}`
+        return new Response(modifiedText, {
           status: response.status,
           headers: response.headers,
         })
@@ -188,7 +189,7 @@ describe('Router', () => {
 
       // Assert
       expect(response.status).toBe(200)
-      expect(await response.text()).toBe('Test with Middleware')
+      expect(await response.text()).toBe('Modified: Test')
     })
 
     it('should apply group-specific middleware', async () => {
@@ -196,9 +197,10 @@ describe('Router', () => {
         // Get the original response
         const response = await next()
         // Get the original text
+        if (!response) return new Response('Not Found', { status: 404 })
         const text = await response.clone().text()
-        // Create a new response with modified text
-        return new Response(`${text} with Group Middleware`, {
+        const modifiedText = `Global: ${text}`
+        return new Response(modifiedText, {
           status: response.status,
           headers: response.headers,
         })
@@ -517,10 +519,10 @@ describe('Router', () => {
       // This registers standard RESTful routes: index, show, store, update, destroy
       await router.resource('users', {
         index: () => new Response('List of users'),
-        show: req => new Response(`User ${req.params.id}`),
+        show: (req: any) => new Response(`User ${req.params.id}`),
         store: () => new Response('User created', { status: 201 }),
-        update: req => new Response(`User ${req.params.id} updated`),
-        destroy: req => new Response(`User ${req.params.id} deleted`),
+        update: (req: any) => new Response(`User ${req.params.id} updated`),
+        destroy: (req: any) => new Response(`User ${req.params.id} deleted`),
       })
 
       // Test index route (GET /users)

@@ -4,9 +4,21 @@ import type {
   MiddlewareHandler,
   Route,
   RouteGroup,
+  RouteHandler,
   RouterConfig,
   WebSocketConfig,
 } from '../types'
+
+// Re-export types for module augmentation
+export type {
+  ActionHandler,
+  MiddlewareHandler,
+  Route,
+  RouteGroup,
+  RouteHandler,
+  RouterConfig,
+  WebSocketConfig,
+}
 
 /**
  * Core Router class that manages routes and handles requests

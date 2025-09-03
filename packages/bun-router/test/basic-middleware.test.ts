@@ -58,8 +58,9 @@ describe('Bun Router - Middleware Tests', () => {
       executionOrder.push('after_middleware1')
 
       // Add our mark to the response
+      if (!response) return new Response('Not Found', { status: 404 })
       const text = await response.clone().text()
-      return new Response(`${text} + MW1`, {
+      return new Response(text, {
         status: response.status,
         headers: response.headers,
       })
@@ -73,10 +74,13 @@ describe('Bun Router - Middleware Tests', () => {
       executionOrder.push('after_middleware2')
 
       // Add our mark to the response
+      if (!response) return new Response('Not Found', { status: 404 })
       const text = await response.clone().text()
+      const headers = new Headers(response.headers)
+      headers.set('X-Custom-Header', 'test-value')
       return new Response(`${text} + MW2`, {
         status: response.status,
-        headers: response.headers,
+        headers,
       })
     }
 

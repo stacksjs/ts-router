@@ -856,7 +856,7 @@ declare module './router/core' {
     
     // Views
     view: (path: string, template: string, data?: any) => Promise<Router>
-    renderView: (template: string, data?: any) => Promise<string>
+    renderView: (template: string, data?: any, options?: any) => Promise<string>
     
     // Resources
     resource: (name: string, controller: any, options?: any) => Promise<Router>
