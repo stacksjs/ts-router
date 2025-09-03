@@ -159,32 +159,36 @@ export interface PerformanceConfig {
       criticalPath: boolean
     }
   }
-  monitoring: {
-    enabled: boolean
-    metrics: {
-      responseTime: boolean
-      memoryUsage: boolean
-      cpuUsage: boolean
-      errorRate: boolean
-      requestRate: boolean
-      cacheStats: boolean
-      customMetrics?: {
-        [key: string]: {
-          type: 'counter' | 'gauge' | 'histogram'
-          description: string
-          labels?: string[]
-        }
-      }
+  monitoring?: {
+    enabled?: boolean
+    sampleRate?: number
+    storage?: {
+      type?: 'memory' | 'file' | 'custom'
+      maxEntries?: number
+      filePath?: string
+      customHandler?: (metrics: any[]) => Promise<void>
     }
-    tracing: {
-      enabled: boolean
-      sampleRate: number
-      exporters: ('console' | 'jaeger' | 'zipkin' | 'otlp')[]
-      attributes?: Record<string, string>
-      propagation: ('b3' | 'w3c')[]
-      spans?: {
-        db: boolean
-        http: boolean
+    alerting?: {
+      enabled?: boolean
+      thresholds?: {
+        responseTime?: number
+        errorRate?: number
+        memoryUsage?: number
+      }
+      webhookUrl?: string
+      slackWebhook?: string
+      emailConfig?: {
+        smtp?: {
+          host?: string
+          port?: number
+          secure?: boolean
+          auth?: {
+            user?: string
+            pass?: string
+          }
+        }
+        to?: string[]
+        from?: string
         cache: boolean
         queue: boolean
       }
@@ -296,8 +300,25 @@ export interface SecurityConfig {
     contentSecurityPolicy: boolean | {
       directives: Record<string, string[]>
       reportOnly?: boolean
+      reportUri?: string
+      upgradeInsecureRequests?: boolean
+      blockAllMixedContent?: boolean
     }
-    xssFilter: boolean
+    crossOriginEmbedderPolicy?: boolean | {
+      policy?: 'require-corp' | 'credentialless'
+    }
+    crossOriginOpenerPolicy?: boolean | {
+      policy?: 'same-origin' | 'same-origin-allow-popups' | 'unsafe-none'
+    }
+    crossOriginResourcePolicy?: boolean | {
+      policy?: 'same-site' | 'same-origin' | 'cross-origin'
+    }
+    dnsPrefetchControl?: boolean | {
+      allow?: boolean
+    }
+    xssFilter: boolean | {
+      setOnOldIE?: boolean
+    }
     noSniff: boolean
     frameOptions: 'DENY' | 'SAMEORIGIN'
     hidePoweredBy: boolean
@@ -306,12 +327,97 @@ export interface SecurityConfig {
       includeSubDomains: boolean
       preload: boolean
     }
-    referrerPolicy?: string
+    referrerPolicy?: string | {
+      policy?: string | string[]
+    }
     expectCt?: {
       enforce: boolean
       maxAge: number
       reportUri?: string
     }
+    ieNoOpen?: boolean
+    originAgentCluster?: boolean
+    permittedCrossDomainPolicies?: boolean | {
+      permittedPolicies?: 'none' | 'master-only' | 'by-content-type' | 'all'
+    }
+  }
+  ddos?: {
+    enabled?: boolean
+    maxRequestsPerSecond?: number
+    maxRequestsPerMinute?: number
+    maxRequestsPerHour?: number
+    burstLimit?: number
+    windowSize?: number
+    blockDuration?: number
+    whitelistedIPs?: string[]
+    blacklistedIPs?: string[]
+    trustProxy?: boolean
+    skipSuccessfulRequests?: boolean
+    skipFailedRequests?: boolean
+    keyGenerator?: (req: any) => string
+    store?: 'memory' | 'redis'
+    redis?: {
+      url: string
+      prefix?: string
+    }
+  }
+  inputValidation?: {
+    enabled?: boolean
+    sanitizeByDefault?: boolean
+    strictMode?: boolean
+    allowUnknownFields?: boolean
+    maxDepth?: number
+    schemas?: {
+      query?: Record<string, any>
+      body?: Record<string, any>
+      headers?: Record<string, any>
+      params?: Record<string, any>
+    }
+  }
+  attackPrevention?: {
+    enabled?: boolean
+    sqlInjection?: boolean
+    xss?: boolean
+    pathTraversal?: boolean
+    commandInjection?: boolean
+    ldapInjection?: boolean
+    xxe?: boolean
+    customPatterns?: Array<{
+      name: string
+      pattern: RegExp
+      action: 'block' | 'log' | 'sanitize'
+    }>
+  }
+  requestFiltering?: {
+    enabled?: boolean
+    blockSuspiciousPatterns?: boolean
+    maxRequestsPerMinute?: number
+    blockUserAgents?: string[]
+    allowedMethods?: string[]
+    requireUserAgent?: boolean
+    maxBodySize?: number
+    maxUrlLength?: number
+    maxHeaderSize?: number
+    allowedContentTypes?: string[]
+  }
+  ipFiltering?: {
+    enabled?: boolean
+    whitelist?: string[]
+    blacklist?: string[]
+    blockPrivateIPs?: boolean
+    blockCloudProviders?: boolean
+    geoBlocking?: {
+      enabled?: boolean
+      allowedCountries?: string[]
+      blockedCountries?: string[]
+    }
+  }
+  responseSecurity?: {
+    enabled?: boolean
+    removeServerHeaders?: boolean
+    addSecurityHeaders?: boolean
+    sanitizeErrors?: boolean
+    preventInfoDisclosure?: boolean
   }
   auth: {
     jwt: {
@@ -604,6 +710,14 @@ export interface EnhancedRequest extends Request {
    */
   _cookiesToSet?: { name: string, value: string, options: any }[]
   _cookiesToDelete?: { name: string, options: any }[]
+
+  /**
+   * Security middleware additions
+   */
+  nonce?: string
+  validatedBody?: any
+  traceId?: string
+  spanId?: string
 }
 
 export type RouteHandler = (req: EnhancedRequest) => Response | Promise<Response>
