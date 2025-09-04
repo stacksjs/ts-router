@@ -90,35 +90,15 @@ export function registerHttpMethods(RouterClass: typeof Router): void {
         route.pattern = {
           exec: (url: URL): { pathname: { groups: Record<string, string> } } | null => {
             const params: Record<string, string> = {}
-            const isMatch = matchPath(routePath, url.pathname, params)
+            // Pass constraints directly to matchPath for more efficient matching
+            const constraintsRecord = route.constraints && !Array.isArray(route.constraints) 
+              ? route.constraints as Record<string, string>
+              : undefined
+            
+            const isMatch = matchPath(routePath, url.pathname, params, constraintsRecord)
 
             if (!isMatch) {
               return null
-            }
-
-            // Apply constraints if they exist
-            if (route.constraints) {
-              // Check each constraint against the param value
-              for (const [param, pattern] of Object.entries(route.constraints)) {
-                if (!params[param])
-                  continue
-
-                // If the param doesn't match the pattern, return null (no match)
-                const patternKey = `param:${param}:${pattern}`
-                let regex: RegExp
-
-                if (!this.precompiledPatterns.has(patternKey)) {
-                  regex = new RegExp(`^${pattern}$`)
-                  this.precompiledPatterns.set(patternKey, regex)
-                }
-                else {
-                  regex = this.precompiledPatterns.get(patternKey)!
-                }
-
-                if (!regex.test(params[param])) {
-                  return null
-                }
-              }
             }
 
             return {

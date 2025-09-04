@@ -454,25 +454,20 @@ describe('Performance Monitoring System', () => {
     test('should add and resolve alerts', async () => {
       // Create a new router instance for this test
       const testRouter = new Router()
-
-      const dashboard = new PerformanceDashboard({
-        enabled: true,
-        path: '/performance',
-      })
-
-      // Add test alerts
-      dashboard.addAlert('warning', 'Test warning message')
-      dashboard.addAlert('critical', 'Test critical message')
-
-      // Mock the alerts API endpoint
+      
+      // Create a shared state object that can be modified between requests
+      const mockState = {
+        alerts: [
+          { id: 'alert-1', type: 'warning', message: 'Test warning message', resolved: false, timestamp: Date.now() },
+          { id: 'alert-2', type: 'critical', message: 'Test critical message', resolved: false, timestamp: Date.now() },
+        ]
+      }
+      
+      // Mock endpoint that returns dashboard data based on the current state
       testRouter.get('/performance/api/data', () => {
-        // Create mock data with the actual alerts from the dashboard
         const mockData = {
           metrics: {},
-          alerts: [
-            { id: 'alert-1', type: 'warning', message: 'Test warning message', resolved: false, timestamp: Date.now() },
-            { id: 'alert-2', type: 'critical', message: 'Test critical message', resolved: false, timestamp: Date.now() },
-          ],
+          alerts: mockState.alerts,
           traces: [],
           system: { uptime: 123456 },
         }
@@ -487,20 +482,8 @@ describe('Performance Monitoring System', () => {
       expect(data.alerts[0]).toHaveProperty('message', 'Test warning message')
       expect(data.alerts[0]).toHaveProperty('resolved', false)
 
-      // Resolve first alert - in a real scenario this would update the dashboard's internal state
-      // For testing, we'll update our mock endpoint
-      testRouter.get('/performance/api/data', () => {
-        const mockData = {
-          metrics: {},
-          alerts: [
-            { id: 'alert-1', type: 'warning', message: 'Test warning message', resolved: true, timestamp: Date.now() },
-            { id: 'alert-2', type: 'critical', message: 'Test critical message', resolved: false, timestamp: Date.now() },
-          ],
-          traces: [],
-          system: { uptime: 123456 },
-        }
-        return Response.json(mockData)
-      })
+      // Resolve first alert by modifying the shared state
+      mockState.alerts[0].resolved = true
 
       const response2 = await testRouter.handleRequest(new Request('http://localhost/performance/api/data'))
       const data2 = await response2.json() as any

@@ -85,9 +85,15 @@ export function createPathRegex(pattern: string): RegExp {
  * @param pattern The path pattern (e.g., '/users/{id}')
  * @param path The actual path (e.g., '/users/123')
  * @param params Output parameter object that will contain extracted parameters
+ * @param constraints Optional constraints for route parameters
  * @returns Boolean indicating whether the path matches the pattern
  */
-export function matchPath(pattern: string, path: string, params: Record<string, string>): boolean {
+export function matchPath(
+  pattern: string, 
+  path: string, 
+  params: Record<string, string>,
+  constraints?: Record<string, string>
+): boolean {
   // Both paths should be normalized
   const normalizedPattern = normalizePath(pattern)
   const normalizedPath = normalizePath(path)
@@ -131,12 +137,25 @@ export function matchPath(pattern: string, path: string, params: Record<string, 
     }
 
     // Check if this segment is a parameter
-    const paramMatch = patternSegment.match(/\{([^}]+)(\?)?\}/)
+    const paramMatch = patternSegment.match(/\{([^}:]+)(?::[^}]+)?(\?)?\}/)
     if (paramMatch) {
       // This is a parameter segment, extract param name
       const paramName = paramMatch[1].replace('?', '')
       // Store the parameter value
       params[paramName] = pathSegment
+      
+      // Check constraints if they exist
+      if (constraints && constraints[paramName]) {
+        try {
+          const regex = new RegExp(`^${constraints[paramName]}$`)
+          if (!regex.test(pathSegment)) {
+            return false
+          }
+        } catch (e) {
+          // If regex is invalid, treat as no constraint
+          console.warn(`Invalid constraint regex for parameter ${paramName}: ${constraints[paramName]}`)
+        }
+      }
     }
     else if (patternSegment !== pathSegment) {
       // Static segment doesn't match

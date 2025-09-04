@@ -957,3 +957,204 @@ export type BufferedStreamHandler = (writer: BufferedStreamWriter) => Promise<vo
  * Transform function type for stream transformation
  */
 export type TransformFunction<T = Uint8Array, R = string | Uint8Array> = (chunk: T) => R | Promise<R>
+
+/**
+ * Advanced Error Handling Types
+ */
+export interface ErrorContext {
+  requestId?: string
+  userId?: string
+  traceId?: string
+  spanId?: string
+  route?: string
+  method?: string
+  url?: string
+  userAgent?: string
+  ip?: string
+  timestamp?: Date
+  metadata?: Record<string, any>
+}
+
+export interface ErrorReportingConfig {
+  enabled: boolean
+  service: 'sentry' | 'bugsnag' | 'custom'
+  dsn?: string
+  apiKey?: string
+  environment?: string
+  release?: string
+  sampleRate?: number
+  beforeSend?: (error: any, context: ErrorContext) => any
+  filters?: {
+    ignoreErrors?: (string | RegExp)[]
+    ignoreCodes?: string[]
+    ignoreUrls?: (string | RegExp)[]
+    allowUrls?: (string | RegExp)[]
+  }
+  tags?: Record<string, string>
+  user?: {
+    id?: string
+    email?: string
+    username?: string
+  }
+  extra?: Record<string, any>
+  breadcrumbs?: {
+    enabled: boolean
+    maxBreadcrumbs: number
+  }
+  performance?: {
+    enabled: boolean
+    tracesSampleRate: number
+  }
+}
+
+export interface CircuitBreakerConfig {
+  name: string
+  failureThreshold: number
+  recoveryTimeout: number
+  timeout: number
+  monitoringPeriod: number
+  minimumRequests: number
+  errorThresholdPercentage: number
+  halfOpenMaxCalls: number
+  resetTimeout: number
+  onStateChange?: (state: 'CLOSED' | 'OPEN' | 'HALF_OPEN', name: string) => void
+  onFailure?: (error: Error, name: string) => void
+  onSuccess?: (name: string) => void
+  shouldTripOnError?: (error: Error) => boolean
+}
+
+export interface DegradationConfig {
+  enabled: boolean
+  fallbackStrategies: {
+    [serviceName: string]: {
+      type: 'cache' | 'static' | 'simplified' | 'redirect' | 'custom'
+      priority: number
+      timeout: number
+      retries: number
+      backoff: {
+        type: 'fixed' | 'exponential'
+        delay: number
+        maxDelay?: number
+      }
+      fallbackHandler?: (error: any, context: ErrorContext) => Promise<Response>
+      cacheConfig?: {
+        key: string
+        ttl: number
+        staleWhileRevalidate: boolean
+      }
+      staticResponse?: {
+        status: number
+        body: any
+        headers?: Record<string, string>
+      }
+      redirectConfig?: {
+        url: string
+        permanent: boolean
+      }
+    }
+  }
+  healthChecks: {
+    [serviceName: string]: {
+      enabled: boolean
+      endpoint: string
+      interval: number
+      timeout: number
+      retries: number
+      expectedStatus: number[]
+      expectedBody?: string | RegExp
+      headers?: Record<string, string>
+      onHealthy?: () => void
+      onUnhealthy?: (error: Error) => void
+    }
+  }
+  monitoring: {
+    enabled: boolean
+    alertThresholds: {
+      errorRate: number
+      responseTime: number
+      availability: number
+    }
+  }
+}
+
+/**
+ * Request/Response Enhancement Types
+ */
+export interface RequestMacroMethods {
+  // Content type detection
+  wantsJson: () => boolean
+  wantsHtml: () => boolean
+  wantsXml: () => boolean
+  expectsJson: () => boolean
+  
+  // Request information
+  isAjax: () => boolean
+  isPjax: () => boolean
+  isMobile: () => boolean
+  isBot: () => boolean
+  isSecure: () => boolean
+  
+  // Client information
+  ip: () => string
+  ips: () => string[]
+  userAgent: () => string
+  referer: () => string | null
+  
+  // Authentication
+  bearerToken: () => string | null
+  basicAuth: () => { username: string, password: string } | null
+  
+  // Headers
+  hasHeader: (name: string) => boolean
+  header: (name: string, defaultValue?: string) => string | null
+  allHeaders: () => Record<string, string>
+  
+  // Input handling
+  input: (key: string, defaultValue?: any) => any
+  all: () => Record<string, any>
+  only: (keys: string[]) => Record<string, any>
+  except: (keys: string[]) => Record<string, any>
+  
+  // Validation checks
+  has: (key: string) => boolean
+  hasAny: (keys: string[]) => boolean
+  missing: (key: string) => boolean
+  filled: (key: string) => boolean
+  
+  // Query and params
+  getQuery: (key?: string, defaultValue?: any) => any
+  param: (key: string, defaultValue?: any) => any
+  
+  // Cookies
+  cookie: (name: string, defaultValue?: string) => string | null
+  cookies: () => Record<string, string>
+  
+  // Files
+  file: (name: string) => any
+  hasFile: (name: string) => boolean
+  
+  // URL utilities
+  path: () => string
+  fullUrl: () => string
+  root: () => string
+  is: (pattern: string) => boolean
+  route: () => string | null
+  
+  // Utilities
+  fingerprint: () => string
+  signature: (secret: string) => string
+  merge: (data: Record<string, any>) => void
+  replace: (data: Record<string, any>) => void
+  age: () => number
+  isFromTrustedProxy: (trustedProxies?: string[]) => boolean
+  contentLength: () => number
+  contentType: () => string | null
+  isContentType: (type: string) => boolean
+}
+
+// Extend the existing EnhancedRequest interface
+declare module './types' {
+  interface EnhancedRequest extends RequestMacroMethods {
+    validated?: Record<string, any>
+  }
+}

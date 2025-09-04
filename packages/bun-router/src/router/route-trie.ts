@@ -86,7 +86,16 @@ export class RouteTrie {
    * Compile a route pattern into segments
    */
   compileRoute(route: Route): CompiledRoute {
-    const cacheKey = `${route.method}:${route.path}`
+    // Include constraints in the cache key if present
+    let cacheKey = `${route.method}:${route.path}`
+    if (route.constraints && !Array.isArray(route.constraints)) {
+      const constraintsRecord = route.constraints as Record<string, string>
+      const constraintKeys = Object.keys(constraintsRecord).sort()
+      const constraintString = constraintKeys
+        .map(key => `${key}:${constraintsRecord[key]}`)
+        .join('|')
+      cacheKey = `${route.method}:${route.path}#${constraintString}`
+    }
 
     if (this.compiledRoutes.has(cacheKey)) {
       return this.compiledRoutes.get(cacheKey)!
@@ -96,6 +105,17 @@ export class RouteTrie {
     const paramNames = segments
       .filter(seg => seg.type === 'parameter')
       .map(seg => seg.paramName!)
+
+    // Apply constraints to segments if they exist
+    if (route.constraints && !Array.isArray(route.constraints)) {
+      const constraintsRecord = route.constraints as Record<string, string>
+      for (const segment of segments) {
+        if (segment.type === 'parameter' && segment.paramName && 
+            constraintsRecord[segment.paramName]) {
+          segment.pattern = new RegExp(`^${constraintsRecord[segment.paramName]}$`)
+        }
+      }
+    }
 
     const priority = this.calculateRoutePriority(segments)
     const staticScore = segments.filter(seg => seg.type === 'static').length
@@ -360,6 +380,29 @@ export class RouteTrie {
     return Array.from(this.compiledRoutes.values())
   }
 
+  /**
+   * Remove a route from the trie
+   */
+  removeRoute(route: Route): void {
+    // Generate the cache key for this route
+    let cacheKey = `${route.method}:${route.path}`
+    if (route.constraints && !Array.isArray(route.constraints)) {
+      const constraintsRecord = route.constraints as Record<string, string>
+      const constraintKeys = Object.keys(constraintsRecord).sort()
+      const constraintString = constraintKeys
+        .map(key => `${key}:${constraintsRecord[key]}`)
+        .join('|')
+      cacheKey = `${route.method}:${route.path}#${constraintString}`
+    }
+    
+    // Remove from compiled routes cache
+    this.compiledRoutes.delete(cacheKey)
+    
+    // We don't actually need to remove nodes from the trie structure
+    // since we'll be adding the updated route back immediately
+    // This is a performance optimization to avoid complex trie node removal
+  }
+  
   /**
    * Clear the trie
    */
