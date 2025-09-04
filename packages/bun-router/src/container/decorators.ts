@@ -1,8 +1,6 @@
 /* eslint-disable ts/no-unsafe-function-type */
 /**
  * Modern Dependency Injection Decorators
- *
- * Uses standard decorators without reflect-metadata dependency
  */
 
 import type { ResolutionContext } from './container'
@@ -165,20 +163,20 @@ function createRouteDecorator(method: string, path: string, options?: { middlewa
     if (!target.constructor[ROUTE_METADATA_KEY]) {
       target.constructor[ROUTE_METADATA_KEY] = []
     }
-    
+
     const metadata: RouteMetadata = {
       method,
       path,
       middleware: options?.middleware || [],
       tags: options?.tags || [],
     }
-    
+
     target.constructor[ROUTE_METADATA_KEY].push({
       ...metadata,
       propertyKey,
       handler: descriptor.value,
     })
-    
+
     return descriptor
   }
 }
@@ -238,17 +236,17 @@ function createParamDecorator(
     if (!target.constructor[PARAM_METADATA_KEY]) {
       target.constructor[PARAM_METADATA_KEY] = new Map()
     }
-    
+
     if (!target.constructor[PARAM_METADATA_KEY].has(propertyKey)) {
       target.constructor[PARAM_METADATA_KEY].set(propertyKey, [])
     }
-    
+
     const metadata: ParamMetadata = {
       type,
       key,
       token,
     }
-    
+
     target.constructor[PARAM_METADATA_KEY].get(propertyKey)[parameterIndex] = metadata
   }
 }
@@ -295,7 +293,7 @@ export class MetadataReader {
 }
 
 /**
- * Modern Decorator Container that works without reflect-metadata
+ * Modern Decorator Container
  */
 export class DecoratorContainer extends Container {
   /**

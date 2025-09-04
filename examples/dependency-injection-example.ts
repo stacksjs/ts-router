@@ -5,7 +5,6 @@
  * Decorators, Contextual Binding, and real-world usage patterns
  */
 
-// Modern decorators - no reflect-metadata needed
 import {
   Container,
   createContainer

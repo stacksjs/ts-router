@@ -19,7 +19,6 @@ import {
   Injectable,
   MetadataReader,
 } from '../packages/bun-router/src/container/decorators'
-
 import {
   BaseServiceProvider,
   ConfigServiceProvider,
@@ -27,8 +26,6 @@ import {
   DefaultServiceProviderManager,
   LoggingServiceProvider,
 } from '../packages/bun-router/src/container/service-provider'
-
-// Modern decorators - no reflect-metadata needed
 
 // Test services and classes
 @Injectable({ scope: 'singleton' })
@@ -239,7 +236,7 @@ describe('IoC Container', () => {
           return 'test'
         }
       }
-      
+
       container.singleton(TestService, TestService)
       const testService = container.resolve<TestService>(TestService)
       expect(testService).toBeInstanceOf(TestService)
@@ -448,11 +445,11 @@ describe('Decorators', () => {
     it('should resolve controller with dependencies', () => {
       // Clear any existing bindings to avoid conflicts
       container.clear()
-      
+
       // Bind dependencies that UserController needs
       container.factory('userService', () => ({ getUser: () => Promise.resolve({ id: 1, name: 'Test' }) }))
       container.factory('logger', () => new LoggerService())
-      
+
       // Register the controller
       container.registerController(UserController)
 
