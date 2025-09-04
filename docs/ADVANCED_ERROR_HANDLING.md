@@ -13,7 +13,7 @@ Comprehensive error handling system with exception hierarchy, error reporting in
 ## Quick Start
 
 ```typescript
-import { createAdvancedErrorHandler, ErrorHandlerPresets } from 'bun-router/errors'
+import { createAdvancedErrorHandler, ErrorHandlerPresets } from 'bun-router'
 
 // Development setup
 const errorHandler = createAdvancedErrorHandler(
@@ -36,7 +36,7 @@ router.use(errorHandler)
 All errors extend from `RouterException` with rich metadata:
 
 ```typescript
-import { ErrorFactory } from 'bun-router/errors'
+import { ErrorFactory } from 'bun-router'
 
 // Create specific error types
 const validationError = ErrorFactory.validation('Invalid email', {
@@ -88,7 +88,7 @@ const error = ErrorFactory.internalServer('Database connection failed', cause, {
 ### Sentry Integration
 
 ```typescript
-import { ErrorReportingPresets } from 'bun-router/errors'
+import { ErrorReportingPresets } from 'bun-router'
 
 const config = ErrorReportingPresets.sentry('your-dsn', 'production')
 
@@ -110,7 +110,7 @@ const errorHandler = createAdvancedErrorHandler({
 ### Custom Error Reporting
 
 ```typescript
-import { CustomReporter } from 'bun-router/errors'
+import { CustomReporter } from 'bun-router'
 
 const customReporter = new CustomReporter(
   { enabled: true, service: 'custom' },
@@ -144,7 +144,7 @@ errorReporting.addBreadcrumb('Database query', 'db', { query: 'SELECT...' })
 ### Basic Usage
 
 ```typescript
-import { CircuitBreaker, CircuitBreakerPresets } from 'bun-router/errors'
+import { CircuitBreaker, CircuitBreakerPresets } from 'bun-router'
 
 // Create circuit breaker for external service
 const breaker = new CircuitBreaker(
@@ -165,7 +165,7 @@ const result = await breaker.execute({
 ### HTTP Client with Circuit Breaker
 
 ```typescript
-import { CircuitBreakerHttpClient } from 'bun-router/errors'
+import { CircuitBreakerHttpClient } from 'bun-router'
 
 const client = new CircuitBreakerHttpClient()
 
@@ -188,7 +188,7 @@ const response = await client.fetch('https://api.external.com/data', {
 ### Monitoring Circuit Breakers
 
 ```typescript
-import { globalCircuitBreakerRegistry } from 'bun-router/errors'
+import { globalCircuitBreakerRegistry } from 'bun-router'
 
 // Get all circuit breaker metrics
 const metrics = globalCircuitBreakerRegistry.getAllMetrics()
@@ -206,7 +206,7 @@ globalCircuitBreakerRegistry.get('payment-service')?.forceClosed()
 ### Configuration
 
 ```typescript
-import { DegradationStrategies } from 'bun-router/errors'
+import { DegradationStrategies } from 'bun-router'
 
 const degradationConfig = {
   enabled: true,
@@ -242,11 +242,13 @@ const degradationConfig = {
 ### Fallback Strategies
 
 #### Cache-First Strategy
+
 ```typescript
 const strategy = DegradationStrategies.cacheFirst(3600, true) // TTL, stale-while-revalidate
 ```
 
 #### Static Fallback
+
 ```typescript
 const strategy = DegradationStrategies.staticFallback({
   data: [],
@@ -255,11 +257,13 @@ const strategy = DegradationStrategies.staticFallback({
 ```
 
 #### Simplified View
+
 ```typescript
 const strategy = DegradationStrategies.simplifiedView()
 ```
 
 #### Custom Fallback
+
 ```typescript
 const strategy = {
   type: 'custom',
@@ -280,7 +284,7 @@ const strategy = {
 ### Health Monitoring
 
 ```typescript
-import { GracefulDegradationManager } from 'bun-router/errors'
+import { GracefulDegradationManager } from 'bun-router'
 
 const manager = new GracefulDegradationManager(degradationConfig)
 
@@ -296,29 +300,29 @@ console.log(`Error rate: ${metrics.errorRate}%`)
 ## Complete Integration Example
 
 ```typescript
-import { 
+import {
   createAdvancedErrorHandler,
   ErrorReportingPresets,
   CircuitBreakerPresets,
   DegradationStrategies
-} from 'bun-router/errors'
+} from 'bun-router'
 
 // Configure advanced error handling
 const errorHandler = createAdvancedErrorHandler({
   development: process.env.NODE_ENV === 'development',
-  
+
   // Error reporting
   errorReporting: [
     ErrorReportingPresets.sentry(process.env.SENTRY_DSN!, 'production')
   ],
-  
+
   // Circuit breakers
   circuitBreakers: [
     CircuitBreakerPresets.database('postgres'),
     CircuitBreakerPresets.externalApi('payment-service'),
     CircuitBreakerPresets.standard('cache-service')
   ],
-  
+
   // Graceful degradation
   gracefulDegradation: {
     enabled: true,
@@ -349,7 +353,7 @@ const errorHandler = createAdvancedErrorHandler({
       }
     }
   },
-  
+
   // Custom error pages
   customErrorPages: {
     404: '<h1>Page Not Found</h1><p>The requested resource was not found.</p>',
@@ -370,7 +374,7 @@ router.use(errorHandler)
 
 ```typescript
 import { Router } from 'bun-router'
-import { createAdvancedErrorHandler, ErrorFactory } from 'bun-router/errors'
+import { createAdvancedErrorHandler, ErrorFactory } from 'bun-router'
 
 const router = new Router()
 
@@ -383,16 +387,16 @@ router.use(createAdvancedErrorHandler({
 // Your route handlers can throw RouterExceptions
 router.get('/users/:id', async (req) => {
   const userId = req.params.id
-  
+
   if (!userId) {
     throw ErrorFactory.validation('User ID is required')
   }
-  
+
   const user = await getUserById(userId)
   if (!user) {
     throw ErrorFactory.notFound('User', userId)
   }
-  
+
   return Response.json(user)
 })
 ```
@@ -400,6 +404,7 @@ router.get('/users/:id', async (req) => {
 ## Environment Presets
 
 ### Development
+
 ```typescript
 const config = ErrorHandlerPresets.development()
 // - Full stack traces
@@ -409,6 +414,7 @@ const config = ErrorHandlerPresets.development()
 ```
 
 ### Production
+
 ```typescript
 const config = ErrorHandlerPresets.production(sentryDsn, bugsnagApiKey)
 // - Sanitized error messages
@@ -418,6 +424,7 @@ const config = ErrorHandlerPresets.production(sentryDsn, bugsnagApiKey)
 ```
 
 ### Resilient (High Availability)
+
 ```typescript
 const config = ErrorHandlerPresets.resilient({
   sentryDsn: 'your-sentry-dsn',
@@ -456,18 +463,18 @@ console.log('Graceful Degradation:', stats.gracefulDegradation)
 
 ```typescript
 import { describe, test, expect } from 'bun:test'
-import { ErrorFactory, CircuitBreaker } from 'bun-router/errors'
+import { ErrorFactory, CircuitBreaker } from 'bun-router'
 
 describe('Error Handling', () => {
   test('should handle validation errors', () => {
     const error = ErrorFactory.validation('Invalid input', {
       email: ['Required field']
     })
-    
+
     expect(error.statusCode).toBe(400)
     expect(error.fields.email).toContain('Required field')
   })
-  
+
   test('should trip circuit breaker', async () => {
     const breaker = new CircuitBreaker({
       name: 'test',
@@ -475,7 +482,7 @@ describe('Error Handling', () => {
       recoveryTimeout: 1000,
       timeout: 100
     })
-    
+
     // Trigger failures
     for (let i = 0; i < 3; i++) {
       try {
@@ -486,7 +493,7 @@ describe('Error Handling', () => {
         // Expected
       }
     }
-    
+
     expect(breaker.getState()).toBe('OPEN')
   })
 })
