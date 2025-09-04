@@ -6,6 +6,7 @@ import { registerMiddlewareHandling } from './middleware'
 import { registerModelBinding } from './model-binding'
 import { registerRouteBuilding } from './route-building'
 import { registerRouteMatching } from './route-matching'
+import { registerOptimizedRouteMatching } from './optimized-route-matching'
 import { registerServerHandling } from './server'
 import { registerViewRendering } from './view-rendering'
 import { registerWebSocketHandling } from './websocket'
@@ -15,6 +16,7 @@ import '../types' // Import types for type augmentation
 registerHttpMethods(Router)
 registerRedirectMethods(Router)
 registerRouteMatching(Router)
+registerOptimizedRouteMatching(Router) // Override with optimized version
 registerMiddlewareHandling(Router)
 registerViewRendering(Router)
 registerWebSocketHandling(Router)

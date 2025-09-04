@@ -129,32 +129,37 @@ export function registerHttpMethods(RouterClass: typeof Router): void {
           },
         }
 
-        // Add to the main routes array
-        this.routes.push(route)
-
-        // Register static routes for fast lookup
-        if (!routePath.includes('{') && !routePath.includes('*')) {
-          // Static route
-          if (!this.staticRoutes.has(route.method)) {
-            this.staticRoutes.set(route.method, new Map())
-          }
-          this.staticRoutes.get(route.method)!.set(routePath, route)
-        }
-
-        // Add to domain-specific routes if applicable
+        // Add to the appropriate collection
         if (domain) {
           if (!this.domains[domain]) {
             this.domains[domain] = []
           }
           this.domains[domain].push(route)
         }
+        else {
+          this.routes.push(route)
+        }
 
-        // If the route has a name, store it in the named routes map
+        // Add to static routes map for fast lookup if it's a static route
+        if (!routePath.includes('{') && !routePath.includes('*')) {
+          if (!this.staticRoutes.has(method.toUpperCase())) {
+            this.staticRoutes.set(method.toUpperCase(), new Map())
+          }
+          this.staticRoutes.get(method.toUpperCase())!.set(routePath, route)
+        }
+
+        // Add to named routes if name is provided
         if (name) {
+          route.name = name
           this.namedRoutes.set(name, route)
         }
 
-        // Invalidate route cache when a new route is added
+        // Add to optimized route compiler if available
+        if (this.addRouteToCompiler) {
+          this.addRouteToCompiler(route)
+        }
+
+        // Clear route cache when new routes are added
         this.routeCache.clear()
 
         return this
