@@ -1,4 +1,4 @@
-import type { EnhancedRequest } from '../types'
+import type { EnhancedRequest, ThrottlePattern } from '../types'
 import { LRUCache } from '../cache/lru-cache'
 
 /**
@@ -259,27 +259,67 @@ export function createRateLimitMiddleware(config: RateLimitConfig, name?: string
 }
 
 /**
- * Parse throttle string (Laravel-style)
+ * Parse throttle string (Laravel-style) with enhanced time unit support
  * Examples: '60,1' -> 60 requests per 1 minute
- *          '100,60' -> 100 requests per 60 minutes
- *          '1000' -> 1000 requests per 1 minute (default)
+ *          '100,30s' -> 100 requests per 30 seconds
+ *          '1000,1h' -> 1000 requests per 1 hour
+ *          '60' -> 60 requests per 1 minute (default)
  */
-export function parseThrottleString(throttleStr: string): RateLimitConfig {
+export function parseThrottleString(throttleStr: ThrottlePattern): RateLimitConfig {
   const parts = throttleStr.split(',')
   const maxAttempts = parseInt(parts[0], 10)
-  const windowMinutes = parts[1] ? parseInt(parts[1], 10) : 1
 
   if (isNaN(maxAttempts) || maxAttempts <= 0) {
     throw new Error(`Invalid throttle max attempts: ${parts[0]}`)
   }
 
-  if (isNaN(windowMinutes) || windowMinutes <= 0) {
-    throw new Error(`Invalid throttle window: ${parts[1]}`)
+  let windowMs: number
+
+  if (parts.length === 1) {
+    // Default to 1 minute if no time window specified
+    windowMs = 60 * 1000
+  } else {
+    const timeStr = parts[1]
+    windowMs = parseTimeString(timeStr)
   }
 
   return {
     maxAttempts,
-    windowMs: windowMinutes * 60 * 1000, // Convert minutes to milliseconds
+    windowMs,
+  }
+}
+
+/**
+ * Parse time string with units into milliseconds
+ */
+function parseTimeString(timeStr: string): number {
+  const timePattern = /^(\d+)(s|sec|m|min|h|hour)?$/
+  const match = timeStr.match(timePattern)
+
+  if (!match) {
+    throw new Error(`Invalid time format: ${timeStr}`)
+  }
+
+  const value = parseInt(match[1], 10)
+  const unit = match[2] || 'm' // Default to minutes
+
+  if (isNaN(value) || value <= 0) {
+    throw new Error(`Invalid time value: ${match[1]}`)
+  }
+
+  switch (unit) {
+    case 's':
+    case 'sec':
+      return value * 1000
+    case 'm':
+    case 'min':
+      return value * 60 * 1000
+    case 'h':
+    case 'hour':
+      return value * 60 * 60 * 1000
+    default:
+      // Fallback: treat as minutes if no unit or unknown unit
+      return value * 60 * 1000
   }
 }
 

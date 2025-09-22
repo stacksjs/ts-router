@@ -439,13 +439,13 @@ export function getRouteDebugger(): RouteDebugger | null {
  * Route debugging middleware factory
  */
 export function createRouteDebugMiddleware(config?: RouteDebugConfig) {
-  const debugger = globalDebugger || new RouteDebugger(config)
+  const routeDebugger = globalDebugger || new RouteDebugger(config)
 
   return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
-    const requestId = debugger.startDebugging(req)
+    const requestId = routeDebugger.startDebugging(req)
 
     // Add debugger to request for route matching
-    ;(req as any).debugger = debugger
+    ;(req as any).debugger = routeDebugger
     ;(req as any).debugRequestId = requestId
 
     const startTime = performance.now()
@@ -454,16 +454,16 @@ export function createRouteDebugMiddleware(config?: RouteDebugConfig) {
       const response = await next()
 
       const endTime = performance.now()
-      debugger.recordTiming(requestId, 'total', endTime - startTime)
+      routeDebugger.recordTiming(requestId, 'total', endTime - startTime)
 
-      debugger.finishDebugging(requestId, response)
+      routeDebugger.finishDebugging(requestId, response)
 
       return response
     } catch (error) {
       const endTime = performance.now()
-      debugger.recordTiming(requestId, 'total', endTime - startTime)
+      routeDebugger.recordTiming(requestId, 'total', endTime - startTime)
 
-      debugger.finishDebugging(requestId)
+      routeDebugger.finishDebugging(requestId)
       throw error
     }
   }
@@ -477,11 +477,11 @@ export const RouteDebugHelpers = {
    * Record route match attempt from request context
    */
   recordMatch: (req: EnhancedRequest, pattern: string, method: string, matched: boolean, reason?: string, params?: Record<string, string>) => {
-    const debugger = (req as any).debugger as RouteDebugger
+    const routeDebugger = (req as any).debugger as RouteDebugger
     const requestId = (req as any).debugRequestId as string
 
-    if (debugger && requestId) {
-      debugger.recordMatchAttempt(requestId, pattern, method, matched, reason, params)
+    if (routeDebugger && requestId) {
+      routeDebugger.recordMatchAttempt(requestId, pattern, method, matched, reason, params)
     }
   },
 
@@ -489,11 +489,11 @@ export const RouteDebugHelpers = {
    * Record final match from request context
    */
   recordFinalMatch: (req: EnhancedRequest, pattern: string, handler: Function, middleware: Function[], params: Record<string, string>) => {
-    const debugger = (req as any).debugger as RouteDebugger
+    const routeDebugger = (req as any).debugger as RouteDebugger
     const requestId = (req as any).debugRequestId as string
 
-    if (debugger && requestId) {
-      debugger.recordFinalMatch(requestId, pattern, handler, middleware, params)
+    if (routeDebugger && requestId) {
+      routeDebugger.recordFinalMatch(requestId, pattern, handler, middleware, params)
     }
   },
 
@@ -501,11 +501,11 @@ export const RouteDebugHelpers = {
    * Record timing from request context
    */
   recordTiming: (req: EnhancedRequest, phase: keyof RouteDebugInfo['timings'], duration: number) => {
-    const debugger = (req as any).debugger as RouteDebugger
+    const routeDebugger = (req as any).debugger as RouteDebugger
     const requestId = (req as any).debugRequestId as string
 
-    if (debugger && requestId) {
-      debugger.recordTiming(requestId, phase, duration)
+    if (routeDebugger && requestId) {
+      routeDebugger.recordTiming(requestId, phase, duration)
     }
   }
 }

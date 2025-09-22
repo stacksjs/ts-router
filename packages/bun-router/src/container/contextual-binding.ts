@@ -1,11 +1,12 @@
 /**
  * Contextual Binding for Different Environments
- * 
+ *
  * Advanced contextual binding system supporting environment-specific configurations,
  * conditional service resolution, and dynamic binding based on runtime context
  */
 
-import { Container, Binding, ResolutionContext, BindingMetadata } from './container.js'
+import type { Binding, ResolutionContext, BindingMetadata } from './container'
+import { Container } from './container'
 
 // Contextual binding interfaces
 export interface ContextualBinding<T = any> extends Binding<T> {
@@ -306,13 +307,13 @@ export class ContextualContainer extends Container {
     if (!this.contextualBindings.has(binding.token)) {
       this.contextualBindings.set(binding.token, [])
     }
-    
+
     const bindings = this.contextualBindings.get(binding.token)!
     bindings.push(binding)
-    
+
     // Sort by priority (higher first)
     bindings.sort((a, b) => b.priority - a.priority)
-    
+
     return this
   }
 

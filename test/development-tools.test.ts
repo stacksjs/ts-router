@@ -33,10 +33,10 @@ const mockHandler = async (req: EnhancedRequest): Promise<Response> => {
 }
 
 describe('Route Debugger', () => {
-  let debugger: RouteDebugger
+  let routeDebugger: RouteDebugger
 
   beforeEach(() => {
-    debugger = new RouteDebugger({
+    routeDebugger = new RouteDebugger({
       enabled: true,
       logLevel: 'debug',
       includeHeaders: true,
@@ -47,17 +47,17 @@ describe('Route Debugger', () => {
   })
 
   afterEach(() => {
-    debugger.clearSessions()
+    routeDebugger.clearSessions()
   })
 
   test('should start and finish debugging session', () => {
     const req = createMockRequest()
-    const requestId = debugger.startDebugging(req)
+    const requestId = routeDebugger.startDebugging(req)
 
     expect(requestId).toBeTruthy()
-    expect(debugger.getDebugSession(requestId)).toBeDefined()
+    expect(routeDebugger.getDebugSession(requestId)).toBeDefined()
 
-    const debugInfo = debugger.finishDebugging(requestId)
+    const debugInfo = routeDebugger.finishDebugging(requestId)
     expect(debugInfo).toBeDefined()
     expect(debugInfo?.requestId).toBe(requestId)
     expect(debugInfo?.method).toBe('GET')
@@ -65,12 +65,12 @@ describe('Route Debugger', () => {
 
   test('should record route match attempts', () => {
     const req = createMockRequest()
-    const requestId = debugger.startDebugging(req)
+    const requestId = routeDebugger.startDebugging(req)
 
-    debugger.recordMatchAttempt(requestId, '/test', 'GET', false, 'Pattern mismatch')
-    debugger.recordMatchAttempt(requestId, '/test/{id}', 'GET', true, undefined, { id: '123' })
+    routeDebugger.recordMatchAttempt(requestId, '/test', 'GET', false, 'Pattern mismatch')
+    routeDebugger.recordMatchAttempt(requestId, '/test/{id}', 'GET', true, undefined, { id: '123' })
 
-    const debugInfo = debugger.getDebugSession(requestId)
+    const debugInfo = routeDebugger.getDebugSession(requestId)
     expect(debugInfo?.matchAttempts).toHaveLength(2)
     expect(debugInfo?.matchAttempts[0].matched).toBe(false)
     expect(debugInfo?.matchAttempts[1].matched).toBe(true)
@@ -79,11 +79,11 @@ describe('Route Debugger', () => {
 
   test('should record final route match', () => {
     const req = createMockRequest()
-    const requestId = debugger.startDebugging(req)
+    const requestId = routeDebugger.startDebugging(req)
 
-    debugger.recordFinalMatch(requestId, '/test/{id}', mockHandler, [], { id: '123' })
+    routeDebugger.recordFinalMatch(requestId, '/test/{id}', mockHandler, [], { id: '123' })
 
-    const debugInfo = debugger.getDebugSession(requestId)
+    const debugInfo = routeDebugger.getDebugSession(requestId)
     expect(debugInfo?.finalMatch).toBeDefined()
     expect(debugInfo?.finalMatch?.pattern).toBe('/test/{id}')
     expect(debugInfo?.finalMatch?.params).toEqual({ id: '123' })
@@ -91,21 +91,21 @@ describe('Route Debugger', () => {
 
   test('should record timing information', () => {
     const req = createMockRequest()
-    const requestId = debugger.startDebugging(req)
+    const requestId = routeDebugger.startDebugging(req)
 
-    debugger.recordTiming(requestId, 'routeMatching', 5.5)
-    debugger.recordTiming(requestId, 'handlerExecution', 15.2)
+    routeDebugger.recordTiming(requestId, 'routeMatching', 5.5)
+    routeDebugger.recordTiming(requestId, 'handlerExecution', 15.2)
 
-    const debugInfo = debugger.getDebugSession(requestId)
+    const debugInfo = routeDebugger.getDebugSession(requestId)
     expect(debugInfo?.timings.routeMatching).toBe(5.5)
     expect(debugInfo?.timings.handlerExecution).toBe(15.2)
   })
 
   test('should register and retrieve routes', () => {
-    debugger.registerRoute('GET', '/test', mockHandler, [])
-    debugger.registerRoute('POST', '/users', mockHandler, [])
+    routeDebugger.registerRoute('GET', '/test', mockHandler, [])
+    routeDebugger.registerRoute('POST', '/users', mockHandler, [])
 
-    const routes = debugger.getRegisteredRoutes()
+    const routes = routeDebugger.getRegisteredRoutes()
     expect(routes).toHaveLength(2)
     expect(routes[0].method).toBe('GET')
     expect(routes[0].pattern).toBe('/test')
@@ -657,11 +657,11 @@ describe('Development Presets', () => {
 
 describe('Middleware Integration', () => {
   test('should create debug middleware', async () => {
-    const debugger = new RouteDebugger({ enabled: true, outputFormat: 'json' })
+    const routeDebugger = new RouteDebugger({ enabled: true, outputFormat: 'json' })
     const middleware = async (req: EnhancedRequest, next: () => Promise<Response>) => {
-      const requestId = debugger.startDebugging(req)
+      const requestId = routeDebugger.startDebugging(req)
       const response = await next()
-      debugger.finishDebugging(requestId, response)
+      routeDebugger.finishDebugging(requestId, response)
       return response
     }
 

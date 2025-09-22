@@ -6,8 +6,8 @@
  * and bootstrapping application components with dependency injection
  */
 
-import type { Container, ResolutionContext } from './container.js'
-import { Binding } from './container.js'
+import type { Container, ResolutionContext } from './container'
+import { Binding } from './container'
 
 // Service provider interfaces
 export interface ServiceProvider {

@@ -45,11 +45,11 @@ export interface CacheStats {
  * High-performance SQLite-based cache
  */
 export class SQLiteCache {
-  private db: Database
+  private db!: Database
   private config: Required<SQLiteCacheConfig>
   private stats: CacheStats
   private cleanupTimer?: Timer
-  private preparedStatements: {
+  private preparedStatements!: {
     get: any
     set: any
     delete: any

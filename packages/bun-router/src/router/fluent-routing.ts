@@ -2,7 +2,7 @@ import type { BunQueryBuilderModel } from '../model-binding'
 import type { RouteCacheConfig } from '../routing/route-caching'
 import type { RateLimitConfig } from '../routing/route-throttling'
 import type { DomainGroupConfig } from '../routing/subdomain-routing'
-import type { EnhancedRequest, MiddlewareHandler, RouteHandler } from '../types'
+import type { EnhancedRequest, MiddlewareHandler, RouteHandler, ThrottlePattern } from '../types'
 import { createModelBindingMiddleware, extractModelParameters } from '../model-binding'
 import { createRouteCacheMiddleware, RouteCacheFactory } from '../routing/route-caching'
 import { createRateLimitMiddleware, parseThrottleString, ThrottleFactory } from '../routing/route-throttling'
@@ -49,9 +49,9 @@ export class FluentRouteBuilder {
   }
 
   /**
-   * Add route throttling
+   * Add route throttling with narrow type checking
    */
-  throttle(limit: string | RateLimitConfig, name?: string): this {
+  throttle(limit: ThrottlePattern | RateLimitConfig, name?: string): this {
     if (typeof limit === 'string') {
       const parsed = parseThrottleString(limit)
       this.throttleConfig = {

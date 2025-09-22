@@ -77,7 +77,7 @@ export interface StaticConfig {
 
 export interface CacheConfig {
   enabled: boolean
-  type: 'memory' | 'redis' | 'custom'
+  type: CacheType
   ttl: number
   max?: number
   redis?: {
@@ -116,7 +116,7 @@ export interface CacheConfig {
   }
   strategies?: {
     [key: string]: {
-      type: 'stale-while-revalidate' | 'cache-first' | 'network-first'
+      type: CacheStrategy
       ttl: number
       staleWhileRevalidateTtl?: number
     }
@@ -162,8 +162,25 @@ export interface PerformanceConfig {
   monitoring?: {
     enabled?: boolean
     sampleRate?: number
+    metrics?: {
+      responseTime?: boolean
+      memoryUsage?: boolean
+      cpuUsage?: boolean
+      errorRate?: boolean
+      requestRate?: boolean
+      cacheStats?: boolean
+    }
+    tracing?: {
+      enabled?: boolean
+      sampleRate?: number
+      serviceName?: string
+      serviceVersion?: string
+      environment?: string
+      jaegerEndpoint?: string
+      zipkinEndpoint?: string
+    }
     storage?: {
-      type?: 'memory' | 'file' | 'custom'
+      type?: CacheType
       maxEntries?: number
       filePath?: string
       customHandler?: (metrics: any[]) => Promise<void>
@@ -355,7 +372,7 @@ export interface SecurityConfig {
     skipSuccessfulRequests?: boolean
     skipFailedRequests?: boolean
     keyGenerator?: (req: any) => string
-    store?: 'memory' | 'redis'
+    store?: Extract<CacheType, 'memory' | 'redis'>
     redis?: {
       url: string
       prefix?: string
@@ -453,7 +470,7 @@ export interface SecurityConfig {
         path?: string
       }
       store?: {
-        type: 'memory' | 'redis' | 'custom'
+        type: CacheType
         redis?: {
           url: string
           prefix: string
@@ -589,7 +606,7 @@ export interface ViewEngineConfig {
   /**
    * Template engine to use
    */
-  engine: 'auto' | 'stx' | 'html' | 'custom'
+  engine: TemplateEngine
   /**
    * Custom render function for template processing
    */
@@ -770,13 +787,115 @@ export interface ActionHandlerClass {
   handle: (request: EnhancedRequest) => Promise<Response>
 }
 
-export type ActionHandler = string | RouteHandler | (new () => ActionHandlerClass)
+/**
+ * Action handler path with strict pattern validation
+ */
+export type ActionPath = `Actions/${string}Action` | `actions/${string}Action` | `${string}Controller@${string}`
+
+/**
+ * Strongly typed action handler with better type safety
+ */
+export type ActionHandler<TPath extends string = string> =
+  | ActionPath
+  | TypedRouteHandler<TPath>
+  | RouteHandler
+  | (new () => ActionHandlerClass)
+
+/**
+ * Controller method reference with strict typing
+ */
+export type ControllerMethod<
+  TController extends string = string,
+  TMethod extends string = string
+> = `${TController}@${TMethod}`
+
+/**
+ * Action class constructor with typed handle method
+ */
+export interface TypedActionHandlerClass<TPath extends string = string> {
+  handle: (request: EnhancedRequest & { params: ExtractRouteParams<TPath> }) => Promise<Response>
+}
+
+/**
+ * Discriminated union for different action handler types
+ */
+export type ActionHandlerVariant<TPath extends string = string> =
+  | { type: 'path'; value: ActionPath }
+  | { type: 'function'; value: TypedRouteHandler<TPath> }
+  | { type: 'class'; value: new () => TypedActionHandlerClass<TPath> }
+  | { type: 'controller'; value: ControllerMethod }
 
 export type NextFunction = () => Promise<Response | null> | Response | null
 export type MiddlewareHandler = (req: EnhancedRequest, next: NextFunction) => Promise<Response | null> | Response | null
 
 export interface Middleware {
   handle: MiddlewareHandler
+}
+
+/**
+ * Strict middleware configuration with narrow types
+ */
+export interface StrictMiddlewareConfig {
+  name: BuiltInMiddleware
+  enabled: boolean
+  priority: number
+  timing: MiddlewareTiming
+  params?: Record<string, string | number | boolean>
+}
+
+/**
+ * Conditional middleware with narrow type constraints
+ */
+export interface ConditionalMiddleware<T extends BuiltInMiddleware = BuiltInMiddleware> {
+  name: T
+  condition: (req: EnhancedRequest) => boolean
+  handler: MiddlewareHandler
+  priority?: number
+}
+
+/**
+ * Middleware group configuration with strict typing
+ */
+export interface MiddlewareGroup {
+  name: string
+  middleware: (BuiltInMiddleware | MiddlewareWithParams<BuiltInMiddleware>)[]
+  priority: number
+  description?: string
+}
+
+/**
+ * Throttle middleware parameters with narrow types
+ */
+export interface ThrottleMiddlewareParams {
+  pattern: ThrottlePattern
+  name?: string
+  keyGenerator?: (req: EnhancedRequest) => string
+  skipIf?: (req: EnhancedRequest) => boolean
+}
+
+/**
+ * CORS middleware configuration with strict options
+ */
+export interface CorsMiddlewareConfig {
+  origin: string | string[] | boolean | ((origin: string) => boolean)
+  methods: HTTPMethod[]
+  allowedHeaders: string[]
+  exposedHeaders?: string[]
+  credentials: boolean
+  maxAge: number
+  preflightContinue: boolean
+  optionsSuccessStatus: ResponseStatus
+}
+
+/**
+ * Auth middleware configuration with narrow types
+ */
+export interface AuthMiddlewareConfig {
+  type: 'jwt' | 'session' | 'apikey' | 'basic' | 'bearer'
+  required: boolean
+  realm?: string
+  validateUser?: (user: any) => boolean
+  onUnauthorized?: (req: EnhancedRequest) => Response
 }
 
 export interface RouteGroup {
@@ -840,25 +959,29 @@ export interface ServerOptions extends Partial<Omit<Server, 'websocket'>> {
 }
 
 /**
- * Type definition for route configuration.
+ * Type definition for route configuration with strict typing.
  */
-export interface RouteDefinition {
+export interface RouteDefinition<
+  TPath extends string = string,
+  TMethod extends HTTPMethod = HTTPMethod,
+  THandler extends ActionHandler = ActionHandler
+> {
   /**
    * The path pattern for the route
    */
-  path: string
+  path: TPath
   /**
    * The HTTP method for the route
    */
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD' | 'TRACE' | 'CONNECT'
+  method: TMethod
   /**
    * The action handler for the route - can be a string path, function, or class
    */
-  handler: ActionHandler
+  handler: THandler
   /**
    * Optional array of middleware to be executed before the handler
    */
-  middleware?: (string | MiddlewareHandler)[]
+  middleware?: (BuiltInMiddleware | MiddlewareWithParams<BuiltInMiddleware> | MiddlewareHandler)[]
   /**
    * Optional route type to distinguish between API and web routes
    */
@@ -868,15 +991,344 @@ export interface RouteDefinition {
    */
   name?: string
   /**
+   * Route parameter constraints
+   */
+  constraints?: {
+    [K in keyof ExtractRouteParams<TPath>]: RouteConstraint
+  }
+  /**
    * Optional route metadata for documentation or other purposes
    */
   meta?: Record<string, any>
+  /**
+   * Cache configuration for this specific route
+   */
+  cache?: {
+    enabled: boolean
+    ttl: number
+    tags?: string[]
+    strategy?: CacheStrategy
+  }
+  /**
+   * Rate limiting configuration for this route
+   */
+  throttle?: ThrottlePattern | ThrottleMiddlewareParams
 }
 
 /**
- * HTTP Methods type
+ * HTTP Methods type - extremely narrow
  */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD' | 'TRACE' | 'CONNECT'
+
+/**
+ * Narrow throttle pattern types
+ */
+export type ThrottlePattern =
+  | `${number}`                    // e.g., "60" (60 requests per 1 minute)
+  | `${number},${number}`         // e.g., "60,1" (60 requests per 1 minute)
+  | `${number},${number}min`      // e.g., "60,5min" (60 requests per 5 minutes)
+  | `${number},${number}m`        // e.g., "60,5m" (60 requests per 5 minutes)
+  | `${number},${number}sec`      // e.g., "100,30sec" (100 requests per 30 seconds)
+  | `${number},${number}s`        // e.g., "100,30s" (100 requests per 30 seconds)
+  | `${number},${number}hour`     // e.g., "1000,1hour" (1000 requests per 1 hour)
+  | `${number},${number}h`        // e.g., "1000,1h" (1000 requests per 1 hour)
+
+/**
+ * Cache strategy types - narrow and specific
+ */
+export type CacheStrategy = 'stale-while-revalidate' | 'cache-first' | 'network-first'
+
+/**
+ * Cache type narrow definition
+ */
+export type CacheType = 'memory' | 'redis' | 'custom'
+
+/**
+ * File extension types for views
+ */
+export type ViewExtension = '.html' | '.stx' | '.hbs' | '.ejs' | '.pug' | '.mustache'
+
+/**
+ * Template engine types
+ */
+export type TemplateEngine = 'auto' | 'stx' | 'html' | 'handlebars' | 'ejs' | 'pug' | 'mustache' | 'custom'
+
+/**
+ * Route parameter constraint patterns
+ */
+export type RouteConstraint =
+  | 'number'           // Only numbers
+  | 'alpha'            // Only letters
+  | 'alphanumeric'     // Letters and numbers
+  | 'uuid'             // UUID format
+  | 'slug'             // URL-friendly slug
+  | RegExp             // Custom regex
+  | string             // Custom pattern string
+
+/**
+ * Middleware execution timing
+ */
+export type MiddlewareTiming = 'before' | 'after' | 'around'
+
+/**
+ * Security header types
+ */
+export type SecurityHeader =
+  | 'Content-Security-Policy'
+  | 'X-Frame-Options'
+  | 'X-Content-Type-Options'
+  | 'Referrer-Policy'
+  | 'Permissions-Policy'
+  | 'Strict-Transport-Security'
+
+/**
+ * Built-in middleware names - extremely narrow
+ */
+export type BuiltInMiddleware =
+  | 'auth'
+  | 'cors'
+  | 'csrf'
+  | 'helmet'
+  | 'json'
+  | 'compress'
+  | 'static'
+  | 'session'
+  | 'rateLimiter'
+  | 'requestId'
+  | 'logger'
+  | 'throttle'
+
+/**
+ * Middleware with parameters
+ */
+export type MiddlewareWithParams<T extends string = string> =
+  | T
+  | `${T}:${string}`
+
+/**
+ * Route path parameter types - narrow template literals
+ */
+export type RouteParam<T extends string> = T extends `{${infer P}}` ? P : never
+
+/**
+ * Extract parameters from route path
+ */
+export type ExtractRouteParams<T extends string> =
+  T extends `${string}{${infer Param}}${infer Rest}`
+    ? { [K in Param]: string } & ExtractRouteParams<Rest>
+    : {}
+
+/**
+ * Route method constraints
+ */
+export type RouteMethodConstraint<M extends HTTPMethod = HTTPMethod> = M
+
+/**
+ * File MIME types for uploads
+ */
+export type AllowedMimeType =
+  | 'image/jpeg'
+  | 'image/png'
+  | 'image/gif'
+  | 'image/webp'
+  | 'image/svg+xml'
+  | 'application/pdf'
+  | 'application/json'
+  | 'text/plain'
+  | 'text/csv'
+  | 'application/octet-stream'
+
+/**
+ * Response status codes - narrow and specific
+ */
+export type ResponseStatus =
+  | 200 | 201 | 202 | 204 // Success
+  | 301 | 302 | 304       // Redirects
+  | 400 | 401 | 403 | 404 | 405 | 409 | 422 | 429 // Client errors
+  | 500 | 502 | 503 | 504 // Server errors
+
+/**
+ * Content types - narrow
+ */
+export type ContentType =
+  | 'application/json'
+  | 'application/xml'
+  | 'text/html'
+  | 'text/plain'
+  | 'text/csv'
+  | 'application/pdf'
+  | 'application/octet-stream'
+  | 'multipart/form-data'
+  | 'application/x-www-form-urlencoded'
+
+/**
+ * Strongly typed route method signatures
+ */
+export interface TypedRouteHandler<TPath extends string> {
+  (req: EnhancedRequest & { params: ExtractRouteParams<TPath> }): Response | Promise<Response>
+}
+
+/**
+ * Strongly typed route definition for specific HTTP methods
+ */
+export interface GetRoute<TPath extends string> extends RouteDefinition<TPath, 'GET'> {
+  method: 'GET'
+  handler: TypedRouteHandler<TPath> | ActionHandler
+}
+
+export interface PostRoute<TPath extends string> extends RouteDefinition<TPath, 'POST'> {
+  method: 'POST'
+  handler: TypedRouteHandler<TPath> | ActionHandler
+}
+
+export interface PutRoute<TPath extends string> extends RouteDefinition<TPath, 'PUT'> {
+  method: 'PUT'
+  handler: TypedRouteHandler<TPath> | ActionHandler
+}
+
+export interface DeleteRoute<TPath extends string> extends RouteDefinition<TPath, 'DELETE'> {
+  method: 'DELETE'
+  handler: TypedRouteHandler<TPath> | ActionHandler
+}
+
+export interface PatchRoute<TPath extends string> extends RouteDefinition<TPath, 'PATCH'> {
+  method: 'PATCH'
+  handler: TypedRouteHandler<TPath> | ActionHandler
+}
+
+/**
+ * Union of all typed route definitions
+ */
+export type TypedRouteDefinition<TPath extends string = string> =
+  | GetRoute<TPath>
+  | PostRoute<TPath>
+  | PutRoute<TPath>
+  | DeleteRoute<TPath>
+  | PatchRoute<TPath>
+
+/**
+ * Route validation helpers
+ */
+export interface RouteValidation<TPath extends string> {
+  path: TPath
+  params: ExtractRouteParams<TPath>
+  validate: (req: EnhancedRequest) => req is EnhancedRequest & { params: ExtractRouteParams<TPath> }
+}
+
+/**
+ * Common route patterns with strict template literal types
+ */
+export type CommonRoutePatterns =
+  | '/'                           // Root
+  | '/health'                     // Health check
+  | '/api'                        // API root
+  | '/api/v1'                     // Versioned API
+  | '/api/v1/users'              // User collection
+  | '/api/v1/users/{id}'         // User resource
+  | '/api/v1/users/{userId}/posts'  // Nested resource
+  | '/api/v1/users/{userId}/posts/{postId}'  // Nested resource item
+  | '/admin'                      // Admin panel
+  | '/admin/{section}'           // Admin section
+  | '/auth/login'                // Authentication
+  | '/auth/logout'               // Logout
+  | '/auth/register'             // Registration
+  | '/auth/forgot-password'      // Password reset
+  | '/uploads/{filename}'        // File uploads
+  | '/assets/{path}'             // Static assets
+
+/**
+ * RESTful resource route patterns
+ */
+export type ResourceRoutePatterns<T extends string> =
+  | `/${T}`                      // Collection: GET /users
+  | `/${T}/{id}`                 // Item: GET /users/123
+  | `/${T}/create`               // Create form: GET /users/create
+  | `/${T}/{id}/edit`           // Edit form: GET /users/123/edit
+  | `/${T}/{id}/show`           // Show item: GET /users/123/show
+
+/**
+ * API versioning patterns
+ */
+export type ApiVersionPattern<V extends string, Path extends string> = `/api/${V}${Path}`
+
+/**
+ * Nested resource patterns
+ */
+export type NestedResourcePattern<
+  Parent extends string,
+  Child extends string,
+  ParentId extends string = 'id',
+  ChildId extends string = 'id'
+> = `/${Parent}/{${ParentId}}/${Child}` | `/${Parent}/{${ParentId}}/${Child}/{${ChildId}}`
+
+/**
+ * Route parameter patterns with constraints
+ */
+export type IdPattern = '{id}'
+export type UuidPattern = '{uuid}'
+export type SlugPattern = '{slug}'
+export type NumberPattern = '{number}'
+
+/**
+ * File path patterns
+ */
+export type FilePathPattern = '{filepath}' | '{*filepath}' | '{path...}'
+
+/**
+ * Discriminated union for cache configurations
+ */
+export type CacheConfigVariant =
+  | { type: 'memory'; maxSize: number; ttl: number }
+  | { type: 'redis'; url: string; prefix: string; ttl: number; maxRetries: number }
+  | { type: 'custom'; adapter: CacheConfig['customAdapter']; ttl: number }
+
+/**
+ * Discriminated union for authentication configurations
+ */
+export type AuthConfigVariant =
+  | { type: 'jwt'; secret: string; expiresIn: string; algorithm: 'HS256' | 'HS384' | 'HS512' | 'RS256' }
+  | { type: 'session'; secret: string; store: CacheType; maxAge: number }
+  | { type: 'apikey'; keyName: string; location: 'header' | 'query' | 'cookie' }
+  | { type: 'basic'; realm: string; users: Record<string, string> }
+  | { type: 'bearer'; validate: (token: string) => Promise<boolean> }
+
+/**
+ * Discriminated union for rate limiting configurations
+ */
+export type RateLimitConfigVariant =
+  | { type: 'memory'; maxAttempts: number; windowMs: number; keyGenerator?: (req: EnhancedRequest) => string }
+  | { type: 'redis'; maxAttempts: number; windowMs: number; redisUrl: string; keyPrefix: string }
+  | { type: 'pattern'; pattern: ThrottlePattern; name?: string }
+
+/**
+ * Discriminated union for middleware configurations
+ */
+export type MiddlewareConfigVariant =
+  | { type: 'throttle'; config: RateLimitConfigVariant }
+  | { type: 'cors'; config: CorsMiddlewareConfig }
+  | { type: 'auth'; config: AuthConfigVariant }
+  | { type: 'cache'; config: CacheConfigVariant }
+  | { type: 'custom'; name: string; handler: MiddlewareHandler; params?: Record<string, any> }
+
+/**
+ * Discriminated union for route handlers
+ */
+export type RouteHandlerVariant<TPath extends string = string> =
+  | { type: 'action'; path: ActionPath }
+  | { type: 'function'; handler: TypedRouteHandler<TPath> }
+  | { type: 'class'; constructor: new () => TypedActionHandlerClass<TPath> }
+  | { type: 'controller'; method: ControllerMethod }
+
+/**
+ * Discriminated union for validation rules
+ */
+export type ValidationRuleVariant =
+  | { type: 'required'; message?: string }
+  | { type: 'string'; minLength?: number; maxLength?: number; pattern?: RegExp }
+  | { type: 'number'; min?: number; max?: number; integer?: boolean }
+  | { type: 'email'; message?: string }
+  | { type: 'url'; protocols?: string[] }
+  | { type: 'custom'; validate: (value: any) => boolean | Promise<boolean>; message: string }
 
 /**
  * Route matching result
@@ -1154,7 +1606,8 @@ export interface RequestMacroMethods {
 
 // Extend the existing EnhancedRequest interface
 declare module './types' {
-  interface EnhancedRequest extends RequestMacroMethods {
+  interface EnhancedRequest extends Omit<RequestMacroMethods, 'ip'> {
     validated?: Record<string, any>
+    ip?: string  // Override to allow optional string property
   }
 }

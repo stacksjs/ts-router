@@ -257,7 +257,79 @@ export class Router {
   }
 
   // Redirects
-}
+
+  // Streaming Methods
+  async stream(_path: string, _generator: any, _options?: any): Promise<void> {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  async streamSSE(_path: string, _generator: any, _options?: any): Promise<void> {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  async streamDirect(_path: string, _handler: any, _options?: any): Promise<void> {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  async streamBuffered(_path: string, _handler: any, _options?: any): Promise<void> {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  streamFile(_path: string, _options?: any): Response {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  async streamFileWithRanges(_path: string, _req: Request): Promise<Response> {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  transformStream(_transform: any, _options?: any): (req: Request) => Response {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  streamResponse(_generator: any, _options?: any): Response {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  streamAsyncIterator(_iterator: AsyncIterable<any>, _options?: any): Response {
+    throw new Error('Streaming methods not implemented - use router extensions')
+  }
+
+  // Model Binding Methods
+  modelRegistry: any = null
+  modelNotFoundHandler: any = null
+
+  bindModel(_name: string, _resolver: any): Router {
+    throw new Error('Model binding methods not implemented - use router extensions')
+  }
+
+  onModelNotFound(_handler: any): Router {
+    throw new Error('Model binding methods not implemented - use router extensions')
+  }
+
+  async getWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
+    throw new Error('Model binding methods not implemented - use router extensions')
+  }
+
+  async postWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
+    throw new Error('Model binding methods not implemented - use router extensions')
+  }
+
+  async putWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
+    throw new Error('Model binding methods not implemented - use router extensions')
+  }
+
+  async deleteWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
+    throw new Error('Model binding methods not implemented - use router extensions')
+  }
+
+  async patchWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
+    throw new Error('Model binding methods not implemented - use router extensions')
+  }
+
+  async resourceWithBinding(_path: string, _controller: string, _options?: any): Promise<Router> {
+    throw new Error('Model binding methods not implemented - use router extensions')
+  }
 }
 
 /**
@@ -338,82 +410,5 @@ export class RouteGroupBuilder {
 
   delete(path: string, handler: RouteHandler): this {
     return this
-  }
-}
-  // Streaming Methods
-  async stream(_path: string, _generator: any, _options?: any): Promise<void> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-{{ ... }}
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  async streamSSE(_path: string, _generator: any, _options?: any): Promise<void> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  async streamDirect(_path: string, _handler: any, _options?: any): Promise<void> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  async streamBuffered(_path: string, _handler: any, _options?: any): Promise<void> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  streamFile(_path: string, _options?: any): Response {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  async streamFileWithRanges(_path: string, _req: Request): Promise<Response> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  transformStream(_transform: any, _options?: any): (req: Request) => Response {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  streamResponse(_generator: any, _options?: any): Response {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  streamAsyncIterator(_iterator: AsyncIterable<any>, _options?: any): Response {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  // Model Binding Methods
-  modelRegistry: any = null
-  modelNotFoundHandler: any = null
-
-  bindModel(_name: string, _resolver: any): Router {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  onModelNotFound(_handler: any): Router {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async getWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async postWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async putWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async deleteWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async patchWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async resourceWithBinding(_path: string, _controller: string, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
   }
 }

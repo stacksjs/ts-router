@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import type { EnhancedRequest, Route } from '../types'
+import type { EnhancedRequest } from '../types'
 import type { LRUCache } from './lru-cache'
 import type { StreamingCache } from './streaming-cache'
 
@@ -304,7 +304,7 @@ export class RouteCacheWarmer {
   }> {
     let successful = 0
     let failed = 0
-    const semaphore = new Array(this.config.maxConcurrency).fill(null)
+    const _semaphore = Array.from({ length: this.config.maxConcurrency }, () => null)
 
     const warmRoute = async (route: WarmupRoute): Promise<void> => {
       try {

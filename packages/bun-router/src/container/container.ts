@@ -5,6 +5,14 @@
  * lifecycle management, and contextual binding support
  */
 
+// Extend Reflect with metadata methods
+declare global {
+  namespace Reflect {
+    function getMetadata(metadataKey: any, target: any, propertyKey?: string | symbol): any
+    function defineMetadata(metadataKey: any, metadataValue: any, target: any, propertyKey?: string | symbol): void
+  }
+}
+
 // Container binding types
 export type BindingScope = 'singleton' | 'transient' | 'scoped' | 'request'
 
@@ -110,7 +118,7 @@ export class Container {
   singleton<T>(
     token: string | symbol | Function,
     implementation: new (...args: any[]) => T,
-  ): this {
+  ): Container {
     return this.bind<T>(token).to(implementation).inSingletonScope().build()
   }
 
@@ -120,14 +128,14 @@ export class Container {
   transient<T>(
     token: string | symbol | Function,
     implementation: new (...args: any[]) => T,
-  ): this {
+  ): Container {
     return this.bind<T>(token).to(implementation).inTransientScope().build()
   }
 
   /**
    * Bind a value
    */
-  value<T>(token: string | symbol | Function, value: T): this {
+  value<T>(token: string | symbol | Function, value: T): Container {
     return this.bind<T>(token).toValue(value).build()
   }
 
@@ -137,7 +145,7 @@ export class Container {
   factory<T>(
     token: string | symbol | Function,
     factory: (...args: any[]) => T,
-  ): this {
+  ): Container {
     return this.bind<T>(token).toFactory(factory).build()
   }
 
