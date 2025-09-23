@@ -5,7 +5,7 @@
  * conditional service resolution, and dynamic binding based on runtime context
  */
 
-import type { Binding, ResolutionContext, BindingMetadata } from './container'
+import type { Binding, ResolutionContext } from './container'
 import { Container } from './container'
 
 // Contextual binding interfaces
@@ -29,14 +29,14 @@ export interface EnvironmentConfig {
 }
 
 export interface ContextualBindingBuilder<T> {
-  when(condition: BindingCondition): ContextualBindingBuilder<T>
-  whenEnvironment(...environments: string[]): ContextualBindingBuilder<T>
-  whenTag(tag: string): ContextualBindingBuilder<T>
-  whenParent(parentToken: string | symbol | Function): ContextualBindingBuilder<T>
-  whenRequest(predicate: (context: ResolutionContext) => boolean): ContextualBindingBuilder<T>
-  withPriority(priority: number): ContextualBindingBuilder<T>
-  withFallback(fallback: Binding<T>): ContextualBindingBuilder<T>
-  build(): Container
+  when: (condition: BindingCondition) => ContextualBindingBuilder<T>
+  whenEnvironment: (...environments: string[]) => ContextualBindingBuilder<T>
+  whenTag: (tag: string) => ContextualBindingBuilder<T>
+  whenParent: (parentToken: string | symbol | Function) => ContextualBindingBuilder<T>
+  whenRequest: (predicate: (context: ResolutionContext) => boolean) => ContextualBindingBuilder<T>
+  withPriority: (priority: number) => ContextualBindingBuilder<T>
+  withFallback: (fallback: Binding<T>) => ContextualBindingBuilder<T>
+  build: () => Container
 }
 
 /**
@@ -144,15 +144,15 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
 
   constructor(
     private container: ContextualContainer,
-    token: string | symbol | Function
+    token: string | symbol | Function,
   ) {
     this.binding = {
       token,
       conditions: [],
       priority: 0,
       metadata: {
-        scope: 'transient'
-      }
+        scope: 'transient',
+      },
     }
   }
 
@@ -170,8 +170,8 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
   whenEnvironment(...environments: string[]): ContextualBindingBuilder<T> {
     const condition: BindingCondition = {
       type: 'environment',
-      predicate: (context) => environments.includes(context.environment || 'development'),
-      description: `Environment is one of: ${environments.join(', ')}`
+      predicate: context => environments.includes(context.environment || 'development'),
+      description: `Environment is one of: ${environments.join(', ')}`,
     }
     return this.when(condition)
   }
@@ -186,7 +186,7 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
         // Check if the requesting context has the specified tag
         return context.parent?.token?.toString().includes(tag) ?? false
       },
-      description: `Parent has tag: ${tag}`
+      description: `Parent has tag: ${tag}`,
     }
     return this.when(condition)
   }
@@ -197,8 +197,8 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
   whenParent(parentToken: string | symbol | Function): ContextualBindingBuilder<T> {
     const condition: BindingCondition = {
       type: 'parent',
-      predicate: (context) => context.parent?.token === parentToken,
-      description: `Parent token is: ${parentToken.toString()}`
+      predicate: context => context.parent?.token === parentToken,
+      description: `Parent token is: ${parentToken.toString()}`,
     }
     return this.when(condition)
   }
@@ -210,7 +210,7 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
     const condition: BindingCondition = {
       type: 'request',
       predicate,
-      description: 'Custom request condition'
+      description: 'Custom request condition',
     }
     return this.when(condition)
   }
@@ -354,7 +354,7 @@ export class ContextualContainer extends Container {
       requestId: context?.requestId || this.generateRequestId(),
       depth: context?.depth || 0,
       resolving: context?.resolving || new Set(),
-      parent: context?.parent
+      parent: context?.parent,
     }
 
     // Try contextual bindings first
@@ -372,10 +372,11 @@ export class ContextualContainer extends Container {
    */
   private findContextualBinding(
     token: string | symbol | Function,
-    context: ResolutionContext
+    context: ResolutionContext,
   ): ContextualBinding | undefined {
     const bindings = this.contextualBindings.get(token)
-    if (!bindings) return undefined
+    if (!bindings)
+      return undefined
 
     for (const binding of bindings) {
       if (this.evaluateConditions(binding.conditions, context)) {
@@ -390,10 +391,11 @@ export class ContextualContainer extends Container {
    * Evaluate binding conditions
    */
   private evaluateConditions(conditions: BindingCondition[], context: ResolutionContext): boolean {
-    return conditions.every(condition => {
+    return conditions.every((condition) => {
       try {
         return condition.predicate(context)
-      } catch (error) {
+      }
+      catch (error) {
         console.warn(`Error evaluating binding condition: ${condition.description}`, error)
         return false
       }
@@ -405,11 +407,12 @@ export class ContextualContainer extends Container {
    */
   private createInstanceFromContextualBinding<T>(
     binding: ContextualBinding<T>,
-    context: ResolutionContext
+    context: ResolutionContext,
   ): T {
     try {
       return this.createInstance<T>(binding, context)
-    } catch (error) {
+    }
+    catch (error) {
       if (binding.fallback) {
         console.warn(`Contextual binding failed, using fallback for ${binding.token.toString()}`)
         return this.createInstance<T>(binding.fallback, context)
@@ -440,14 +443,14 @@ export class EnvironmentPresets {
         DEBUG: true,
         LOG_LEVEL: 'debug',
         CACHE_TTL: 60,
-        DB_POOL_SIZE: 5
+        DB_POOL_SIZE: 5,
       },
       services: {
         logger: 'ConsoleLogger',
         cache: 'MemoryCache',
-        database: 'SQLiteDatabase'
+        database: 'SQLiteDatabase',
       },
-      features: ['hot-reload', 'debug-toolbar', 'detailed-errors']
+      features: ['hot-reload', 'debug-toolbar', 'detailed-errors'],
     }
   }
 
@@ -461,14 +464,14 @@ export class EnvironmentPresets {
         DEBUG: false,
         LOG_LEVEL: 'error',
         CACHE_TTL: 3600,
-        DB_POOL_SIZE: 20
+        DB_POOL_SIZE: 20,
       },
       services: {
         logger: 'FileLogger',
         cache: 'RedisCache',
-        database: 'PostgreSQLDatabase'
+        database: 'PostgreSQLDatabase',
       },
-      features: ['performance-monitoring', 'error-tracking']
+      features: ['performance-monitoring', 'error-tracking'],
     }
   }
 
@@ -482,14 +485,14 @@ export class EnvironmentPresets {
         DEBUG: false,
         LOG_LEVEL: 'warn',
         CACHE_TTL: 1,
-        DB_POOL_SIZE: 1
+        DB_POOL_SIZE: 1,
       },
       services: {
         logger: 'NullLogger',
         cache: 'MemoryCache',
-        database: 'InMemoryDatabase'
+        database: 'InMemoryDatabase',
       },
-      features: ['test-doubles', 'fast-teardown']
+      features: ['test-doubles', 'fast-teardown'],
     }
   }
 
@@ -503,14 +506,14 @@ export class EnvironmentPresets {
         DEBUG: true,
         LOG_LEVEL: 'info',
         CACHE_TTL: 1800,
-        DB_POOL_SIZE: 10
+        DB_POOL_SIZE: 10,
       },
       services: {
         logger: 'FileLogger',
         cache: 'RedisCache',
-        database: 'PostgreSQLDatabase'
+        database: 'PostgreSQLDatabase',
       },
-      features: ['performance-monitoring', 'debug-toolbar']
+      features: ['performance-monitoring', 'debug-toolbar'],
     }
   }
 }
@@ -525,8 +528,8 @@ export class BindingConditions {
   static environment(...environments: string[]): BindingCondition {
     return {
       type: 'environment',
-      predicate: (context) => environments.includes(context.environment || 'development'),
-      description: `Environment is one of: ${environments.join(', ')}`
+      predicate: context => environments.includes(context.environment || 'development'),
+      description: `Environment is one of: ${environments.join(', ')}`,
     }
   }
 
@@ -540,7 +543,7 @@ export class BindingConditions {
         const container = context.container as ContextualContainer
         return container.getEnvironmentManager().hasFeature(featureName)
       },
-      description: `Feature ${featureName} is enabled`
+      description: `Feature ${featureName} is enabled`,
     }
   }
 
@@ -554,7 +557,7 @@ export class BindingConditions {
         const container = context.container as ContextualContainer
         return container.getEnvironmentManager().get(key) === value
       },
-      description: `Environment variable ${key} equals ${value}`
+      description: `Environment variable ${key} equals ${value}`,
     }
   }
 
@@ -564,8 +567,8 @@ export class BindingConditions {
   static requestPattern(pattern: RegExp): BindingCondition {
     return {
       type: 'request',
-      predicate: (context) => pattern.test(context.requestId || ''),
-      description: `Request ID matches pattern: ${pattern.toString()}`
+      predicate: context => pattern.test(context.requestId || ''),
+      description: `Request ID matches pattern: ${pattern.toString()}`,
     }
   }
 
@@ -579,7 +582,7 @@ export class BindingConditions {
         const hour = new Date().getHours()
         return hour >= startHour && hour <= endHour
       },
-      description: `Time is between ${startHour}:00 and ${endHour}:00`
+      description: `Time is between ${startHour}:00 and ${endHour}:00`,
     }
   }
 
@@ -588,12 +591,12 @@ export class BindingConditions {
    */
   static custom(
     predicate: (context: ResolutionContext) => boolean,
-    description?: string
+    description?: string,
   ): BindingCondition {
     return {
       type: 'custom',
       predicate,
-      description: description || 'Custom condition'
+      description: description || 'Custom condition',
     }
   }
 }

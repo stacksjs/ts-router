@@ -1,13 +1,14 @@
 /**
  * Request/Response Enhancements - Router Integration
- * 
+ *
  * Integration layer for validation and macros with the router
  */
 
 import type { EnhancedRequest, MiddlewareHandler, RouteHandler } from '../types'
-import { createValidationMiddleware, type ValidationRules, type ValidatorConfig } from '../validation/validator'
+import type { ValidationRules, ValidatorConfig } from '../validation/validator'
 import { EnhancedRequestWithMacros } from '../request/macros'
 import { EnhancedResponse } from '../response/macros'
+import { createValidationMiddleware } from '../validation/validator'
 
 /**
  * Enhanced route builder with validation support
@@ -19,7 +20,7 @@ export class EnhancedRouteBuilder {
   constructor(
     private method: string,
     private path: string,
-    private handler: RouteHandler
+    private handler: RouteHandler,
   ) {}
 
   /**
@@ -53,7 +54,7 @@ export class EnhancedRouteBuilder {
       method: this.method,
       path: this.path,
       handler: this.handler,
-      middleware: middleware.length > 0 ? middleware : undefined
+      middleware: middleware.length > 0 ? middleware : undefined,
     }
   }
 }
@@ -127,10 +128,10 @@ export function createEnhancementMiddleware() {
   return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
     // Apply request macros
     EnhancedRequestWithMacros.applyMacros(req)
-    
+
     // Add start time for age calculation
     ;(req as any).startTime = Date.now()
-    
+
     return await next()
   }
 }
@@ -217,7 +218,7 @@ export const RouteHelpers = {
     path: string,
     handler: RouteHandler,
     rules: ValidationRules,
-    config?: ValidatorConfig
+    config?: ValidatorConfig,
   ) => {
     const builder = new EnhancedRouteBuilder(method, path, handler)
     return builder.validate(rules, config)
@@ -230,14 +231,14 @@ export const RouteHelpers = {
     method: string,
     path: string,
     handler: RouteHandler,
-    rules?: ValidationRules
+    rules?: ValidationRules,
   ) => {
     const builder = new EnhancedRouteBuilder(method, path, async (req) => {
       // Ensure request expects JSON
       if (!req.expectsJson()) {
         return EnhancedResponse.callMacro('error', 'API endpoint requires JSON Accept header', undefined, 406)
       }
-      
+
       return await handler(req)
     })
 
@@ -263,7 +264,7 @@ export const RouteHelpers = {
     validation?: {
       store?: ValidationRules
       update?: ValidationRules
-    }
+    },
   ) => {
     const routes: EnhancedRouteBuilder[] = []
 
@@ -296,7 +297,7 @@ export const RouteHelpers = {
     }
 
     return routes
-  }
+  },
 }
 
 /**
@@ -335,7 +336,7 @@ export const MiddlewareHelpers = {
    */
   when: (
     condition: (req: EnhancedRequest) => boolean,
-    middleware: MiddlewareHandler
+    middleware: MiddlewareHandler,
   ): MiddlewareHandler => {
     return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       if (condition(req)) {
@@ -350,7 +351,7 @@ export const MiddlewareHelpers = {
    */
   unless: (
     condition: (req: EnhancedRequest) => boolean,
-    middleware: MiddlewareHandler
+    middleware: MiddlewareHandler,
   ): MiddlewareHandler => {
     return MiddlewareHelpers.when(req => !condition(req), middleware)
   },
@@ -360,7 +361,7 @@ export const MiddlewareHelpers = {
    */
   group: (middleware: MiddlewareHandler[]): MiddlewareHandler => {
     return MiddlewareHelpers.compose(...middleware)
-  }
+  },
 }
 
 /**
@@ -375,22 +376,23 @@ export const EnhancementPresets = {
     async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       try {
         const response = await next()
-        
+
         // Add API headers
         const headers = new Headers(response.headers)
         headers.set('X-API-Version', '1.0')
         headers.set('X-Response-Time', new Date().toISOString())
-        
+
         return new Response(response.body, {
           status: response.status,
           statusText: response.statusText,
-          headers
+          headers,
         })
-      } catch (error) {
+      }
+      catch (error) {
         // Return JSON error response
         return EnhancedResponse.callMacro('error', 'Internal server error', undefined, 500)
       }
-    }
+    },
   ],
 
   /**
@@ -401,9 +403,9 @@ export const EnhancementPresets = {
     async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       // Add web-specific enhancements
       ;(req as any).session = {} // Placeholder for session
-      
+
       return await next()
-    }
+    },
   ],
 
   /**
@@ -411,6 +413,6 @@ export const EnhancementPresets = {
    */
   validation: (rules: ValidationRules, config?: ValidatorConfig) => [
     createEnhancementMiddleware(),
-    createValidationMiddleware(rules, config)
-  ]
+    createValidationMiddleware(rules, config),
+  ],
 }

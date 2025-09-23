@@ -373,7 +373,8 @@ export class StreamingCache {
     try {
       // Use Bun's built-in compression if available
       if (typeof Bun !== 'undefined' && Bun.gzipSync) {
-        return new Uint8Array(Bun.gzipSync(data))
+        const compressed = Bun.gzipSync(data)
+        return new Uint8Array(compressed.buffer.slice(compressed.byteOffset, compressed.byteOffset + compressed.byteLength))
       }
 
       // Fallback to CompressionStream API
@@ -417,7 +418,8 @@ export class StreamingCache {
     try {
       // Use Bun's built-in decompression if available
       if (typeof Bun !== 'undefined' && Bun.gunzipSync) {
-        return new Uint8Array(Bun.gunzipSync(data))
+        const decompressed = Bun.gunzipSync(data)
+        return new Uint8Array(decompressed.buffer.slice(decompressed.byteOffset, decompressed.byteOffset + decompressed.byteLength))
       }
 
       // Fallback to DecompressionStream API

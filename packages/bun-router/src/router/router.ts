@@ -45,7 +45,7 @@ export class Router {
   staticRoutes: Map<string, Map<string, Route>> = new Map()
   precompiledPatterns: Map<string, RegExp> = new Map()
   domainPatternCache: Map<string, RegExp> = new Map()
-  routeCompiler: any = null // Will be initialized by optimized route matching
+  routeCompiler: any = null
 
   // Advanced middleware features
   private middlewareGroups: Map<string, MiddlewareHandler[]> = new Map()
@@ -91,7 +91,7 @@ export class Router {
         maxRequests: config.maxRequests,
         windowMs: config.windowMs,
         keyGenerator: (req: EnhancedRequest) => req.headers.get('x-forwarded-for') || 'anonymous',
-      })
+      } as any)
     })
 
     // CORS middleware
@@ -180,36 +180,30 @@ export class Router {
     this.routeCache.clear()
   }
 
-  // Core HTTP Methods
-  async get(_path: string, _handler: RouteHandler, _middlewareOrGroup?: string | MiddlewareHandler | (string | MiddlewareHandler)[], _routeName?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
+  /**
+   * HTTP methods - implemented by router extensions
+   * These methods are overridden by registerHttpMethods()
+   */
+  async get(_path: string, _handler: RouteHandler): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async post(_path: string, _handler: RouteHandler, _middlewareOrGroup?: string | MiddlewareHandler | (string | MiddlewareHandler)[], _routeName?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
+  async post(_path: string, _handler: RouteHandler): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async put(_path: string, _handler: RouteHandler, _middlewareOrGroup?: string | MiddlewareHandler | (string | MiddlewareHandler)[], _routeName?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
+  async put(_path: string, _handler: RouteHandler): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async patch(_path: string, _handler: RouteHandler, _middlewareOrGroup?: string | MiddlewareHandler | (string | MiddlewareHandler)[], _routeName?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
+  async patch(_path: string, _handler: RouteHandler): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async delete(_path: string, _handler: RouteHandler, _middlewareOrGroup?: string | MiddlewareHandler | (string | MiddlewareHandler)[], _routeName?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
+  async delete(_path: string, _handler: RouteHandler): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async head(_path: string, _handler: RouteHandler, _middlewareOrGroup?: string | MiddlewareHandler | (string | MiddlewareHandler)[], _routeName?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
-    throw new Error('HTTP methods not implemented - use router extensions')
-  }
-
-  async options(_path: string, _handler: RouteHandler, _middlewareOrGroup?: string | MiddlewareHandler | (string | MiddlewareHandler)[], _routeName?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
-    throw new Error('HTTP methods not implemented - use router extensions')
-  }
-
-  // Server Methods
   async serve(_options?: { port?: number, hostname?: string }): Promise<Server> {
     throw new Error('Server methods not implemented - use router extensions')
   }
@@ -218,117 +212,12 @@ export class Router {
     throw new Error('Server methods not implemented - use router extensions')
   }
 
-  // Middleware
   use(_middleware: MiddlewareHandler | string): Router {
     throw new Error('Middleware methods not implemented - use router extensions')
   }
 
-  // Route Groups
   group(_options: { prefix?: string, middleware?: (string | MiddlewareHandler)[] }, _callback: () => void): Router {
     throw new Error('Route group methods not implemented - use router extensions')
-  }
-
-  // Health Check
-  async health(): Promise<Router> {
-    throw new Error('Health check methods not implemented - use router extensions')
-  }
-
-  // Additional Route Methods
-  async match(_methods: string[], _path: string, _handler: RouteHandler, _middleware?: string | MiddlewareHandler | (string | MiddlewareHandler)[]): Promise<Router> {
-    throw new Error('Route methods not implemented - use router extensions')
-  }
-
-  async any(_path: string, _handler: RouteHandler, _middleware?: string | MiddlewareHandler | (string | MiddlewareHandler)[]): Promise<Router> {
-    throw new Error('Route methods not implemented - use router extensions')
-  }
-
-  // Route Constraints
-  where(_constraints: Record<string, string>): Router {
-    throw new Error('Route constraint methods not implemented - use router extensions')
-  }
-
-  whereNumber(_param: string): Router {
-    throw new Error('Route constraint methods not implemented - use router extensions')
-  }
-
-  // Named Routes
-  route(_name: string, _params?: Record<string, any>): string {
-    throw new Error('Named route methods not implemented - use router extensions')
-  }
-
-  // Redirects
-
-  // Streaming Methods
-  async stream(_path: string, _generator: any, _options?: any): Promise<void> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  async streamSSE(_path: string, _generator: any, _options?: any): Promise<void> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  async streamDirect(_path: string, _handler: any, _options?: any): Promise<void> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  async streamBuffered(_path: string, _handler: any, _options?: any): Promise<void> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  streamFile(_path: string, _options?: any): Response {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  async streamFileWithRanges(_path: string, _req: Request): Promise<Response> {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  transformStream(_transform: any, _options?: any): (req: Request) => Response {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  streamResponse(_generator: any, _options?: any): Response {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  streamAsyncIterator(_iterator: AsyncIterable<any>, _options?: any): Response {
-    throw new Error('Streaming methods not implemented - use router extensions')
-  }
-
-  // Model Binding Methods
-  modelRegistry: any = null
-  modelNotFoundHandler: any = null
-
-  bindModel(_name: string, _resolver: any): Router {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  onModelNotFound(_handler: any): Router {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async getWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async postWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async putWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async deleteWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async patchWithBinding(_path: string, _handler: any, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
-  }
-
-  async resourceWithBinding(_path: string, _controller: string, _options?: any): Promise<Router> {
-    throw new Error('Model binding methods not implemented - use router extensions')
   }
 }
 
@@ -344,17 +233,17 @@ export class ConditionalBuilder {
   middleware(middlewareName: string): this {
     const [name, params] = middlewareName.split(':')
     const middlewareFactory = (this.router as any).namedMiddleware.get(name)
-    
+
     if (!middlewareFactory) {
       throw new Error(`Unknown middleware: ${name}`)
     }
-    
+
     const middlewareHandler = middlewareFactory(params);
     (this.router as any).conditionalMiddleware.push({
       condition: this.condition,
       middleware: [middlewareHandler],
     })
-    
+
     return this
   }
 }
@@ -411,4 +300,15 @@ export class RouteGroupBuilder {
   delete(path: string, handler: RouteHandler): this {
     return this
   }
+}
+
+// Re-export types for module augmentation
+export type {
+  ActionHandler,
+  MiddlewareHandler,
+  Route,
+  RouteGroup,
+  RouteHandler,
+  RouterConfig,
+  WebSocketConfig,
 }

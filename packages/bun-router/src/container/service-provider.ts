@@ -7,7 +7,6 @@
  */
 
 import type { Container, ResolutionContext } from './container'
-import { Binding } from './container'
 
 // Service provider interfaces
 export interface ServiceProvider {

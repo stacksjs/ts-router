@@ -85,8 +85,8 @@ export class MiddlewarePipeline {
       compiled.push({
         handler,
         name,
-        skipConditions: skipConditions.filter(condition => 
-          condition.name.includes(name) || condition.name === 'global'
+        skipConditions: skipConditions.filter(condition =>
+          condition.name.includes(name) || condition.name === 'global',
         ),
         dependencies: this.extractDependencies(handler),
         canShortCircuit: this.canShortCircuit(handler),
@@ -183,7 +183,7 @@ export class MiddlewarePipeline {
     pipeline: CompiledMiddleware[],
   ): Promise<void> {
     const allDependencies = new Set<string>()
-    
+
     for (const middleware of pipeline) {
       for (const dep of middleware.dependencies) {
         allDependencies.add(dep)
@@ -192,16 +192,18 @@ export class MiddlewarePipeline {
 
     for (const depName of allDependencies) {
       const dependency = this.dependencyRegistry.get(depName)
-      if (!dependency) continue
+      if (!dependency)
+        continue
 
       this.stats.dependencyResolutions++
 
       if (dependency.singleton && this.singletonInstances.has(depName)) {
         context.dependencies!.set(depName, this.singletonInstances.get(depName))
-      } else {
+      }
+      else {
         const instance = await dependency.factory(context)
         context.dependencies!.set(depName, instance)
-        
+
         if (dependency.singleton) {
           this.singletonInstances.set(depName, instance)
         }
@@ -216,13 +218,17 @@ export class MiddlewarePipeline {
     // Simple dependency extraction based on function parameters
     const funcStr = handler.toString()
     const dependencies: string[] = []
-    
+
     // Look for common dependency patterns
-    if (funcStr.includes('database') || funcStr.includes('db')) dependencies.push('database')
-    if (funcStr.includes('logger') || funcStr.includes('log')) dependencies.push('logger')
-    if (funcStr.includes('cache')) dependencies.push('cache')
-    if (funcStr.includes('httpClient') || funcStr.includes('http')) dependencies.push('httpClient')
-    
+    if (funcStr.includes('database') || funcStr.includes('db'))
+      dependencies.push('database')
+    if (funcStr.includes('logger') || funcStr.includes('log'))
+      dependencies.push('logger')
+    if (funcStr.includes('cache'))
+      dependencies.push('cache')
+    if (funcStr.includes('httpClient') || funcStr.includes('http'))
+      dependencies.push('httpClient')
+
     return dependencies
   }
 
@@ -273,7 +279,7 @@ export class MiddlewarePipeline {
 export const SkipConditions = {
   skipForMethods: (methods: string[]): MiddlewareSkipCondition => ({
     name: `skip_for_methods_${methods.join('_')}`,
-    condition: (context) => methods.includes(context.request.method),
+    condition: context => methods.includes(context.request.method),
   }),
 
   skipForPaths: (paths: string[]): MiddlewareSkipCondition => ({
@@ -287,8 +293,8 @@ export const SkipConditions = {
   skipForHeaders: (headers: Record<string, string>): MiddlewareSkipCondition => ({
     name: `skip_for_headers_${Object.keys(headers).join('_')}`,
     condition: (context) => {
-      return Object.entries(headers).some(([key, value]) => 
-        context.request.headers.get(key) === value
+      return Object.entries(headers).some(([key, value]) =>
+        context.request.headers.get(key) === value,
       )
     },
   }),
@@ -364,19 +370,19 @@ export const Dependencies = {
     name: 'httpClient',
     factory: () => ({
       get: async (url: string) => fetch(baseURL ? `${baseURL}${url}` : url),
-      post: async (url: string, data: any) => 
+      post: async (url: string, data: any) =>
         fetch(baseURL ? `${baseURL}${url}` : url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         }),
-      put: async (url: string, data: any) => 
+      put: async (url: string, data: any) =>
         fetch(baseURL ? `${baseURL}${url}` : url, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         }),
-      delete: async (url: string) => 
+      delete: async (url: string) =>
         fetch(baseURL ? `${baseURL}${url}` : url, { method: 'DELETE' }),
     }),
     singleton: true,
@@ -387,7 +393,7 @@ export const Dependencies = {
  * Middleware factory functions
  */
 export const MiddlewareFactory = {
-  auth: (options: { secret?: string; skipPaths?: string[] } = {}): MiddlewareHandler => {
+  auth: (options: { secret?: string, skipPaths?: string[] } = {}): MiddlewareHandler => {
     return async (req, next) => {
       const url = new URL(req.url)
       if (options.skipPaths?.some(path => url.pathname.startsWith(path))) {
@@ -403,55 +409,56 @@ export const MiddlewareFactory = {
       try {
         ;(req as any).user = { id: '123', roles: ['user'] }
         return await next()
-      } catch {
+      }
+      catch {
         return new Response('Invalid token', { status: 401 })
       }
     }
   },
 
-  rateLimit: (options: { maxRequests: number; windowMs: number }): MiddlewareHandler => {
+  rateLimit: (options: { maxRequests: number, windowMs: number }): MiddlewareHandler => {
     const requests = new Map<string, number[]>()
-    
+
     return async (req, next) => {
       const ip = req.headers.get('x-forwarded-for') || 'unknown'
       const now = Date.now()
       const windowStart = now - options.windowMs
-      
+
       if (!requests.has(ip)) {
         requests.set(ip, [])
       }
-      
+
       const userRequests = requests.get(ip)!
       const recentRequests = userRequests.filter(time => time > windowStart)
-      
+
       if (recentRequests.length >= options.maxRequests) {
         return new Response('Too Many Requests', { status: 429 })
       }
-      
+
       recentRequests.push(now)
       requests.set(ip, recentRequests)
-      
+
       return await next()
     }
   },
 
-  cors: (options: { origin?: string; methods?: string[] } = {}): MiddlewareHandler => {
+  cors: (options: { origin?: string, methods?: string[] } = {}): MiddlewareHandler => {
     return async (req, next) => {
       const response = await next()
-      
+
       if (response) {
         const headers = new Headers(response.headers)
         headers.set('Access-Control-Allow-Origin', options.origin || '*')
         headers.set('Access-Control-Allow-Methods', options.methods?.join(', ') || 'GET, POST, PUT, DELETE')
         headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        
+
         return new Response(response.body, {
           status: response.status,
           statusText: response.statusText,
           headers,
         })
       }
-      
+
       return response
     }
   },
@@ -460,16 +467,16 @@ export const MiddlewareFactory = {
     return async (req, next) => {
       const start = performance.now()
       const url = new URL(req.url)
-      
+
       console.log(`[${new Date().toISOString()}] ${req.method} ${url.pathname}`)
-      
+
       const response = await next()
       const duration = performance.now() - start
-      
+
       if (response) {
         console.log(`[${new Date().toISOString()}] ${req.method} ${url.pathname} - ${response.status} (${duration.toFixed(2)}ms)`)
       }
-      
+
       return response
     }
   },

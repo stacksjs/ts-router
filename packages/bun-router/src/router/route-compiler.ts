@@ -122,7 +122,7 @@ export class RouteCompiler {
     let tempMatch: RegExpExecArray | null
     // eslint-disable-next-line no-cond-assign
     while (tempMatch = regex.exec(path)) {
-      paramNames.push(tempMatch[1])
+      paramNames.push(tempMatch[1].replace('?', ''))
     }
 
     return paramNames
@@ -154,8 +154,8 @@ export class RouteCompiler {
 
       // Convert Laravel-style parameters to URLPattern with constraints
       const pattern = this.convertToURLPattern(
-        route.path, 
-        route.constraints && !Array.isArray(route.constraints) ? route.constraints : undefined
+        route.path,
+        route.constraints && !Array.isArray(route.constraints) ? route.constraints : undefined,
       )
 
       // Create a URL pattern adapter that matches the expected interface
@@ -189,7 +189,7 @@ export class RouteCompiler {
    */
   private convertToURLPattern(
     path: string,
-    constraints?: Record<string, string>
+    constraints?: Record<string, string>,
   ): { exec: (pathname: string) => { groups?: Record<string, string> } | null } {
     // Convert {param} to named capture groups and {param:pattern} to constrained capture groups
     let regexPattern = path.replace(/\{([^}:]+)(?::([^}]+))?\}/g, (match, name, pattern) => {
@@ -212,12 +212,13 @@ export class RouteCompiler {
     return {
       exec: (pathname: string) => {
         const match = pathname.match(regex)
-        if (!match) return null
-        
+        if (!match)
+          return null
+
         return {
-          groups: match.groups || {}
+          groups: match.groups || {},
         }
-      }
+      },
     }
   }
 

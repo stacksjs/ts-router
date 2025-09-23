@@ -1,10 +1,10 @@
 /**
  * Advanced Error Handling - Main Error Handler Middleware
- * 
+ *
  * Unified error handling middleware that integrates all error handling components
  */
 
-import type { EnhancedRequest, CircuitBreakerConfig, DegradationConfig, ErrorContext, ErrorReportingConfig } from '../types'
+import type { CircuitBreakerConfig, DegradationConfig, EnhancedRequest, ErrorContext, ErrorReportingConfig } from '../types'
 import { CircuitBreakerRegistry } from './circuit-breaker'
 import { ErrorReportingManager } from './error-reporting'
 import { ErrorFactory, RouterException } from './exceptions'
@@ -39,7 +39,7 @@ export class AdvancedErrorHandler {
       includeStackTrace: false,
       sanitizeErrors: true,
       logErrors: true,
-      ...config
+      ...config,
     }
 
     this.initializeComponents()
@@ -82,7 +82,7 @@ export class AdvancedErrorHandler {
           url: req.url,
           userAgent: req.userAgent,
           ip: req.ip,
-          timestamp: new Date()
+          timestamp: new Date(),
         }
 
         req.context = { ...req.context, errorContext }
@@ -93,13 +93,14 @@ export class AdvancedErrorHandler {
           if (breaker) {
             return await breaker.execute({
               execute: next,
-              context: errorContext
+              context: errorContext,
             })
           }
         }
 
         return await next()
-      } catch (error) {
+      }
+      catch (error) {
         return this.handleError(error, req)
       }
     }
@@ -120,8 +121,8 @@ export class AdvancedErrorHandler {
         {
           code: routerError.code,
           severity: routerError.severity,
-          statusCode: routerError.statusCode
-        }
+          statusCode: routerError.statusCode,
+        },
       )
     }
 
@@ -139,9 +140,10 @@ export class AdvancedErrorHandler {
           req,
           async () => {
             throw routerError // This will trigger fallback strategies
-          }
+          },
         )
-      } catch {
+      }
+      catch {
         // Graceful degradation failed, continue with normal error handling
       }
     }
@@ -150,7 +152,8 @@ export class AdvancedErrorHandler {
     if (this.errorReporting) {
       try {
         await this.errorReporting.report(routerError, routerError.context)
-      } catch (reportingError) {
+      }
+      catch (reportingError) {
         console.error('Failed to report error:', reportingError)
       }
     }
@@ -159,7 +162,8 @@ export class AdvancedErrorHandler {
     if (this.config.globalErrorHandler) {
       try {
         return await this.config.globalErrorHandler(routerError, req)
-      } catch (handlerError) {
+      }
+      catch (handlerError) {
         console.error('Global error handler failed:', handlerError)
       }
     }
@@ -171,12 +175,14 @@ export class AdvancedErrorHandler {
         if (typeof customPage === 'string') {
           return new Response(customPage, {
             status: routerError.statusCode,
-            headers: { 'Content-Type': 'text/html' }
+            headers: { 'Content-Type': 'text/html' },
           })
-        } else {
+        }
+        else {
           return await customPage(routerError, req)
         }
-      } catch (pageError) {
+      }
+      catch (pageError) {
         console.error('Custom error page failed:', pageError)
       }
     }
@@ -200,7 +206,7 @@ export class AdvancedErrorHandler {
       userAgent: req.userAgent,
       ip: req.ip,
       timestamp: new Date(),
-      metadata: req.context
+      metadata: req.context,
     }
 
     // Already a RouterException
@@ -214,19 +220,19 @@ export class AdvancedErrorHandler {
       if (error.name === 'ValidationError') {
         return ErrorFactory.validation(error.message, {}, errorContext)
       }
-      
+
       if (error.name === 'UnauthorizedError' || error.message.includes('unauthorized')) {
         return ErrorFactory.authentication(error.message, errorContext)
       }
-      
+
       if (error.name === 'ForbiddenError' || error.message.includes('forbidden')) {
         return ErrorFactory.authorization(error.message, [], errorContext)
       }
-      
+
       if (error.name === 'NotFoundError' || error.message.includes('not found')) {
         return ErrorFactory.notFound(undefined, undefined, errorContext)
       }
-      
+
       if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
         return ErrorFactory.timeout(30000, error.message, errorContext)
       }
@@ -265,8 +271,8 @@ export class AdvancedErrorHandler {
         statusCode: error.statusCode,
         timestamp: error.timestamp.toISOString(),
         requestId: error.context.requestId,
-        traceId: error.context.traceId
-      }
+        traceId: error.context.traceId,
+      },
     }
 
     // Add additional fields in development
@@ -284,7 +290,7 @@ export class AdvancedErrorHandler {
         errorResponse.error.cause = {
           name: error.cause.name,
           message: error.cause.message,
-          stack: error.cause.stack
+          stack: error.cause.stack,
         }
       }
     }
@@ -307,7 +313,7 @@ export class AdvancedErrorHandler {
       'Content-Type': 'application/json',
       'X-Error-Code': error.code,
       'X-Request-ID': error.context.requestId || '',
-      'X-Trace-ID': error.context.traceId || ''
+      'X-Trace-ID': error.context.traceId || '',
     })
 
     // Add specific headers for certain error types
@@ -326,7 +332,7 @@ export class AdvancedErrorHandler {
 
     return new Response(JSON.stringify(errorResponse), {
       status: error.statusCode,
-      headers
+      headers,
     })
   }
 
@@ -343,8 +349,8 @@ export class AdvancedErrorHandler {
         userAgent: req.userAgent,
         ip: req.ip,
         requestId: req.requestId,
-        traceId: req.traceId
-      }
+        traceId: req.traceId,
+      },
     }
 
     switch (error.severity) {
@@ -374,13 +380,17 @@ export class AdvancedErrorHandler {
     circuitBreakers?: any
   } {
     return {
-      errorReporting: this.errorReporting ? {
-        breadcrumbs: this.errorReporting.getBreadcrumbs().length
-      } : undefined,
-      gracefulDegradation: this.gracefulDegradation ? 
-        this.gracefulDegradation.getSystemHealth() : undefined,
-      circuitBreakers: this.circuitBreakerRegistry ? 
-        this.circuitBreakerRegistry.getAllMetrics() : undefined
+      errorReporting: this.errorReporting
+        ? {
+            breadcrumbs: this.errorReporting.getBreadcrumbs().length,
+          }
+        : undefined,
+      gracefulDegradation: this.gracefulDegradation
+        ? this.gracefulDegradation.getSystemHealth()
+        : undefined,
+      circuitBreakers: this.circuitBreakerRegistry
+        ? this.circuitBreakerRegistry.getAllMetrics()
+        : undefined,
     }
   }
 
@@ -391,7 +401,7 @@ export class AdvancedErrorHandler {
     if (this.errorReporting) {
       await this.errorReporting.close()
     }
-    
+
     if (this.gracefulDegradation) {
       this.gracefulDegradation.stop()
     }
@@ -403,14 +413,14 @@ export class AdvancedErrorHandler {
  */
 export function createAdvancedErrorHandler(config: AdvancedErrorHandlerConfig = {}): {
   middleware: (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>
-  getStats: () => { errorReporting?: any; gracefulDegradation?: any; circuitBreakers?: any }
+  getStats: () => { errorReporting?: any, gracefulDegradation?: any, circuitBreakers?: any }
   cleanup: () => Promise<void>
 } {
   const handler = new AdvancedErrorHandler(config)
   return {
     middleware: handler.middleware(),
-    getStats: (): { errorReporting?: any; gracefulDegradation?: any; circuitBreakers?: any } => handler.getStats(),
-    cleanup: (): Promise<void> => handler.cleanup()
+    getStats: (): { errorReporting?: any, gracefulDegradation?: any, circuitBreakers?: any } => handler.getStats(),
+    cleanup: (): Promise<void> => handler.cleanup(),
   }
 }
 
@@ -423,7 +433,7 @@ export const ErrorHandlerPresets = {
     includeStackTrace: true,
     sanitizeErrors: false,
     logErrors: true,
-    errorReporting: []
+    errorReporting: [],
   }),
 
   production: (sentryDsn?: string, bugsnagApiKey?: string): AdvancedErrorHandlerConfig => ({
@@ -432,23 +442,27 @@ export const ErrorHandlerPresets = {
     sanitizeErrors: true,
     logErrors: true,
     errorReporting: [
-      ...(sentryDsn ? [{
-        enabled: true,
-        service: 'sentry' as const,
-        dsn: sentryDsn,
-        environment: 'production',
-        sampleRate: 1.0,
-        breadcrumbs: { enabled: true, maxBreadcrumbs: 100 },
-        performance: { enabled: true, tracesSampleRate: 0.1 }
-      }] : []),
-      ...(bugsnagApiKey ? [{
-        enabled: true,
-        service: 'bugsnag' as const,
-        apiKey: bugsnagApiKey,
-        environment: 'production',
-        breadcrumbs: { enabled: true, maxBreadcrumbs: 25 }
-      }] : [])
-    ]
+      ...(sentryDsn
+        ? [{
+            enabled: true,
+            service: 'sentry' as const,
+            dsn: sentryDsn,
+            environment: 'production',
+            sampleRate: 1.0,
+            breadcrumbs: { enabled: true, maxBreadcrumbs: 100 },
+            performance: { enabled: true, tracesSampleRate: 0.1 },
+          }]
+        : []),
+      ...(bugsnagApiKey
+        ? [{
+            enabled: true,
+            service: 'bugsnag' as const,
+            apiKey: bugsnagApiKey,
+            environment: 'production',
+            breadcrumbs: { enabled: true, maxBreadcrumbs: 25 },
+          }]
+        : []),
+    ],
   }),
 
   staging: (sentryDsn?: string): AdvancedErrorHandlerConfig => ({
@@ -456,14 +470,16 @@ export const ErrorHandlerPresets = {
     includeStackTrace: true,
     sanitizeErrors: false,
     logErrors: true,
-    errorReporting: sentryDsn ? [{
-      enabled: true,
-      service: 'sentry',
-      dsn: sentryDsn,
-      environment: 'staging',
-      sampleRate: 1.0,
-      breadcrumbs: { enabled: true, maxBreadcrumbs: 100 }
-    }] : []
+    errorReporting: sentryDsn
+      ? [{
+          enabled: true,
+          service: 'sentry',
+          dsn: sentryDsn,
+          environment: 'staging',
+          sampleRate: 1.0,
+          breadcrumbs: { enabled: true, maxBreadcrumbs: 100 },
+        }]
+      : [],
   }),
 
   resilient: (config: {
@@ -476,22 +492,26 @@ export const ErrorHandlerPresets = {
     sanitizeErrors: true,
     logErrors: true,
     errorReporting: [
-      ...(config.sentryDsn ? [{
-        enabled: true,
-        service: 'sentry' as const,
-        dsn: config.sentryDsn,
-        environment: 'production',
-        sampleRate: 1.0,
-        breadcrumbs: { enabled: true, maxBreadcrumbs: 100 },
-        performance: { enabled: true, tracesSampleRate: 0.1 }
-      }] : []),
-      ...(config.bugsnagApiKey ? [{
-        enabled: true,
-        service: 'bugsnag' as const,
-        apiKey: config.bugsnagApiKey,
-        environment: 'production',
-        breadcrumbs: { enabled: true, maxBreadcrumbs: 25 }
-      }] : [])
+      ...(config.sentryDsn
+        ? [{
+            enabled: true,
+            service: 'sentry' as const,
+            dsn: config.sentryDsn,
+            environment: 'production',
+            sampleRate: 1.0,
+            breadcrumbs: { enabled: true, maxBreadcrumbs: 100 },
+            performance: { enabled: true, tracesSampleRate: 0.1 },
+          }]
+        : []),
+      ...(config.bugsnagApiKey
+        ? [{
+            enabled: true,
+            service: 'bugsnag' as const,
+            apiKey: config.bugsnagApiKey,
+            environment: 'production',
+            breadcrumbs: { enabled: true, maxBreadcrumbs: 25 },
+          }]
+        : []),
     ],
     gracefulDegradation: {
       enabled: true,
@@ -507,10 +527,10 @@ export const ErrorHandlerPresets = {
             cacheConfig: {
               key: `${service}:{url}:{method}`,
               ttl: 3600,
-              staleWhileRevalidate: true
-            }
-          }
-        ])
+              staleWhileRevalidate: true,
+            },
+          },
+        ]),
       ),
       healthChecks: Object.fromEntries(
         (config.services || []).map(service => [
@@ -521,18 +541,18 @@ export const ErrorHandlerPresets = {
             interval: 30000,
             timeout: 5000,
             retries: 3,
-            expectedStatus: [200]
-          }
-        ])
+            expectedStatus: [200],
+          },
+        ]),
       ),
       monitoring: {
         enabled: true,
         alertThresholds: {
           errorRate: 10,
           responseTime: 5000,
-          availability: 95
-        }
-      }
+          availability: 95,
+        },
+      },
     },
     circuitBreakers: (config.services || ['database', 'cache', 'external-api']).map(service => ({
       name: service,
@@ -543,7 +563,7 @@ export const ErrorHandlerPresets = {
       minimumRequests: 10,
       errorThresholdPercentage: 50,
       halfOpenMaxCalls: 3,
-      resetTimeout: 60000
-    }))
-  })
+      resetTimeout: 60000,
+    })),
+  }),
 }

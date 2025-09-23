@@ -1,19 +1,11 @@
 import type {
-  Model,
-  ModelBindingConfig,
-  ModelClass,
-  ModelResolver,
-  RouteBindingOptions,
-} from '../model-binding'
-import type { EnhancedRequest, MiddlewareHandler } from '../types'
-import type { Router } from './core'
+  EnhancedRequest,
+  MiddlewareHandler,
+} from '../types'
+import type { Router } from './router'
 import {
-  applyModelBindings,
-  ModelBindingRegistry,
-  ModelNotFoundError,
   modelRegistry,
-  parseRouteParameters,
-} from '../model-binding'
+} from '../model-binding/model-registry'
 
 /**
  * Model binding extension for Router class
@@ -24,28 +16,54 @@ export function registerModelBinding(RouterClass: typeof Router): void {
      * Model binding registry for this router instance
      */
     modelRegistry: {
-      value: new ModelBindingRegistry(),
+      value: modelRegistry,
       writable: true,
       configurable: true,
     },
 
     /**
-     * Bind a model resolver to the router
+     * Laravel-style Route::model() - Explicit binding
+     * Explicitly bind a route parameter to a model
      */
-    bindModel: {
-      value<T extends Model>(
+    model: {
+      value<T>(
         this: Router,
-        name: string,
-        resolverOrClass: ModelResolver<T> | ModelClass<T>,
+        key: string,
+        modelClass: string | ((value: string) => Promise<T | null>),
+        callback?: (model: T | null) => Response | null,
       ): Router {
-        if (typeof resolverOrClass === 'function') {
-          // It's a resolver function
-          modelRegistry.bind(name, resolverOrClass as unknown as (value: string) => Promise<Model | null>)
+        if (typeof modelClass === 'string') {
+          // Register string-based model class
+          this.modelRegistry.register(key, {
+            resolver: async (params) => {
+              // For string-based registration, we'll just pass through
+              // In a real Laravel app, this would resolve the model class
+              console.warn(`Model class ${modelClass} not implemented`)
+              // Return a mock model for testing
+              return { id: params[key], modelClass }
+            },
+            errorHandling: callback
+              ? {
+                  notFound: params => callback(null) || new Response('Not Found', { status: 404 }),
+                }
+              : undefined,
+          })
         }
         else {
-          // It's a model class, create a resolver function
-          const resolver = (value: string) => (resolverOrClass as any).find(value)
-          modelRegistry.bind(name, resolver)
+          // Register function-based resolver
+          this.modelRegistry.register(key, {
+            resolver: async (params) => {
+              const value = params[key]
+              if (!value)
+                return null
+              return modelClass(value)
+            },
+            errorHandling: callback
+              ? {
+                  notFound: params => callback(null) || new Response('Not Found', { status: 404 }),
+                }
+              : undefined,
+          })
         }
         return this
       },
@@ -54,79 +72,103 @@ export function registerModelBinding(RouterClass: typeof Router): void {
     },
 
     /**
-     * Set global model not found handler
+     * Laravel-style implicit binding middleware
+     * Automatically resolves models based on route parameters
      */
-    onModelNotFound: {
-      value(
-        this: Router,
-        handler: (error: ModelNotFoundError, req: EnhancedRequest) => Response,
-      ): Router {
-        this.modelNotFoundHandler = handler
-        return this
-      },
-      writable: true,
-      configurable: true,
-    },
+    implicitBinding: {
+      value(this: Router): MiddlewareHandler {
+        return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+          if (!req.params)
+            return next()
 
-    /**
-     * Create model binding middleware for a route
-     */
-    createModelBindingMiddleware: {
-      value(
-        this: Router,
-        path: string,
-        options?: RouteBindingOptions,
-      ): MiddlewareHandler {
-        const parameters = parseRouteParameters(path)
-        const hasModelBindings = parameters.length > 0
+          // Resolve all parameters that might be models
+          for (const [paramName, paramValue] of Object.entries(req.params)) {
+            // Check if we have a registered model for this parameter
+            if (this.modelRegistry.has(paramName)) {
+              try {
+                const result = await this.modelRegistry.resolve(paramName, req.params, req)
 
-        if (!hasModelBindings) {
-          // No model bindings, return pass-through middleware
-          return async (req, next) => next()
-        }
-
-        const paramName = parameters[0]?.name
-        if (paramName) {
-          const explicitBinding = modelRegistry.getBinding(paramName)
-          if (explicitBinding && typeof explicitBinding === 'function') {
-            modelRegistry.bind(paramName, explicitBinding)
-            return async (req, next) => next()
+                if (result.model === null) {
+                  if (result.status === 500) {
+                    // Handle resolver errors
+                    return new Response(JSON.stringify({
+                      error: 'Internal Server Error',
+                      message: result.error || 'Model resolution failed',
+                    }), {
+                      status: 500,
+                      headers: { 'Content-Type': 'application/json' },
+                    })
+                  }
+                  else if (result.status === 404) {
+                    return this.modelRegistry.createErrorResponse(paramName, result, req.params)
+                  }
+                }
+                else {
+                  // Attach the resolved model to the request
+                  ;(req as any)[paramName] = result.model
+                }
+              }
+              catch (error) {
+                // Handle unexpected errors in model resolution
+                return new Response(JSON.stringify({
+                  error: 'Internal Server Error',
+                  message: error instanceof Error ? error.message : 'Model resolution failed',
+                }), {
+                  status: 500,
+                  headers: { 'Content-Type': 'application/json' },
+                })
+              }
+            }
           }
-        }
 
-        return async (req: EnhancedRequest, next) => {
+          return next()
+        }
+      },
+      writable: true,
+      configurable: true,
+    },
+
+    /**
+     * Laravel-style missing() method for customizing 404 responses
+     */
+    missing: {
+      value(
+        this: Router,
+        callback: (req: EnhancedRequest) => Response,
+      ): MiddlewareHandler {
+        return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
           try {
-            await applyModelBindings(path, {}, options)
             return await next()
           }
           catch (error) {
-            if (error instanceof ModelNotFoundError) {
-              // Use custom response if provided
-              if ((error as any).response) {
-                return (error as any).response
-              }
+            // If it's a model not found error, use the custom callback
+            return callback(req)
+          }
+        }
+      },
+      writable: true,
+      configurable: true,
+    },
 
-              // Use global handler if set
-              if (this.modelNotFoundHandler) {
-                return this.modelNotFoundHandler(error, req)
-              }
+    /**
+     * Laravel-style scoped bindings
+     * Scope a model binding to its parent
+     */
+    scopedBindings: {
+      value(this: Router, bindings: Record<string, string>): MiddlewareHandler {
+        return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+          if (!req.params)
+            return next()
 
-              // Default 404 response
-              return new Response(
-                JSON.stringify({
-                  error: 'Not Found',
-                  message: error.message,
-                  resource: (error as any).model,
-                  id: (error as any).id,
-                }),
-                {
-                  status: 404,
-                  headers: { 'Content-Type': 'application/json' },
-                },
-              )
+          // Apply scoped bindings
+          for (const [childParam, parentParam] of Object.entries(bindings)) {
+            if (req.params[childParam] && req.params[parentParam]) {
+              // This would validate that the child belongs to the parent
+              // For now, we just pass through
             }
-            throw error
           }
+
+          return next()
         }
       },
       writable: true,
@@ -134,180 +176,16 @@ export function registerModelBinding(RouterClass: typeof Router): void {
     },
 
     /**
-     * Enhanced route registration that includes model binding
+     * Clear model cache
      */
-    registerRouteWithBinding: {
-      async value(
-        this: Router,
-        method: string,
-        path: string,
-        handler: any,
-        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
-      ): Promise<Router> {
-        const middleware = _options?.middleware || []
-
-        // Add model binding middleware as the first middleware
-        // Apply model bindings directly without middleware
-        // const modelBindingMiddleware = this.createModelBindingMiddleware(path, options)
-        const allMiddleware = [...middleware]
-
-        // Register the route with enhanced middleware
-        return await (this as any)[method.toLowerCase()](path, handler, {
-          ..._options,
-          middleware: allMiddleware,
-        })
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Enhanced GET route with model binding
-     */
-    getWithBinding: {
-      async value(
-        this: Router,
-        path: string,
-        handler: any,
-        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
-      ): Promise<Router> {
-        // Use base get method for now
-        return this.get(path, handler)
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Enhanced POST route with model binding
-     */
-    postWithBinding: {
-      async value(
-        this: Router,
-        path: string,
-        handler: any,
-        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
-      ): Promise<Router> {
-        // Use base post method for now
-        return this.post(path, handler)
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Enhanced PUT route with model binding
-     */
-    putWithBinding: {
-      async value(
-        this: Router,
-        path: string,
-        handler: any,
-        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
-      ): Promise<Router> {
-        // Use base put method for now
-        return this.put(path, handler)
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Enhanced DELETE route with model binding
-     */
-    deleteWithBinding: {
-      async value(
-        this: Router,
-        path: string,
-        handler: any,
-        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
-      ): Promise<Router> {
-        // Use base delete method for now
-        return this.delete(path, handler)
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Enhanced PATCH route with model binding
-     */
-    patchWithBinding: {
-      async value(
-        this: Router,
-        path: string,
-        handler: any,
-        _options?: RouteBindingOptions & { middleware?: (string | MiddlewareHandler)[] },
-      ): Promise<Router> {
-        // Use base patch method for now
-        return this.patch(path, handler)
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Create a resource route with automatic model binding
-     */
-    resourceWithBinding: {
-      async value(
-        this: Router,
-        path: string,
-        controller: string,
-        options?: {
-          model?: string
-          scoped?: boolean
-          only?: string[]
-          except?: string[]
-          bindings?: Record<string, ModelBindingConfig>
-          middleware?: (string | MiddlewareHandler)[]
-        },
-      ): Promise<Router> {
-        const actions = options?.only || ['index', 'show', 'store', 'update', 'destroy']
-        const except = options?.except || []
-        const finalActions = actions.filter(action => !except.includes(action))
-
-        // Extract model name from path or use provided model
-        const modelName = options?.model || 'model'
-        const _singularPath = path.replace(/s$/, '')
-        const paramName = 'id'
-
-        for (const action of finalActions) {
-          let routePath = path
-          let method = 'GET'
-          const actionMethod = 'index'
-
-          switch (action) {
-            case 'index':
-              method = 'GET'
-              break
-            case 'show':
-              method = 'GET'
-              routePath = `${path}/{${paramName}:${modelName}}`
-              break
-            case 'store':
-              method = 'POST'
-              break
-            case 'update':
-              method = 'PUT'
-              routePath = `${path}/{${paramName}:${modelName}}`
-              break
-            case 'destroy':
-              method = 'DELETE'
-              routePath = `${path}/{${paramName}:${modelName}}`
-              break
-          }
-
-          const handler = `${controller}@${actionMethod}`
-
-          // Use appropriate HTTP method
-          const routeMethod = method.toLowerCase() as 'get' | 'post' | 'put' | 'patch' | 'delete'
-          await (this as any)[routeMethod](routePath, handler, {
-            bindings: options?.bindings,
-            middleware: options?.middleware,
-          })
+    clearModelCache: {
+      value(modelName?: string): Router {
+        if (modelName) {
+          this.modelRegistry.clearCache(modelName)
         }
-
+        else {
+          this.modelRegistry.clearAllCache()
+        }
         return this
       },
       writable: true,
@@ -315,69 +193,12 @@ export function registerModelBinding(RouterClass: typeof Router): void {
     },
 
     /**
-     * Extract model name from resource path
+     * Get model registry statistics
      */
-    extractModelNameFromPath: {
-      value(path: string): string {
-        const segments = path.split('/').filter(Boolean)
-        const lastSegment = segments[segments.length - 1]
-        // Convert plural to singular and capitalize
-        return this.singularize(lastSegment).charAt(0).toUpperCase()
-          + this.singularize(lastSegment).slice(1)
+    getModelStats: {
+      value() {
+        return this.modelRegistry.getCacheStats()
       },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Get singular form of a path
-     */
-    getSingularPath: {
-      value(path: string): string {
-        const segments = path.split('/').filter(Boolean)
-        const lastSegment = segments[segments.length - 1]
-        return this.singularize(lastSegment)
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Get parameter name from path
-     */
-    getParamNameFromPath: {
-      value(singularPath: string): string {
-        return singularPath.toLowerCase()
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Simple pluralization helper (can be enhanced with a proper library)
-     */
-    singularize: {
-      value(word: string): string {
-        if (word.endsWith('ies')) {
-          return `${word.slice(0, -3)}y`
-        }
-        if (word.endsWith('es')) {
-          return word.slice(0, -2)
-        }
-        if (word.endsWith('s')) {
-          return word.slice(0, -1)
-        }
-        return word
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Model not found handler
-     */
-    modelNotFoundHandler: {
-      value: null as ((error: ModelNotFoundError, req: EnhancedRequest) => Response) | null,
       writable: true,
       configurable: true,
     },

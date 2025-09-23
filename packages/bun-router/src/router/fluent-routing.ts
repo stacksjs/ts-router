@@ -1,12 +1,11 @@
 import type { BunQueryBuilderModel } from '../model-binding'
 import type { RouteCacheConfig } from '../routing/route-caching'
 import type { RateLimitConfig } from '../routing/route-throttling'
-import type { DomainGroupConfig } from '../routing/subdomain-routing'
 import type { EnhancedRequest, MiddlewareHandler, RouteHandler, ThrottlePattern } from '../types'
-import { createModelBindingMiddleware, extractModelParameters } from '../model-binding'
+import { createModelBindingMiddleware } from '../model-binding'
 import { createRouteCacheMiddleware, RouteCacheFactory } from '../routing/route-caching'
 import { createRateLimitMiddleware, parseThrottleString, ThrottleFactory } from '../routing/route-throttling'
-import { createSubdomainMiddleware, SubdomainRouter } from '../routing/subdomain-routing'
+import { SubdomainRouter } from '../routing/subdomain-routing'
 
 /**
  * Fluent route builder with chainable API
@@ -148,17 +147,17 @@ export class FluentConditionalBuilder {
   middleware(middlewareName: string): this {
     const [name, params] = middlewareName.split(':')
     const middlewareFactory = (this.router as any).namedMiddleware.get(name)
-    
+
     if (!middlewareFactory) {
       throw new Error(`Unknown middleware: ${name}`)
     }
-    
+
     const middlewareHandler = middlewareFactory(params)
     (this.router as any).conditionalMiddleware.push({
       condition: this.condition,
       middleware: [middlewareHandler],
     })
-    
+
     return this
   }
 }
@@ -246,10 +245,10 @@ export class FluentRouter {
 
   // Middleware groups registry
   private middlewareGroups = new Map<string, MiddlewareHandler[]>()
-  
+
   // Named middleware registry with parameter support
   private namedMiddleware = new Map<string, (params?: string) => MiddlewareHandler>()
-  
+
   // Conditional middleware
   private conditionalMiddleware: ConditionalMiddleware[] = []
 
@@ -267,7 +266,7 @@ export class FluentRouter {
       return createRateLimitMiddleware({
         maxRequests: config.maxRequests,
         windowMs: config.windowMs,
-        keyGenerator: (req) => req.headers.get('x-forwarded-for') || 'anonymous',
+        keyGenerator: req => req.headers.get('x-forwarded-for') || 'anonymous',
         name: `throttle_${params || '60,1'}`,
       })
     })
@@ -310,7 +309,7 @@ export class FluentRouter {
    */
   middlewareGroup(name: string, middlewareNames: string[]): this {
     const middlewareHandlers: MiddlewareHandler[] = []
-    
+
     for (const middlewareName of middlewareNames) {
       const [name, params] = middlewareName.split(':')
       const middlewareFactory = this.namedMiddleware.get(name)
@@ -318,7 +317,7 @@ export class FluentRouter {
         middlewareHandlers.push(middlewareFactory(params))
       }
     }
-    
+
     this.middlewareGroups.set(name, middlewareHandlers)
     return this
   }
@@ -344,11 +343,11 @@ export class FluentRouter {
   middleware(middlewareName: string): FluentMiddlewareBuilder {
     const [name, params] = middlewareName.split(':')
     const middlewareFactory = this.namedMiddleware.get(name)
-    
+
     if (!middlewareFactory) {
       throw new Error(`Unknown middleware: ${name}`)
     }
-    
+
     const middlewareHandler = middlewareFactory(params)
     return new FluentMiddlewareBuilder(this, [middlewareHandler])
   }

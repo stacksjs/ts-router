@@ -11,7 +11,6 @@ import type {
   CORSRequest,
   FileUploadRequest,
   LoggedRequest,
-  MiddlewareChain,
   RateLimitedRequest,
   SessionRequest,
   TypedMiddleware,

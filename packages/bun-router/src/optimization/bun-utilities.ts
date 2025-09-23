@@ -4,8 +4,6 @@
  * Generic optimization utilities leveraging Bun's runtime capabilities
  */
 
-import { spawn } from 'bun'
-
 export interface BunOptimizationConfig {
   enableJIT?: boolean
   enableGC?: boolean

@@ -1,5 +1,5 @@
 import type { ActionHandler, RouterConfig } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { join } from 'node:path'
 import { processHtmlTemplate, resolveViewPath } from '../utils'
 

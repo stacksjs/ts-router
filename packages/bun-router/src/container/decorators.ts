@@ -192,7 +192,8 @@ export function UseMiddleware(...middleware: Function[]): ClassDecorator & Metho
         target.constructor[MIDDLEWARE_METADATA_KEY] = new Map()
       }
       target.constructor[MIDDLEWARE_METADATA_KEY].set(propertyKey, middleware)
-    } else {
+    }
+    else {
       // Class decorator
       target[MIDDLEWARE_METADATA_KEY] = middleware
     }
@@ -230,7 +231,7 @@ export function InjectParam(token: string | symbol | Function): ParameterDecorat
 function createParamDecorator(
   type: 'param' | 'query' | 'body' | 'header' | 'cookie',
   key?: string,
-  token?: string | symbol | Function
+  token?: string | symbol | Function,
 ): ParameterDecorator {
   return function (target: any, propertyKey: string | symbol | undefined, parameterIndex: number) {
     if (!target.constructor[PARAM_METADATA_KEY]) {
@@ -328,7 +329,8 @@ export class DecoratorContainer extends Container {
         try {
           // Try to resolve first to see if it exists
           return super.resolve<T>(token, context)
-        } catch {
+        }
+        catch {
           // If it doesn't exist, register it
           const scope = metadata.scope || 'transient'
           switch (scope) {

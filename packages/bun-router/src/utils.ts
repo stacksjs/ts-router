@@ -68,7 +68,7 @@ export function isRouteHandler(handler: ActionHandler): handler is RouteHandler 
  */
 export function extractParamNames(pattern: string): string[] {
   const matches = pattern.match(/\{([^}]+)\}/g)
-  return matches ? matches.map(m => m.slice(1, -1)) : []
+  return matches ? matches.map(m => m.slice(1, -1).replace('?', '')) : []
 }
 
 /**
@@ -89,10 +89,10 @@ export function createPathRegex(pattern: string): RegExp {
  * @returns Boolean indicating whether the path matches the pattern
  */
 export function matchPath(
-  pattern: string, 
-  path: string, 
+  pattern: string,
+  path: string,
   params: Record<string, string>,
-  constraints?: Record<string, string>
+  constraints?: Record<string, string>,
 ): boolean {
   // Both paths should be normalized
   const normalizedPattern = normalizePath(pattern)
@@ -143,7 +143,7 @@ export function matchPath(
       const paramName = paramMatch[1].replace('?', '')
       // Store the parameter value
       params[paramName] = pathSegment
-      
+
       // Check constraints if they exist
       if (constraints && constraints[paramName]) {
         try {
@@ -151,7 +151,8 @@ export function matchPath(
           if (!regex.test(pathSegment)) {
             return false
           }
-        } catch (e) {
+        }
+        catch (e) {
           // If regex is invalid, treat as no constraint
           console.warn(`Invalid constraint regex for parameter ${paramName}: ${constraints[paramName]}`)
         }

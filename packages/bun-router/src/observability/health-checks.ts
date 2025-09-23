@@ -1,6 +1,6 @@
 /**
  * Observability & Monitoring - Health Check Endpoints with Dependency Checks
- * 
+ *
  * Enterprise-grade health monitoring with dependency validation and detailed reporting
  */
 
@@ -74,7 +74,7 @@ export class HealthCheckManager {
       retries: 3,
       interval: 30000,
       gracePeriod: 60000,
-      ...config
+      ...config,
     }
 
     // Register dependencies
@@ -100,7 +100,7 @@ export class HealthCheckManager {
       timeout: this.config.timeout,
       retries: this.config.retries,
       critical: true,
-      ...config
+      ...config,
     })
   }
 
@@ -111,7 +111,7 @@ export class HealthCheckManager {
     this.customChecks.set(check.name, {
       critical: true,
       timeout: this.config.timeout,
-      ...check
+      ...check,
     })
   }
 
@@ -144,7 +144,7 @@ export class HealthCheckManager {
         dependencies[name] = result
         this.lastResults.set(`dep_${name}`, result)
         return result
-      }
+      },
     )
 
     // Run custom checks
@@ -154,13 +154,13 @@ export class HealthCheckManager {
         checks[name] = result
         this.lastResults.set(`check_${name}`, result)
         return result
-      }
+      },
     )
 
     // Wait for all checks to complete
     const [depResults, checkResults] = await Promise.all([
       Promise.allSettled(dependencyPromises),
-      Promise.allSettled(customPromises)
+      Promise.allSettled(customPromises),
     ])
 
     // Calculate overall status
@@ -169,21 +169,22 @@ export class HealthCheckManager {
       total: allResults.length,
       healthy: allResults.filter(r => r.status === 'healthy').length,
       unhealthy: allResults.filter(r => r.status === 'unhealthy').length,
-      degraded: allResults.filter(r => r.status === 'degraded').length
+      degraded: allResults.filter(r => r.status === 'degraded').length,
     }
 
     // Determine overall status
     let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy'
-    
+
     // Check for critical failures
-    const criticalFailures = allResults.some(result => {
+    const criticalFailures = allResults.some((result) => {
       const isCritical = this.isCriticalCheck(result)
       return isCritical && result.status === 'unhealthy'
     })
 
     if (criticalFailures) {
       overallStatus = 'unhealthy'
-    } else if (summary.unhealthy > 0 || summary.degraded > 0) {
+    }
+    else if (summary.unhealthy > 0 || summary.degraded > 0) {
       overallStatus = 'degraded'
     }
 
@@ -193,7 +194,7 @@ export class HealthCheckManager {
       uptime: Math.floor((Date.now() - this.startTime) / 1000),
       checks,
       dependencies,
-      summary
+      summary,
     }
   }
 
@@ -202,7 +203,7 @@ export class HealthCheckManager {
    */
   private async checkDependency(config: DependencyConfig): Promise<HealthCheckResult> {
     const startTime = Date.now()
-    
+
     try {
       // Use custom check if provided
       if (config.check) {
@@ -226,16 +227,17 @@ export class HealthCheckManager {
             status: 'unhealthy',
             message: `Unknown dependency type: ${config.type}`,
             duration: Date.now() - startTime,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         status: 'unhealthy',
         message: 'Dependency check failed',
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
   }
@@ -245,13 +247,13 @@ export class HealthCheckManager {
    */
   private async checkHttpDependency(config: DependencyConfig): Promise<HealthCheckResult> {
     const startTime = Date.now()
-    
+
     if (!config.url) {
       return {
         status: 'unhealthy',
         message: 'HTTP dependency URL not configured',
         duration: 0,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
 
@@ -263,8 +265,8 @@ export class HealthCheckManager {
         method: 'GET',
         signal: controller.signal,
         headers: {
-          'User-Agent': 'bun-router-health-check/1.0'
-        }
+          'User-Agent': 'bun-router-health-check/1.0',
+        },
       })
 
       clearTimeout(timeoutId)
@@ -278,11 +280,12 @@ export class HealthCheckManager {
           metadata: {
             status: response.status,
             statusText: response.statusText,
-            url: config.url
+            url: config.url,
           },
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }
-      } else {
+      }
+      else {
         return {
           status: response.status >= 500 ? 'unhealthy' : 'degraded',
           message: `HTTP ${response.status} ${response.statusText}`,
@@ -290,19 +293,20 @@ export class HealthCheckManager {
           metadata: {
             status: response.status,
             statusText: response.statusText,
-            url: config.url
+            url: config.url,
           },
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         status: 'unhealthy',
         message: 'HTTP request failed',
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
         metadata: { url: config.url },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
   }
@@ -312,29 +316,30 @@ export class HealthCheckManager {
    */
   private async checkDatabaseDependency(config: DependencyConfig): Promise<HealthCheckResult> {
     const startTime = Date.now()
-    
+
     try {
       // This is a placeholder - in real implementation, you'd use actual database clients
       // For now, we'll simulate a database check
       await new Promise(resolve => setTimeout(resolve, 10))
-      
+
       return {
         status: 'healthy',
         message: 'Database connection successful',
         duration: Date.now() - startTime,
         metadata: {
           type: 'database',
-          ...config.metadata
+          ...config.metadata,
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         status: 'unhealthy',
         message: 'Database connection failed',
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
   }
@@ -344,28 +349,29 @@ export class HealthCheckManager {
    */
   private async checkRedisDependency(config: DependencyConfig): Promise<HealthCheckResult> {
     const startTime = Date.now()
-    
+
     try {
       // Placeholder for Redis check
       await new Promise(resolve => setTimeout(resolve, 5))
-      
+
       return {
         status: 'healthy',
         message: 'Redis connection successful',
         duration: Date.now() - startTime,
         metadata: {
           type: 'redis',
-          ...config.metadata
+          ...config.metadata,
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         status: 'unhealthy',
         message: 'Redis connection failed',
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
   }
@@ -375,28 +381,29 @@ export class HealthCheckManager {
    */
   private async checkQueueDependency(config: DependencyConfig): Promise<HealthCheckResult> {
     const startTime = Date.now()
-    
+
     try {
       // Placeholder for queue check
       await new Promise(resolve => setTimeout(resolve, 8))
-      
+
       return {
         status: 'healthy',
         message: 'Queue connection successful',
         duration: Date.now() - startTime,
         metadata: {
           type: 'queue',
-          ...config.metadata
+          ...config.metadata,
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         status: 'unhealthy',
         message: 'Queue connection failed',
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
   }
@@ -406,7 +413,7 @@ export class HealthCheckManager {
    */
   private async checkFileDependency(config: DependencyConfig): Promise<HealthCheckResult> {
     const startTime = Date.now()
-    
+
     try {
       if (!config.url) {
         throw new Error('File path not specified')
@@ -415,13 +422,13 @@ export class HealthCheckManager {
       // Check if file/directory exists and is accessible
       const file = Bun.file(config.url)
       const exists = await file.exists()
-      
+
       if (!exists) {
         return {
           status: 'unhealthy',
           message: `File not found: ${config.url}`,
           duration: Date.now() - startTime,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }
       }
 
@@ -432,17 +439,18 @@ export class HealthCheckManager {
         metadata: {
           type: 'file',
           path: config.url,
-          size: file.size
+          size: file.size,
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         status: 'unhealthy',
         message: 'File system check failed',
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
   }
@@ -452,20 +460,21 @@ export class HealthCheckManager {
    */
   private async runCustomCheck(config: CustomHealthCheck): Promise<HealthCheckResult> {
     const startTime = Date.now()
-    
+
     try {
       const result = await this.executeWithTimeout(config.check(), config.timeout || this.config.timeout!)
       return {
         ...result,
-        duration: result.duration || (Date.now() - startTime)
+        duration: result.duration || (Date.now() - startTime),
       }
-    } catch (error) {
+    }
+    catch (error) {
       return {
         status: 'unhealthy',
         message: 'Custom check failed',
         error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }
     }
   }
@@ -480,11 +489,11 @@ export class HealthCheckManager {
       }, timeout)
 
       promise
-        .then(result => {
+        .then((result) => {
           clearTimeout(timeoutId)
           resolve(result)
         })
-        .catch(error => {
+        .catch((error) => {
           clearTimeout(timeoutId)
           reject(error)
         })
@@ -567,10 +576,10 @@ export const HealthEndpoints = {
     if (!manager) {
       return new Response(JSON.stringify({
         status: 'unhealthy',
-        message: 'Health checks not initialized'
+        message: 'Health checks not initialized',
       }), {
         status: 503,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       })
     }
 
@@ -582,18 +591,19 @@ export const HealthEndpoints = {
         status,
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        }
+          'Cache-Control': 'no-cache',
+        },
       })
-    } catch (error) {
+    }
+    catch (error) {
       return new Response(JSON.stringify({
         status: 'unhealthy',
         message: 'Health check failed',
         error: error instanceof Error ? error.message : String(error),
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }), {
         status: 503,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       })
     }
   },
@@ -609,10 +619,10 @@ export const HealthEndpoints = {
 
     try {
       const health = await manager.checkHealth()
-      
+
       // Ready if all critical dependencies are healthy
-      const criticalFailures = Object.values(health.dependencies).some(dep => 
-        dep.status === 'unhealthy'
+      const criticalFailures = Object.values(health.dependencies).some(dep =>
+        dep.status === 'unhealthy',
       )
 
       if (criticalFailures) {
@@ -620,7 +630,8 @@ export const HealthEndpoints = {
       }
 
       return new Response('OK', { status: 200 })
-    } catch (error) {
+    }
+    catch (error) {
       return new Response('Service not ready', { status: 503 })
     }
   },
@@ -651,7 +662,7 @@ export const HealthEndpoints = {
     }
 
     return new Response('OK', { status: 200 })
-  }
+  },
 }
 
 /**
@@ -667,7 +678,7 @@ export const DependencyChecks = {
     url,
     timeout: 5000,
     critical: true,
-    ...options
+    ...options,
   }),
 
   /**
@@ -678,7 +689,7 @@ export const DependencyChecks = {
     type: 'database',
     timeout: 3000,
     critical: true,
-    ...options
+    ...options,
   }),
 
   /**
@@ -689,7 +700,7 @@ export const DependencyChecks = {
     type: 'redis',
     timeout: 2000,
     critical: false,
-    ...options
+    ...options,
   }),
 
   /**
@@ -701,7 +712,7 @@ export const DependencyChecks = {
     url: path,
     timeout: 1000,
     critical: true,
-    ...options
+    ...options,
   }),
 
   /**
@@ -713,6 +724,6 @@ export const DependencyChecks = {
     check: checkFn,
     timeout: 5000,
     critical: true,
-    ...options
-  })
+    ...options,
+  }),
 }

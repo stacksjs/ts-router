@@ -43,7 +43,7 @@ export class RateLimiter {
 
   constructor(config: RateLimitConfig, cacheSize: number = 10000) {
     this.config = config
-    this.cache = new LRUCache<RateLimitEntry>({ 
+    this.cache = new LRUCache<RateLimitEntry>({
       maxSize: cacheSize,
       ttl: config.windowMs * 2, // Keep entries longer than window for cleanup
     })
@@ -52,7 +52,7 @@ export class RateLimiter {
   /**
    * Check if request should be rate limited
    */
-  async checkLimit(req: EnhancedRequest): Promise<{ allowed: boolean; info: RateLimitInfo }> {
+  async checkLimit(req: EnhancedRequest): Promise<{ allowed: boolean, info: RateLimitInfo }> {
     // Skip if condition is met
     if (this.config.skipIf && this.config.skipIf(req)) {
       return {
@@ -69,9 +69,9 @@ export class RateLimiter {
 
     const key = this.generateKey(req)
     const now = Date.now()
-    
+
     let entry = this.cache.get(key)
-    
+
     // Clean up expired entry or create new one
     if (!entry || now >= entry.resetTime) {
       entry = {
@@ -79,7 +79,8 @@ export class RateLimiter {
         resetTime: now + this.config.windowMs,
         firstHit: now,
       }
-    } else {
+    }
+    else {
       entry.count++
     }
 
@@ -110,11 +111,11 @@ export class RateLimiter {
     // Default key generation: IP + User ID (if available)
     const ip = this.getClientIP(req)
     const userId = req.user?.id
-    
+
     if (userId) {
       return `user:${userId}`
     }
-    
+
     return `ip:${ip}`
   }
 
@@ -199,7 +200,7 @@ export const rateLimitRegistry = new RateLimitRegistry()
  * Create rate limiting middleware
  */
 export function createRateLimitMiddleware(config: RateLimitConfig, name?: string) {
-  const limiter = name 
+  const limiter = name
     ? rateLimitRegistry.getOrCreate(name, config)
     : new RateLimiter(config)
 
@@ -233,7 +234,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig, name?: string
         {
           status: 429,
           headers,
-        }
+        },
       )
     }
 
@@ -267,7 +268,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig, name?: string
  */
 export function parseThrottleString(throttleStr: ThrottlePattern): RateLimitConfig {
   const parts = throttleStr.split(',')
-  const maxAttempts = parseInt(parts[0], 10)
+  const maxAttempts = Number.parseInt(parts[0], 10)
 
   if (isNaN(maxAttempts) || maxAttempts <= 0) {
     throw new Error(`Invalid throttle max attempts: ${parts[0]}`)
@@ -278,7 +279,8 @@ export function parseThrottleString(throttleStr: ThrottlePattern): RateLimitConf
   if (parts.length === 1) {
     // Default to 1 minute if no time window specified
     windowMs = 60 * 1000
-  } else {
+  }
+  else {
     const timeStr = parts[1]
     windowMs = parseTimeString(timeStr)
   }
@@ -293,14 +295,14 @@ export function parseThrottleString(throttleStr: ThrottlePattern): RateLimitConf
  * Parse time string with units into milliseconds
  */
 function parseTimeString(timeStr: string): number {
-  const timePattern = /^(\d+)(s|sec|m|min|h|hour)?$/
+  const timePattern = /^(\d+)([smh]|sec|min|hour)?$/
   const match = timeStr.match(timePattern)
 
   if (!match) {
     throw new Error(`Invalid time format: ${timeStr}`)
   }
 
-  const value = parseInt(match[1], 10)
+  const value = Number.parseInt(match[1], 10)
   const unit = match[2] || 'm' // Default to minutes
 
   if (isNaN(value) || value <= 0) {
@@ -359,7 +361,7 @@ export const ThrottleFactory = {
           'Content-Type': 'application/json',
           'Retry-After': Math.ceil((info.resetTime.getTime() - Date.now()) / 1000).toString(),
         },
-      }
+      },
     ),
   }),
 
@@ -404,7 +406,7 @@ export const ThrottleFactory = {
       }
       return `user:${userId}`
     },
-    skipIf: (req) => !req.user?.id, // Skip if not authenticated
+    skipIf: req => !req.user?.id, // Skip if not authenticated
   }),
 
   /**
@@ -414,10 +416,10 @@ export const ThrottleFactory = {
     maxAttempts,
     windowMs: windowMinutes * 60 * 1000,
     keyGenerator: (req) => {
-      const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 
-                 req.headers.get('x-real-ip') || 
-                 req.headers.get('cf-connecting-ip') || 
-                 'unknown'
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0]
+        || req.headers.get('x-real-ip')
+        || req.headers.get('cf-connecting-ip')
+        || 'unknown'
       return `ip:${ip}`
     },
   }),

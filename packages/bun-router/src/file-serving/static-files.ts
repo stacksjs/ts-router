@@ -4,8 +4,6 @@
  * Efficient file serving using Bun.file() with advanced caching and optimization
  */
 
-import { Buffer } from 'node:buffer'
-
 export interface StaticFileConfig {
   root: string
   maxAge?: number
@@ -74,7 +72,7 @@ export class StaticFileServer {
    */
   async serve(request: Request): Promise<Response | null> {
     const url = new URL(request.url)
-    let pathname = decodeURIComponent(url.pathname)
+    const pathname = decodeURIComponent(url.pathname)
 
     // Security: prevent directory traversal
     if (pathname.includes('..') || pathname.includes('\0')) {

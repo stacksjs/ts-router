@@ -1,5 +1,5 @@
 import type { HTTPMethod, MatchResult, Route } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { matchPath } from '../utils'
 
 /**
@@ -243,23 +243,23 @@ export function registerRouteMatching(RouterClass: typeof Router): void {
         if (lastRoute) {
           // Update constraints
           lastRoute.constraints = { ...(lastRoute.constraints || {}), ...params }
-          
+
           // Regenerate the route pattern with the new constraints
           const routePath = lastRoute.path
-          const constraintsRecord = lastRoute.constraints && !Array.isArray(lastRoute.constraints) 
+          const constraintsRecord = lastRoute.constraints && !Array.isArray(lastRoute.constraints)
             ? lastRoute.constraints as Record<string, string>
             : undefined
-          
+
           // Recreate the pattern with the updated constraints
           lastRoute.pattern = {
             exec: (url: URL): { pathname: { groups: Record<string, string> } } | null => {
               const params: Record<string, string> = {}
               const isMatch = matchPath(routePath, url.pathname, params, constraintsRecord)
-              
+
               if (!isMatch) {
                 return null
               }
-              
+
               return {
                 pathname: {
                   groups: params,
@@ -267,17 +267,17 @@ export function registerRouteMatching(RouterClass: typeof Router): void {
               }
             },
           }
-          
+
           // Clear route cache when constraints are added
           this.routeCache.clear()
-          
+
           // Force recompilation of the route in the trie
           if (this.routeCompiler) {
             // We need to completely rebuild the trie to ensure constraints are applied
             // This is more reliable than trying to selectively update just one route
             const allRoutes = [...this.routes]
             this.routeCompiler.clear()
-            
+
             // Re-add all routes to ensure proper ordering and constraint application
             for (const route of allRoutes) {
               this.routeCompiler.addRoute(route)

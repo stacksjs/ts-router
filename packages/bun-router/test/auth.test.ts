@@ -22,12 +22,8 @@ function createMockRequest(options: {
     url,
     method: options.method || 'GET',
     headers,
-    cookies: {
-      get: (name: string) => options.cookies?.[name],
-      set: () => {},
-      delete: () => {},
-      getAll: () => options.cookies || {},
-    },
+    cookies: options.cookies || {},
+    cookie: (name: string) => options.cookies?.[name] || null,
   }
 }
 

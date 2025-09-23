@@ -110,8 +110,8 @@ export class RouteTrie {
     if (route.constraints && !Array.isArray(route.constraints)) {
       const constraintsRecord = route.constraints as Record<string, string>
       for (const segment of segments) {
-        if (segment.type === 'parameter' && segment.paramName && 
-            constraintsRecord[segment.paramName]) {
+        if (segment.type === 'parameter' && segment.paramName
+          && constraintsRecord[segment.paramName]) {
           segment.pattern = new RegExp(`^${constraintsRecord[segment.paramName]}$`)
         }
       }
@@ -155,7 +155,7 @@ export class RouteTrie {
         segments.push({
           type: 'parameter',
           value: part,
-          paramName,
+          paramName: paramName.replace('?', ''),
           pattern: pattern ? new RegExp(`^${pattern}$`) : undefined,
           optional: paramPart.endsWith('?'),
         })
@@ -167,7 +167,7 @@ export class RouteTrie {
         })
 
         const paramNames = Array.from(part.matchAll(/\{([^}:]+)(?::([^}]+))?\}/g))
-          .map(match => match[1])
+          .map(match => match[1].replace('?', ''))
 
         segments.push({
           type: 'parameter',
@@ -348,9 +348,10 @@ export class RouteTrie {
         [], // Empty segments for wildcard - it matches everything
         0,
         { ...params, wildcard: remainingPath },
-        method
+        method,
       )
-      if (match) return match
+      if (match)
+        return match
     }
 
     // Try all candidates and return the best match
@@ -394,15 +395,15 @@ export class RouteTrie {
         .join('|')
       cacheKey = `${route.method}:${route.path}#${constraintString}`
     }
-    
+
     // Remove from compiled routes cache
     this.compiledRoutes.delete(cacheKey)
-    
+
     // We don't actually need to remove nodes from the trie structure
     // since we'll be adding the updated route back immediately
     // This is a performance optimization to avoid complex trie node removal
   }
-  
+
   /**
    * Clear the trie
    */

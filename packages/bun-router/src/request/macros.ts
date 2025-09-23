@@ -381,8 +381,9 @@ export const BuiltInRequestMacros = {
   /**
    * Get query parameter
    */
-  getQuery: function(this: EnhancedRequest, key?: string, defaultValue?: any): any {
-    if (!key) return this.query || {}
+  getQuery(this: EnhancedRequest, key?: string, defaultValue?: any): any {
+    if (!key)
+      return this.query || {}
     return this.query?.[key] || defaultValue
   },
 

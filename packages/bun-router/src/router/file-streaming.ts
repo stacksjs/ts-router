@@ -1,5 +1,9 @@
-import type { Router } from './core'
-import { stat } from 'node:fs/promises'
+import type {
+  DirectStreamConfig,
+  EnhancedRequest,
+} from '../types'
+import type { Router } from './router'
+import { FileStreamHandler, StreamHandler, StreamUtils } from '../streaming/stream-handler'
 
 /**
  * File streaming extension for Router class
@@ -11,26 +15,15 @@ export function registerFileStreaming(RouterClass: typeof Router): void {
      */
     streamFile: {
       value(
-        path: string,
-        options?: { headers?: Record<string, string>, status?: number },
-      ): Response {
-        const file = Bun.file(path)
-        const headers = new Headers()
-
-        // Set content type based on file extension
-        headers.set('Content-Type', file.type)
-
-        // Add custom headers if provided
-        if (options?.headers) {
-          for (const [key, value] of Object.entries(options.headers)) {
-            headers.set(key, value)
-          }
-        }
-
-        return new Response(file, {
-          status: options?.status || 200,
-          headers,
-        })
+        filePath: string,
+        request: EnhancedRequest,
+        options?: {
+          contentType?: string
+          enableRanges?: boolean
+          chunkSize?: number
+        },
+      ): Promise<Response> {
+        return FileStreamHandler.streamFile(filePath, request, options)
       },
       writable: true,
       configurable: true,
@@ -40,47 +33,8 @@ export function registerFileStreaming(RouterClass: typeof Router): void {
      * Stream a file with range support (for video/audio streaming)
      */
     streamFileWithRanges: {
-      async value(path: string, req: Request): Promise<Response> {
-        const fileInfo = await stat(path)
-        const fileSize = fileInfo.size
-
-        const range = req.headers.get('range')
-        if (!range) {
-          // No range requested, serve the entire file
-          return this.streamFile(path)
-        }
-
-        // Parse the range header
-        const rangeMatch = range.match(/bytes=(\d+)-(\d*)/)
-        if (!rangeMatch) {
-          // Invalid range header
-          return new Response('Invalid range header', { status: 416 })
-        }
-
-        const start = Number.parseInt(rangeMatch[1], 10)
-        const end = rangeMatch[2] ? Number.parseInt(rangeMatch[2], 10) : fileSize - 1
-
-        // Validate range
-        if (start >= fileSize || end >= fileSize || start > end) {
-          // Range not satisfiable
-          return new Response('Range not satisfiable', { status: 416 })
-        }
-
-        // Create file stream with the specified range
-        const file = Bun.file(path)
-        const arrayBuffer = await file.arrayBuffer()
-        const rangeData = arrayBuffer.slice(start, end + 1)
-
-        const headers = new Headers()
-        headers.set('Content-Type', file.type || 'application/octet-stream')
-        headers.set('Content-Range', `bytes ${start}-${end}/${fileSize}`)
-        headers.set('Accept-Ranges', 'bytes')
-        headers.set('Content-Length', String(end - start + 1))
-
-        return new Response(rangeData, {
-          status: 206, // Partial Content
-          headers,
-        })
+      async value(filePath: string, req: EnhancedRequest): Promise<Response> {
+        return FileStreamHandler.streamFile(filePath, req, { enableRanges: true })
       },
       writable: true,
       configurable: true,
@@ -188,254 +142,257 @@ export function registerFileStreaming(RouterClass: typeof Router): void {
     },
 
     /**
-     * Register a streaming route (default to async generator streaming)
+     * Laravel-style response()->stream() method
+     * Creates a streaming response using a generator function
      */
     stream: {
-      async value(
-        path: string,
-        generator: () => AsyncGenerator<string | Uint8Array, void, unknown>,
-        options?: { headers?: Record<string, string>, status?: number },
-      ): Promise<Router> {
-        await this.get(path, () => {
-          const headers = new Headers()
+      value(
+        callback: () => Generator<string | Uint8Array, void, unknown> | AsyncGenerator<string | Uint8Array, void, unknown>,
+        status: number = 200,
+        headers: Record<string, string> = {},
+      ): Response {
+        const responseHeaders = new Headers(headers)
 
-          // Add custom headers if provided
-          if (options?.headers) {
-            for (const [key, value] of Object.entries(options.headers)) {
-              headers.set(key, value)
+        const stream = new ReadableStream({
+          async start(controller) {
+            const encoder = new TextEncoder()
+
+            try {
+              for await (const chunk of callback()) {
+                if (typeof chunk === 'string') {
+                  controller.enqueue(encoder.encode(chunk))
+                }
+                else {
+                  controller.enqueue(chunk)
+                }
+              }
+              controller.close()
             }
-          }
-
-          // Use Bun's native async generator support for Response
-          return new Response(generator(), {
-            status: options?.status || 200,
-            headers,
-          })
+            catch (error) {
+              controller.error(error)
+            }
+          },
         })
 
-        return this
+        return new Response(stream, {
+          status,
+          headers: responseHeaders,
+        })
       },
       writable: true,
       configurable: true,
     },
 
     /**
-     * Register a JSON streaming route (NDJSON)
+     * Laravel-style response()->streamJson() method
+     * Stream JSON data progressively
      */
-    streamJSONRoute: {
-      async value(
-        path: string,
-        generator: () => AsyncGenerator<any, void, unknown>,
-        options?: { headers?: Record<string, string>, status?: number },
-      ): Promise<Router> {
-        await this.get(path, () => {
-          const jsonGenerator = async function* () {
-            for await (const item of generator()) {
-              yield `${JSON.stringify(item)}\n`
-            }
-          }
-
-          const headers = new Headers()
-          headers.set('Content-Type', 'application/x-ndjson')
-
-          // Add custom headers if provided
-          if (options?.headers) {
-            for (const [key, value] of Object.entries(options.headers)) {
-              headers.set(key, value)
-            }
-          }
-
-          return new Response(jsonGenerator(), {
-            status: options?.status || 200,
-            headers,
-          })
+    streamJson: {
+      value<T>(
+        data: { [key: string]: Iterable<T> | AsyncIterable<T> },
+        status: number = 200,
+        headers: Record<string, string> = {},
+      ): Response {
+        const responseHeaders = new Headers({
+          'Content-Type': 'application/json',
+          ...headers,
         })
 
-        return this
-      },
-      writable: true,
-      configurable: true,
-    },
+        const stream = new ReadableStream({
+          async start(controller) {
+            const encoder = new TextEncoder()
 
-    /**
-     * Alias for streamJSONRoute for cleaner API
-     */
-    streamJSON: {
-      async value(
-        path: string,
-        generator: () => AsyncGenerator<any, void, unknown>,
-        options?: { headers?: Record<string, string>, status?: number },
-      ): Promise<Router> {
-        return this.streamJSONRoute(path, generator, options)
-      },
-      writable: true,
-      configurable: true,
-    },
+            try {
+              controller.enqueue(encoder.encode('{'))
 
-    /**
-     * Register a Server-Sent Events (SSE) streaming route
-     */
-    streamSSE: {
-      async value(
-        path: string,
-        generator: () => AsyncGenerator<{ data: any, event?: string, id?: string, retry?: number }, void, unknown>,
-        options?: { headers?: Record<string, string> },
-      ): Promise<Router> {
-        await this.get(path, () => {
-          const sseGenerator = async function* () {
-            for await (const event of generator()) {
-              let sseData = ''
+              const keys = Object.keys(data)
+              for (let i = 0; i < keys.length; i++) {
+                const key = keys[i]
+                const value = data[key]
 
-              if (event.id) {
-                sseData += `id: ${event.id}\n`
+                // Start the key
+                controller.enqueue(encoder.encode(`"${key}":[`))
+
+                let isFirst = true
+                for await (const item of value) {
+                  if (!isFirst) {
+                    controller.enqueue(encoder.encode(','))
+                  }
+                  controller.enqueue(encoder.encode(JSON.stringify(item)))
+                  isFirst = false
+                }
+
+                controller.enqueue(encoder.encode(']'))
+
+                if (i < keys.length - 1) {
+                  controller.enqueue(encoder.encode(','))
+                }
               }
 
-              if (event.event) {
-                sseData += `event: ${event.event}\n`
-              }
-
-              if (event.retry) {
-                sseData += `retry: ${event.retry}\n`
-              }
-
-              const data = typeof event.data === 'string' ? event.data : JSON.stringify(event.data)
-              sseData += `data: ${data}\n\n`
-
-              yield sseData
+              controller.enqueue(encoder.encode('}'))
+              controller.close()
             }
-          }
-
-          const headers = new Headers()
-          headers.set('Content-Type', 'text/event-stream')
-          headers.set('Cache-Control', 'no-cache')
-          headers.set('Connection', 'keep-alive')
-          headers.set('Access-Control-Allow-Origin', '*')
-          headers.set('Access-Control-Allow-Headers', 'Cache-Control')
-
-          // Add custom headers if provided
-          if (options?.headers) {
-            for (const [key, value] of Object.entries(options.headers)) {
-              headers.set(key, value)
+            catch (error) {
+              controller.error(error)
             }
-          }
-
-          return new Response(sseGenerator(), {
-            status: 200,
-            headers,
-          })
+          },
         })
 
-        return this
+        return new Response(stream, {
+          status,
+          headers: responseHeaders,
+        })
       },
       writable: true,
       configurable: true,
     },
 
     /**
-     * Register a direct streaming route for high-performance scenarios
+     * Laravel-style response()->eventStream() method
+     * Creates Server-Sent Events stream
      */
-    streamDirect: {
-      async value(
-        path: string,
-        writer: (controller: { write: (chunk: string | Uint8Array) => void, close: () => void }) => Promise<void> | void,
-        options?: { headers?: Record<string, string>, status?: number },
-      ): Promise<Router> {
-        await this.get(path, () => {
-          const stream = new ReadableStream({
-            type: 'direct',
-            async pull(controller) {
-              await writer({
-                write: (chunk: string | Uint8Array) => {
-                  if (typeof chunk === 'string') {
-                    controller.write(new TextEncoder().encode(chunk))
-                  }
-                  else {
-                    controller.write(chunk)
-                  }
-                },
-                close: () => controller.close(),
-              })
-            },
-          })
-
-          const headers = new Headers()
-
-          // Add custom headers if provided
-          if (options?.headers) {
-            for (const [key, value] of Object.entries(options.headers)) {
-              headers.set(key, value)
-            }
-          }
-
-          return new Response(stream, {
-            status: options?.status || 200,
-            headers,
-          })
+    eventStream: {
+      value(
+        callback: () => Generator<{ data: any, event?: string, id?: string, retry?: number }, void, unknown> | AsyncGenerator<{ data: any, event?: string, id?: string, retry?: number }, void, unknown>,
+        headers: Record<string, string> = {},
+      ): Response {
+        const responseHeaders = new Headers({
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Cache-Control',
+          ...headers,
         })
 
-        return this
+        const stream = new ReadableStream({
+          async start(controller) {
+            const encoder = new TextEncoder()
+
+            try {
+              for await (const event of callback()) {
+                let sseData = ''
+
+                if (event.id) {
+                  sseData += `id: ${event.id}\n`
+                }
+
+                if (event.event) {
+                  sseData += `event: ${event.event}\n`
+                }
+
+                if (event.retry) {
+                  sseData += `retry: ${event.retry}\n`
+                }
+
+                const data = typeof event.data === 'string' ? event.data : JSON.stringify(event.data)
+                sseData += `data: ${data}\n\n`
+
+                controller.enqueue(encoder.encode(sseData))
+              }
+
+              controller.close()
+            }
+            catch (error) {
+              controller.error(error)
+            }
+          },
+        })
+
+        return new Response(stream, {
+          status: 200,
+          headers: responseHeaders,
+        })
       },
       writable: true,
       configurable: true,
     },
 
     /**
-     * Register a buffered streaming route using Bun.ArrayBufferSink
+     * Laravel-style response()->streamDownload() method
+     * Stream a download without writing to disk
      */
-    streamBuffered: {
-      async value(
-        path: string,
-        writer: (sink: { write: (chunk: string | Uint8Array | ArrayBuffer) => void, flush: () => void, end: () => void }) => Promise<void> | void,
-        options?: { headers?: Record<string, string>, status?: number, highWaterMark?: number, asUint8Array?: boolean },
-      ): Promise<Router> {
-        await this.get(path, () => {
-          const stream = new ReadableStream({
-            type: 'direct',
-            async pull(controller) {
-              const sink = new Bun.ArrayBufferSink()
-              sink.start({
-                stream: true,
-                highWaterMark: options?.highWaterMark || 64 * 1024, // 64KB default
-                asUint8Array: options?.asUint8Array || false,
-              })
-
-              await writer({
-                write: (chunk: string | Uint8Array | ArrayBuffer) => {
-                  sink.write(chunk)
-                },
-                flush: () => {
-                  const data = sink.flush()
-                  if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
-                    controller.write(data)
-                  }
-                },
-                end: () => {
-                  const final = sink.end()
-                  if (final instanceof ArrayBuffer || final instanceof Uint8Array) {
-                    controller.write(final)
-                  }
-                  controller.close()
-                },
-              })
-            },
-          })
-
-          const headers = new Headers()
-
-          // Add custom headers if provided
-          if (options?.headers) {
-            for (const [key, value] of Object.entries(options.headers)) {
-              headers.set(key, value)
-            }
-          }
-
-          return new Response(stream, {
-            status: options?.status || 200,
-            headers,
-          })
+    streamDownload: {
+      value(
+        callback: () => Generator<string | Uint8Array, void, unknown> | AsyncGenerator<string | Uint8Array, void, unknown>,
+        filename: string,
+        headers: Record<string, string> = {},
+      ): Response {
+        const responseHeaders = new Headers({
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          ...headers,
         })
 
-        return this
+        const stream = new ReadableStream({
+          async start(controller) {
+            const encoder = new TextEncoder()
+
+            try {
+              for await (const chunk of callback()) {
+                if (typeof chunk === 'string') {
+                  controller.enqueue(encoder.encode(chunk))
+                }
+                else {
+                  controller.enqueue(chunk)
+                }
+              }
+              controller.close()
+            }
+            catch (error) {
+              controller.error(error)
+            }
+          },
+        })
+
+        return new Response(stream, {
+          status: 200,
+          headers: responseHeaders,
+        })
+      },
+      writable: true,
+      configurable: true,
+    },
+
+    /**
+     * Transform stream utility
+     */
+    transformStream: {
+      value<T, U>(
+        transformFn: (chunk: T) => U | Promise<U>,
+        options?: any,
+      ): TransformStream<T, U> {
+        return StreamUtils.transform(transformFn)
+      },
+      writable: true,
+      configurable: true,
+    },
+
+    /**
+     * Create stream response utility
+     */
+    streamResponse: {
+      value<T>(
+        data: T[] | AsyncIterable<T>,
+        options: DirectStreamConfig = {},
+      ): Response {
+        const streamResponse = StreamHandler.direct(data, options)
+        return streamResponse.toResponse()
+      },
+      writable: true,
+      configurable: true,
+    },
+
+    /**
+     * Stream async iterator utility
+     */
+    streamAsyncIterator: {
+      value<T>(
+        iterator: AsyncIterable<T>,
+        options: DirectStreamConfig = {},
+      ): Response {
+        const streamResponse = StreamHandler.direct(iterator, options)
+        return streamResponse.toResponse()
       },
       writable: true,
       configurable: true,

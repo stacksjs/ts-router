@@ -1,6 +1,6 @@
 /**
  * WebSocket Clustering
- * 
+ *
  * Native WebSocket clustering across workers with high-performance optimizations
  */
 

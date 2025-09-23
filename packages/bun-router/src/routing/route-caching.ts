@@ -38,25 +38,25 @@ export class RouteCacheKeyGenerator {
     const url = new URL(req.url)
     const method = req.method
     const path = url.pathname
-    
+
     // Base key components
     const keyParts = [method, path]
-    
+
     // Add query parameters (excluding specified ones)
     const queryParams = new URLSearchParams(url.search)
     const excludeQuery = config.excludeQuery || []
-    
+
     const relevantQuery: string[] = []
     for (const [key, value] of queryParams.entries()) {
       if (!excludeQuery.includes(key)) {
         relevantQuery.push(`${key}=${value}`)
       }
     }
-    
+
     if (relevantQuery.length > 0) {
       keyParts.push(relevantQuery.sort().join('&'))
     }
-    
+
     // Add vary headers
     if (config.varyBy) {
       const varyValues: string[] = []
@@ -70,7 +70,7 @@ export class RouteCacheKeyGenerator {
         keyParts.push(varyValues.join('|'))
       }
     }
-    
+
     return keyParts.join('::')
   }
 }
@@ -114,7 +114,7 @@ export class RouteCacheManager {
 
     // Update tag indexes
     this.keyTags.set(key, new Set(response.tags))
-    
+
     for (const tag of response.tags) {
       if (!this.tagIndex.has(tag)) {
         this.tagIndex.set(tag, new Set())
@@ -216,14 +216,14 @@ export function createRouteCacheMiddleware(config: RouteCacheConfig) {
     if (cached) {
       // Return cached response
       const headers = new Headers(cached.headers)
-      
+
       // Add cache headers
       headers.set('X-Cache', 'HIT')
       headers.set('X-Cache-Key', cacheKey)
-      
+
       if (cached.etag) {
         headers.set('ETag', cached.etag)
-        
+
         // Check if client has matching ETag
         const clientETag = req.headers.get('If-None-Match')
         if (clientETag === cached.etag) {
@@ -246,10 +246,10 @@ export function createRouteCacheMiddleware(config: RouteCacheConfig) {
         // Clone response to cache it
         const responseClone = response.clone()
         const body = await responseClone.arrayBuffer()
-        
+
         // Generate ETag
         const etag = await generateETag(body)
-        
+
         // Prepare headers for caching
         const headers: Record<string, string> = {}
         responseClone.headers.forEach((value, key) => {
@@ -281,7 +281,8 @@ export function createRouteCacheMiddleware(config: RouteCacheConfig) {
           status: response.status,
           headers: originalHeaders,
         })
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Error caching response:', error)
         // Return original response if caching fails
         return response
@@ -362,7 +363,7 @@ export const RouteCacheFactory = {
     maxSize: 2000,
     tags,
     varyBy: ['Authorization'],
-    condition: (req) => !!req.headers.get('Authorization'),
+    condition: req => !!req.headers.get('Authorization'),
   }),
 }
 

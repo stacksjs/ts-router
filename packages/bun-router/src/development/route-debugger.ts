@@ -64,7 +64,7 @@ export interface RouteDebugInfo {
 export class RouteDebugger {
   private config: RouteDebugConfig
   private debugSessions = new Map<string, RouteDebugInfo>()
-  private routePatterns = new Map<string, { pattern: string; method: string; handler: Function; middleware: Function[] }>()
+  private routePatterns = new Map<string, { pattern: string, method: string, handler: Function, middleware: Function[] }>()
 
   constructor(config: RouteDebugConfig = {}) {
     this.config = {
@@ -78,7 +78,7 @@ export class RouteDebugger {
       maxBodySize: 1024 * 10, // 10KB
       colorOutput: true,
       outputFormat: 'console',
-      ...config
+      ...config,
     }
   }
 
@@ -86,7 +86,8 @@ export class RouteDebugger {
    * Start debugging a request
    */
   startDebugging(req: EnhancedRequest): string {
-    if (!this.config.enabled) return ''
+    if (!this.config.enabled)
+      return ''
 
     const requestId = this.generateRequestId()
     const startTime = performance.now()
@@ -102,12 +103,12 @@ export class RouteDebugger {
         routeMatching: 0,
         middlewareExecution: 0,
         handlerExecution: 0,
-        total: 0
+        total: 0,
       },
       performance: {
         memoryUsage: process.memoryUsage(),
-        cpuTime: process.cpuUsage().user
-      }
+        cpuTime: process.cpuUsage().user,
+      },
     }
 
     // Include optional data based on config
@@ -132,7 +133,7 @@ export class RouteDebugger {
 
     this.log('info', `🔍 Starting route debugging for ${req.method} ${debugInfo.path}`, {
       requestId,
-      timestamp: new Date(debugInfo.timestamp).toISOString()
+      timestamp: new Date(debugInfo.timestamp).toISOString(),
     })
 
     return requestId
@@ -147,12 +148,14 @@ export class RouteDebugger {
     method: string,
     matched: boolean,
     reason?: string,
-    params?: Record<string, string>
+    params?: Record<string, string>,
   ): void {
-    if (!this.config.enabled || !requestId) return
+    if (!this.config.enabled || !requestId)
+      return
 
     const debugInfo = this.debugSessions.get(requestId)
-    if (!debugInfo) return
+    if (!debugInfo)
+      return
 
     const timing = performance.now()
 
@@ -162,7 +165,7 @@ export class RouteDebugger {
       matched,
       reason,
       params,
-      timing
+      timing,
     }
 
     debugInfo.matchAttempts.push(attempt)
@@ -176,7 +179,7 @@ export class RouteDebugger {
       method,
       matched,
       reason,
-      params
+      params,
     })
   }
 
@@ -188,18 +191,20 @@ export class RouteDebugger {
     pattern: string,
     handler: Function,
     middleware: Function[],
-    params: Record<string, string>
+    params: Record<string, string>,
   ): void {
-    if (!this.config.enabled || !requestId) return
+    if (!this.config.enabled || !requestId)
+      return
 
     const debugInfo = this.debugSessions.get(requestId)
-    if (!debugInfo) return
+    if (!debugInfo)
+      return
 
     debugInfo.finalMatch = {
       pattern,
       handler: handler.name || 'anonymous',
       middleware: middleware.map(m => m.name || 'anonymous'),
-      params
+      params,
     }
 
     this.log('info', `🎯 Final route match: ${pattern}`, {
@@ -207,7 +212,7 @@ export class RouteDebugger {
       pattern,
       handler: debugInfo.finalMatch.handler,
       middleware: debugInfo.finalMatch.middleware,
-      params
+      params,
     })
   }
 
@@ -215,10 +220,12 @@ export class RouteDebugger {
    * Record timing information
    */
   recordTiming(requestId: string, phase: keyof RouteDebugInfo['timings'], duration: number): void {
-    if (!this.config.enabled || !requestId) return
+    if (!this.config.enabled || !requestId)
+      return
 
     const debugInfo = this.debugSessions.get(requestId)
-    if (!debugInfo) return
+    if (!debugInfo)
+      return
 
     debugInfo.timings[phase] = duration
 
@@ -226,7 +233,7 @@ export class RouteDebugger {
       this.log('debug', `⏱️  ${phase}: ${duration.toFixed(2)}ms`, {
         requestId,
         phase,
-        duration
+        duration,
       })
     }
   }
@@ -235,10 +242,12 @@ export class RouteDebugger {
    * Finish debugging session
    */
   finishDebugging(requestId: string, response?: Response): RouteDebugInfo | null {
-    if (!this.config.enabled || !requestId) return null
+    if (!this.config.enabled || !requestId)
+      return null
 
     const debugInfo = this.debugSessions.get(requestId)
-    if (!debugInfo) return null
+    if (!debugInfo)
+      return null
 
     // Calculate total time
     debugInfo.timings.total = Object.values(debugInfo.timings)
@@ -255,9 +264,9 @@ export class RouteDebugger {
         heapTotal: endMemory.heapTotal - debugInfo.performance.memoryUsage.heapTotal,
         heapUsed: endMemory.heapUsed - debugInfo.performance.memoryUsage.heapUsed,
         external: endMemory.external - debugInfo.performance.memoryUsage.external,
-        arrayBuffers: endMemory.arrayBuffers - debugInfo.performance.memoryUsage.arrayBuffers
+        arrayBuffers: endMemory.arrayBuffers - debugInfo.performance.memoryUsage.arrayBuffers,
       },
-      cpuTime: endCpuTime - debugInfo.performance.cpuTime
+      cpuTime: endCpuTime - debugInfo.performance.cpuTime,
     }
 
     // Log summary
@@ -280,12 +289,12 @@ export class RouteDebugger {
   /**
    * Get all registered routes
    */
-  getRegisteredRoutes(): Array<{ method: string; pattern: string; handler: string; middleware: string[] }> {
+  getRegisteredRoutes(): Array<{ method: string, pattern: string, handler: string, middleware: string[] }> {
     return Array.from(this.routePatterns.values()).map(route => ({
       method: route.method,
       pattern: route.pattern,
       handler: route.handler.name || 'anonymous',
-      middleware: route.middleware.map(m => m.name || 'anonymous')
+      middleware: route.middleware.map(m => m.name || 'anonymous'),
     }))
   }
 
@@ -319,14 +328,17 @@ export class RouteDebugger {
         const text = await req.text()
         if (text.length <= (this.config.maxBodySize || 1024 * 10)) {
           debugInfo.body = JSON.parse(text)
-        } else {
+        }
+        else {
           debugInfo.body = `[Body too large: ${text.length} bytes]`
         }
-      } else if (req.headers.get('content-type')?.includes('application/x-www-form-urlencoded')) {
+      }
+      else if (req.headers.get('content-type')?.includes('application/x-www-form-urlencoded')) {
         const formData = await req.formData()
         debugInfo.body = Object.fromEntries(formData.entries())
       }
-    } catch (error) {
+    }
+    catch (error) {
       debugInfo.body = `[Error reading body: ${error instanceof Error ? error.message : String(error)}]`
     }
   }
@@ -335,7 +347,8 @@ export class RouteDebugger {
    * Log debug message
    */
   private log(level: string, message: string, data?: any): void {
-    if (!this.shouldLog(level)) return
+    if (!this.shouldLog(level))
+      return
 
     const timestamp = new Date().toISOString()
 
@@ -346,21 +359,23 @@ export class RouteDebugger {
 
       case 'structured':
         console.log(`[${timestamp}] [${level.toUpperCase()}] ${message}`)
-        if (data) console.log('  Data:', JSON.stringify(data, null, 2))
+        if (data)
+          console.log('  Data:', JSON.stringify(data, null, 2))
         break
 
       default: // console
         if (this.config.colorOutput) {
           const colors = {
-            debug: '\x1b[36m', // cyan
-            info: '\x1b[32m',  // green
-            warn: '\x1b[33m',  // yellow
-            error: '\x1b[31m'  // red
+            debug: '\x1B[36m', // cyan
+            info: '\x1B[32m', // green
+            warn: '\x1B[33m', // yellow
+            error: '\x1B[31m', // red
           }
-          const reset = '\x1b[0m'
+          const reset = '\x1B[0m'
           const color = colors[level as keyof typeof colors] || ''
           console.log(`${color}[ROUTE-DEBUG]${reset} ${message}`)
-        } else {
+        }
+        else {
           console.log(`[ROUTE-DEBUG] ${message}`)
         }
         if (data && level !== 'debug') {
@@ -383,14 +398,13 @@ export class RouteDebugger {
       successfulMatch: !!finalMatch,
       responseStatus: response?.status,
       memoryDelta: `${(debugInfo.performance.memoryUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`,
-      cpuTime: `${(debugInfo.performance.cpuTime / 1000).toFixed(2)}ms`
+      cpuTime: `${(debugInfo.performance.cpuTime / 1000).toFixed(2)}ms`,
     })
 
     // Log failed matches if any
     const failedMatches = matchAttempts.filter(attempt => !attempt.matched)
     if (failedMatches.length > 0) {
-      this.log('warn', `❌ ${failedMatches.length} failed route matches:`,
-        failedMatches.map(attempt => `${attempt.method} ${attempt.pattern} (${attempt.reason})`)
+      this.log('warn', `❌ ${failedMatches.length} failed route matches:`, failedMatches.map(attempt => `${attempt.method} ${attempt.pattern} (${attempt.reason})`),
       )
     }
 
@@ -459,7 +473,8 @@ export function createRouteDebugMiddleware(config?: RouteDebugConfig) {
       routeDebugger.finishDebugging(requestId, response)
 
       return response
-    } catch (error) {
+    }
+    catch (error) {
       const endTime = performance.now()
       routeDebugger.recordTiming(requestId, 'total', endTime - startTime)
 
@@ -507,5 +522,5 @@ export const RouteDebugHelpers = {
     if (routeDebugger && requestId) {
       routeDebugger.recordTiming(requestId, phase, duration)
     }
-  }
+  },
 }

@@ -1,6 +1,6 @@
 /**
  * Request/Response Enhancements - Response Macros
- * 
+ *
  * Laravel-style response macros for common response patterns
  */
 
@@ -98,7 +98,7 @@ export class EnhancedResponse extends Response {
    */
   static macro(name: string, handler: (...args: any[]) => Response): void {
     responseMacroRegistry.register(name, handler)
-    
+
     // Add method to Response prototype
     ;(Response as any)[name] = handler
   }
@@ -134,15 +134,15 @@ export const BuiltInResponseMacros = {
       success: true,
       data,
       message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
 
     return new Response(JSON.stringify(response), {
       status,
       headers: {
         'Content-Type': 'application/json',
-        'X-Response-Time': new Date().toISOString()
-      }
+        'X-Response-Time': new Date().toISOString(),
+      },
     })
   },
 
@@ -154,15 +154,15 @@ export const BuiltInResponseMacros = {
       success: false,
       message,
       errors,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
 
     return new Response(JSON.stringify(response), {
       status,
       headers: {
         'Content-Type': 'application/json',
-        'X-Response-Time': new Date().toISOString()
-      }
+        'X-Response-Time': new Date().toISOString(),
+      },
     })
   },
 
@@ -247,7 +247,7 @@ export const BuiltInResponseMacros = {
       total: number
       path: string
     },
-    message?: string
+    message?: string,
   ): Response => {
     const lastPage = Math.ceil(pagination.total / pagination.per_page)
     const from = (pagination.current_page - 1) * pagination.per_page + 1
@@ -267,22 +267,22 @@ export const BuiltInResponseMacros = {
         path: pagination.path,
         first_page_url: `${pagination.path}?page=1`,
         last_page_url: `${pagination.path}?page=${lastPage}`,
-        next_page_url: pagination.current_page < lastPage 
-          ? `${pagination.path}?page=${pagination.current_page + 1}` 
+        next_page_url: pagination.current_page < lastPage
+          ? `${pagination.path}?page=${pagination.current_page + 1}`
           : undefined,
-        prev_page_url: pagination.current_page > 1 
-          ? `${pagination.path}?page=${pagination.current_page - 1}` 
-          : undefined
+        prev_page_url: pagination.current_page > 1
+          ? `${pagination.path}?page=${pagination.current_page - 1}`
+          : undefined,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
 
     return new Response(JSON.stringify(response), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'X-Response-Time': new Date().toISOString()
-      }
+        'X-Response-Time': new Date().toISOString(),
+      },
     })
   },
 
@@ -294,8 +294,8 @@ export const BuiltInResponseMacros = {
       status,
       headers: {
         'Content-Type': 'application/json',
-        ...headers
-      }
+        ...headers,
+      },
     })
   },
 
@@ -307,8 +307,8 @@ export const BuiltInResponseMacros = {
       status,
       headers: {
         'Content-Type': 'text/html',
-        ...headers
-      }
+        ...headers,
+      },
     })
   },
 
@@ -320,8 +320,8 @@ export const BuiltInResponseMacros = {
       status,
       headers: {
         'Content-Type': 'text/plain',
-        ...headers
-      }
+        ...headers,
+      },
     })
   },
 
@@ -333,8 +333,8 @@ export const BuiltInResponseMacros = {
       status,
       headers: {
         'Content-Type': 'application/xml',
-        ...headers
-      }
+        ...headers,
+      },
     })
   },
 
@@ -345,8 +345,8 @@ export const BuiltInResponseMacros = {
     return new Response(null, {
       status,
       headers: {
-        'Location': url
-      }
+        Location: url,
+      },
     })
   },
 
@@ -363,14 +363,14 @@ export const BuiltInResponseMacros = {
   download: (
     data: ArrayBuffer | Uint8Array | string,
     filename: string,
-    contentType = 'application/octet-stream'
+    contentType = 'application/octet-stream',
   ): Response => {
     return new Response(data, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename="${filename}"`
-      }
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
     })
   },
 
@@ -380,14 +380,14 @@ export const BuiltInResponseMacros = {
   stream: (
     stream: ReadableStream,
     contentType = 'application/octet-stream',
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
   ): Response => {
     return new Response(stream, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        ...headers
-      }
+        ...headers,
+      },
     })
   },
 
@@ -398,21 +398,21 @@ export const BuiltInResponseMacros = {
     data: any,
     maxAge = 3600,
     isPublic = true,
-    etag?: string
+    etag?: string,
   ): Response => {
     const cacheControl = isPublic ? `public, max-age=${maxAge}` : `private, max-age=${maxAge}`
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Cache-Control': cacheControl
+      'Cache-Control': cacheControl,
     }
 
     if (etag) {
-      headers['ETag'] = etag
+      headers.ETag = etag
     }
 
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers
+      headers,
     })
   },
 
@@ -423,7 +423,7 @@ export const BuiltInResponseMacros = {
     data: any,
     origin = '*',
     methods = 'GET,POST,PUT,DELETE,OPTIONS',
-    headers = 'Content-Type,Authorization'
+    headers = 'Content-Type,Authorization',
   ): Response => {
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -431,8 +431,8 @@ export const BuiltInResponseMacros = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Methods': methods,
-        'Access-Control-Allow-Headers': headers
-      }
+        'Access-Control-Allow-Headers': headers,
+      },
     })
   },
 
@@ -441,9 +441,11 @@ export const BuiltInResponseMacros = {
    */
   sse: (data: string, event?: string, id?: string): Response => {
     let sseData = ''
-    
-    if (id) sseData += `id: ${id}\n`
-    if (event) sseData += `event: ${event}\n`
+
+    if (id)
+      sseData += `id: ${id}\n`
+    if (event)
+      sseData += `event: ${event}\n`
     sseData += `data: ${data}\n\n`
 
     return new Response(sseData, {
@@ -451,8 +453,8 @@ export const BuiltInResponseMacros = {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
-      }
+        'Connection': 'keep-alive',
+      },
     })
   },
 
@@ -461,21 +463,21 @@ export const BuiltInResponseMacros = {
    */
   health: (status: 'healthy' | 'unhealthy' | 'degraded' = 'healthy', checks: Record<string, any> = {}): Response => {
     const statusCode = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503
-    
+
     const response = {
       status,
       timestamp: new Date().toISOString(),
       checks,
-      uptime: process.uptime?.() || 0
+      uptime: process.uptime?.() || 0,
     }
 
     return new Response(JSON.stringify(response), {
       status: statusCode,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     })
-  }
+  },
 }
 
 /**
@@ -501,15 +503,15 @@ export const ResponseMacroFactory = {
         data,
         message,
         meta: defaultMeta,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }
 
       return new Response(JSON.stringify(response), {
         status,
         headers: {
           'Content-Type': 'application/json',
-          'X-Response-Time': new Date().toISOString()
-        }
+          'X-Response-Time': new Date().toISOString(),
+        },
       })
     }
   },
@@ -524,7 +526,7 @@ export const ResponseMacroFactory = {
         data,
         message,
         meta: { version },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }
 
       return new Response(JSON.stringify(response), {
@@ -532,8 +534,8 @@ export const ResponseMacroFactory = {
         headers: {
           'Content-Type': 'application/json',
           'X-API-Version': version,
-          'X-Response-Time': new Date().toISOString()
-        }
+          'X-Response-Time': new Date().toISOString(),
+        },
       })
     }
   },
@@ -547,18 +549,18 @@ export const ResponseMacroFactory = {
         success: false,
         message,
         errors,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }
 
       return new Response(JSON.stringify(response), {
         status,
         headers: {
           'Content-Type': 'application/json',
-          'X-Response-Time': new Date().toISOString()
-        }
+          'X-Response-Time': new Date().toISOString(),
+        },
       })
     }
-  }
+  },
 }
 
 /**
@@ -585,7 +587,8 @@ export const ResponseHelpers = {
   getJson: async (response: Response): Promise<any> => {
     try {
       return await response.json()
-    } catch {
+    }
+    catch {
       return null
     }
   },
@@ -596,7 +599,8 @@ export const ResponseHelpers = {
   getText: async (response: Response): Promise<string> => {
     try {
       return await response.text()
-    } catch {
+    }
+    catch {
       return ''
     }
   },
@@ -613,7 +617,7 @@ export const ResponseHelpers = {
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
-      headers: newHeaders
+      headers: newHeaders,
     })
   },
 
@@ -624,9 +628,9 @@ export const ResponseHelpers = {
     return new Response(response.body, {
       status,
       statusText: statusText || response.statusText,
-      headers: response.headers
+      headers: response.headers,
     })
-  }
+  },
 }
 
 // Auto-register built-in macros

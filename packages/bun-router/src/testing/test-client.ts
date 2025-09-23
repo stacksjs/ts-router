@@ -1,4 +1,4 @@
-import type { Router } from '../router/core'
+import type { Router } from '../router/router'
 import type { EnhancedRequest } from '../types'
 import type { TestResponseWrapper } from './test-response'
 import type { TestClientConfig, TestRequestOptions } from './types'

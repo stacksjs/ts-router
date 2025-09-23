@@ -720,6 +720,22 @@ export interface EnhancedRequest extends Request {
    */
   context?: Record<string, any>
   /**
+   * Model binding data
+   */
+  models?: Record<string, any>
+  /**
+   * Model binding errors
+   */
+  modelErrors?: Record<string, Error>
+  /**
+   * Authenticated user from auth middleware
+   */
+  auth?: any
+  /**
+   * Rate limiting information
+   */
+  rateLimitRemaining?: number
+  /**
    * Request ID for tracing
    */
   requestId?: string
@@ -806,7 +822,7 @@ export type ActionHandler<TPath extends string = string> =
  */
 export type ControllerMethod<
   TController extends string = string,
-  TMethod extends string = string
+  TMethod extends string = string,
 > = `${TController}@${TMethod}`
 
 /**
@@ -820,10 +836,10 @@ export interface TypedActionHandlerClass<TPath extends string = string> {
  * Discriminated union for different action handler types
  */
 export type ActionHandlerVariant<TPath extends string = string> =
-  | { type: 'path'; value: ActionPath }
-  | { type: 'function'; value: TypedRouteHandler<TPath> }
-  | { type: 'class'; value: new () => TypedActionHandlerClass<TPath> }
-  | { type: 'controller'; value: ControllerMethod }
+  | { type: 'path', value: ActionPath }
+  | { type: 'function', value: TypedRouteHandler<TPath> }
+  | { type: 'class', value: new () => TypedActionHandlerClass<TPath> }
+  | { type: 'controller', value: ControllerMethod }
 
 export type NextFunction = () => Promise<Response | null> | Response | null
 export type MiddlewareHandler = (req: EnhancedRequest, next: NextFunction) => Promise<Response | null> | Response | null
@@ -964,7 +980,7 @@ export interface ServerOptions extends Partial<Omit<Server, 'websocket'>> {
 export interface RouteDefinition<
   TPath extends string = string,
   TMethod extends HTTPMethod = HTTPMethod,
-  THandler extends ActionHandler = ActionHandler
+  THandler extends ActionHandler = ActionHandler,
 > {
   /**
    * The path pattern for the route
@@ -1024,14 +1040,14 @@ export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS'
  * Narrow throttle pattern types
  */
 export type ThrottlePattern =
-  | `${number}`                    // e.g., "60" (60 requests per 1 minute)
-  | `${number},${number}`         // e.g., "60,1" (60 requests per 1 minute)
-  | `${number},${number}min`      // e.g., "60,5min" (60 requests per 5 minutes)
-  | `${number},${number}m`        // e.g., "60,5m" (60 requests per 5 minutes)
-  | `${number},${number}sec`      // e.g., "100,30sec" (100 requests per 30 seconds)
-  | `${number},${number}s`        // e.g., "100,30s" (100 requests per 30 seconds)
-  | `${number},${number}hour`     // e.g., "1000,1hour" (1000 requests per 1 hour)
-  | `${number},${number}h`        // e.g., "1000,1h" (1000 requests per 1 hour)
+  | `${number}` // e.g., "60" (60 requests per 1 minute)
+  | `${number},${number}` // e.g., "60,1" (60 requests per 1 minute)
+  | `${number},${number}min` // e.g., "60,5min" (60 requests per 5 minutes)
+  | `${number},${number}m` // e.g., "60,5m" (60 requests per 5 minutes)
+  | `${number},${number}sec` // e.g., "100,30sec" (100 requests per 30 seconds)
+  | `${number},${number}s` // e.g., "100,30s" (100 requests per 30 seconds)
+  | `${number},${number}hour` // e.g., "1000,1hour" (1000 requests per 1 hour)
+  | `${number},${number}h` // e.g., "1000,1h" (1000 requests per 1 hour)
 
 /**
  * Cache strategy types - narrow and specific
@@ -1057,13 +1073,13 @@ export type TemplateEngine = 'auto' | 'stx' | 'html' | 'handlebars' | 'ejs' | 'p
  * Route parameter constraint patterns
  */
 export type RouteConstraint =
-  | 'number'           // Only numbers
-  | 'alpha'            // Only letters
-  | 'alphanumeric'     // Letters and numbers
-  | 'uuid'             // UUID format
-  | 'slug'             // URL-friendly slug
-  | RegExp             // Custom regex
-  | string             // Custom pattern string
+  | 'number' // Only numbers
+  | 'alpha' // Only letters
+  | 'alphanumeric' // Letters and numbers
+  | 'uuid' // UUID format
+  | 'slug' // URL-friendly slug
+  | RegExp // Custom regex
+  | string // Custom pattern string
 
 /**
  * Middleware execution timing
@@ -1143,7 +1159,7 @@ export type AllowedMimeType =
  */
 export type ResponseStatus =
   | 200 | 201 | 202 | 204 // Success
-  | 301 | 302 | 304       // Redirects
+  | 301 | 302 | 304 // Redirects
   | 400 | 401 | 403 | 404 | 405 | 409 | 422 | 429 // Client errors
   | 500 | 502 | 503 | 504 // Server errors
 
@@ -1219,32 +1235,32 @@ export interface RouteValidation<TPath extends string> {
  * Common route patterns with strict template literal types
  */
 export type CommonRoutePatterns =
-  | '/'                           // Root
-  | '/health'                     // Health check
-  | '/api'                        // API root
-  | '/api/v1'                     // Versioned API
-  | '/api/v1/users'              // User collection
-  | '/api/v1/users/{id}'         // User resource
-  | '/api/v1/users/{userId}/posts'  // Nested resource
-  | '/api/v1/users/{userId}/posts/{postId}'  // Nested resource item
-  | '/admin'                      // Admin panel
-  | '/admin/{section}'           // Admin section
-  | '/auth/login'                // Authentication
-  | '/auth/logout'               // Logout
-  | '/auth/register'             // Registration
-  | '/auth/forgot-password'      // Password reset
-  | '/uploads/{filename}'        // File uploads
-  | '/assets/{path}'             // Static assets
+  | '/' // Root
+  | '/health' // Health check
+  | '/api' // API root
+  | '/api/v1' // Versioned API
+  | '/api/v1/users' // User collection
+  | '/api/v1/users/{id}' // User resource
+  | '/api/v1/users/{userId}/posts' // Nested resource
+  | '/api/v1/users/{userId}/posts/{postId}' // Nested resource item
+  | '/admin' // Admin panel
+  | '/admin/{section}' // Admin section
+  | '/auth/login' // Authentication
+  | '/auth/logout' // Logout
+  | '/auth/register' // Registration
+  | '/auth/forgot-password' // Password reset
+  | '/uploads/{filename}' // File uploads
+  | '/assets/{path}' // Static assets
 
 /**
  * RESTful resource route patterns
  */
 export type ResourceRoutePatterns<T extends string> =
-  | `/${T}`                      // Collection: GET /users
-  | `/${T}/{id}`                 // Item: GET /users/123
-  | `/${T}/create`               // Create form: GET /users/create
-  | `/${T}/{id}/edit`           // Edit form: GET /users/123/edit
-  | `/${T}/{id}/show`           // Show item: GET /users/123/show
+  | `/${T}` // Collection: GET /users
+  | `/${T}/{id}` // Item: GET /users/123
+  | `/${T}/create` // Create form: GET /users/create
+  | `/${T}/{id}/edit` // Edit form: GET /users/123/edit
+  | `/${T}/{id}/show` // Show item: GET /users/123/show
 
 /**
  * API versioning patterns
@@ -1258,7 +1274,7 @@ export type NestedResourcePattern<
   Parent extends string,
   Child extends string,
   ParentId extends string = 'id',
-  ChildId extends string = 'id'
+  ChildId extends string = 'id',
 > = `/${Parent}/{${ParentId}}/${Child}` | `/${Parent}/{${ParentId}}/${Child}/{${ChildId}}`
 
 /**
@@ -1278,57 +1294,247 @@ export type FilePathPattern = '{filepath}' | '{*filepath}' | '{path...}'
  * Discriminated union for cache configurations
  */
 export type CacheConfigVariant =
-  | { type: 'memory'; maxSize: number; ttl: number }
-  | { type: 'redis'; url: string; prefix: string; ttl: number; maxRetries: number }
-  | { type: 'custom'; adapter: CacheConfig['customAdapter']; ttl: number }
+  | { type: 'memory', maxSize: number, ttl: number }
+  | { type: 'redis', url: string, prefix: string, ttl: number, maxRetries: number }
+  | { type: 'custom', adapter: CacheConfig['customAdapter'], ttl: number }
 
 /**
  * Discriminated union for authentication configurations
  */
 export type AuthConfigVariant =
-  | { type: 'jwt'; secret: string; expiresIn: string; algorithm: 'HS256' | 'HS384' | 'HS512' | 'RS256' }
-  | { type: 'session'; secret: string; store: CacheType; maxAge: number }
-  | { type: 'apikey'; keyName: string; location: 'header' | 'query' | 'cookie' }
-  | { type: 'basic'; realm: string; users: Record<string, string> }
-  | { type: 'bearer'; validate: (token: string) => Promise<boolean> }
+  | { type: 'jwt', secret: string, expiresIn: string, algorithm: 'HS256' | 'HS384' | 'HS512' | 'RS256' }
+  | { type: 'session', secret: string, store: CacheType, maxAge: number }
+  | { type: 'apikey', keyName: string, location: 'header' | 'query' | 'cookie' }
+  | { type: 'basic', realm: string, users: Record<string, string> }
+  | { type: 'bearer', validate: (token: string) => Promise<boolean> }
 
 /**
  * Discriminated union for rate limiting configurations
  */
 export type RateLimitConfigVariant =
-  | { type: 'memory'; maxAttempts: number; windowMs: number; keyGenerator?: (req: EnhancedRequest) => string }
-  | { type: 'redis'; maxAttempts: number; windowMs: number; redisUrl: string; keyPrefix: string }
-  | { type: 'pattern'; pattern: ThrottlePattern; name?: string }
+  | { type: 'memory', maxAttempts: number, windowMs: number, keyGenerator?: (req: EnhancedRequest) => string }
+  | { type: 'redis', maxAttempts: number, windowMs: number, redisUrl: string, keyPrefix: string }
+  | { type: 'pattern', pattern: ThrottlePattern, name?: string }
 
 /**
  * Discriminated union for middleware configurations
  */
 export type MiddlewareConfigVariant =
-  | { type: 'throttle'; config: RateLimitConfigVariant }
-  | { type: 'cors'; config: CorsMiddlewareConfig }
-  | { type: 'auth'; config: AuthConfigVariant }
-  | { type: 'cache'; config: CacheConfigVariant }
-  | { type: 'custom'; name: string; handler: MiddlewareHandler; params?: Record<string, any> }
+  | { type: 'throttle', config: RateLimitConfigVariant }
+  | { type: 'cors', config: CorsMiddlewareConfig }
+  | { type: 'auth', config: AuthConfigVariant }
+  | { type: 'cache', config: CacheConfigVariant }
+  | { type: 'custom', name: string, handler: MiddlewareHandler, params?: Record<string, any> }
 
 /**
  * Discriminated union for route handlers
  */
 export type RouteHandlerVariant<TPath extends string = string> =
-  | { type: 'action'; path: ActionPath }
-  | { type: 'function'; handler: TypedRouteHandler<TPath> }
-  | { type: 'class'; constructor: new () => TypedActionHandlerClass<TPath> }
-  | { type: 'controller'; method: ControllerMethod }
+  | { type: 'action', path: ActionPath }
+  | { type: 'function', handler: TypedRouteHandler<TPath> }
+  | { type: 'class', constructor: new () => TypedActionHandlerClass<TPath> }
+  | { type: 'controller', method: ControllerMethod }
 
 /**
  * Discriminated union for validation rules
  */
 export type ValidationRuleVariant =
-  | { type: 'required'; message?: string }
-  | { type: 'string'; minLength?: number; maxLength?: number; pattern?: RegExp }
-  | { type: 'number'; min?: number; max?: number; integer?: boolean }
-  | { type: 'email'; message?: string }
-  | { type: 'url'; protocols?: string[] }
-  | { type: 'custom'; validate: (value: any) => boolean | Promise<boolean>; message: string }
+  | { type: 'required', message?: string }
+  | { type: 'string', minLength?: number, maxLength?: number, pattern?: RegExp }
+  | { type: 'number', min?: number, max?: number, integer?: boolean }
+  | { type: 'email', message?: string }
+  | { type: 'url', protocols?: string[] }
+  | { type: 'custom', validate: (value: any) => boolean | Promise<boolean>, message: string }
+
+/**
+ * Streaming configuration types with extreme narrowing
+ */
+export type StreamingFormat = 'json' | 'ndjson' | 'csv' | 'xml' | 'text' | 'binary'
+export type StreamingCompression = 'gzip' | 'deflate' | 'br' | 'none'
+export type StreamingMode = 'chunked' | 'buffered' | 'direct'
+
+/**
+ * Server-Sent Events configuration
+ */
+export interface SSEConfig {
+  retryInterval?: number
+  keepAlive?: number
+  compression?: StreamingCompression
+  maxConnections?: number
+  heartbeatInterval?: number
+  headers?: Record<string, string>
+}
+
+/**
+ * SSE Event data structure with strict typing
+ */
+export interface SSEEvent<T = any> {
+  data: T
+  event?: string
+  id?: string | number
+  retry?: number
+  comment?: string
+}
+
+/**
+ * Stream generator function types
+ */
+export type StreamGenerator<T = any> = () => AsyncGenerator<T, void, unknown>
+export type SSEGenerator<T = any> = () => AsyncGenerator<SSEEvent<T>, void, unknown>
+
+/**
+ * Direct streaming configuration
+ */
+export interface DirectStreamConfig {
+  headers?: Record<string, string>
+  status?: ResponseStatus
+  compression?: StreamingCompression
+  format?: StreamingFormat
+  bufferSize?: number
+}
+
+/**
+ * Buffered streaming configuration
+ */
+export interface BufferedStreamConfig extends DirectStreamConfig {
+  highWaterMark?: number
+  maxBuffer?: number
+  flushInterval?: number
+  autoFlush?: boolean
+}
+
+/**
+ * File streaming configuration with strict types
+ */
+export interface FileStreamConfig {
+  headers?: Record<string, string>
+  status?: ResponseStatus
+  mimeType?: AllowedMimeType
+  disposition?: 'inline' | 'attachment'
+  filename?: string
+  maxAge?: number
+  etag?: boolean
+  lastModified?: boolean
+  compression?: StreamingCompression
+}
+
+/**
+ * Range request configuration for file streaming
+ */
+export interface RangeStreamConfig extends FileStreamConfig {
+  unit?: 'bytes'
+  maxRanges?: number
+  enableMultipart?: boolean
+}
+
+/**
+ * Transform stream configuration
+ */
+export interface TransformStreamConfig<TInput = any, TOutput = any> {
+  transform: (chunk: TInput) => TOutput | Promise<TOutput>
+  flush?: () => TOutput[] | Promise<TOutput[]>
+  objectMode?: boolean
+  highWaterMark?: number
+  format?: StreamingFormat
+  headers?: Record<string, string>
+}
+
+/**
+ * Streaming response writer interfaces
+ */
+export interface StreamWriter<T = any> {
+  write: (chunk: T) => void | Promise<void>
+  end: () => void | Promise<void>
+  close: () => void
+}
+
+export interface BufferedStreamWriter<T = any> extends StreamWriter<T> {
+  flush: () => void | Promise<void>
+  cork: () => void
+  uncork: () => void
+}
+
+/**
+ * Model binding configuration with strict types
+ */
+export interface ModelBinding<T = any> {
+  name: string
+  model: string // Model name
+  parameter: string // Parameter name
+  required?: boolean
+  as?: string // Alias for the bound model
+  resolver: ModelResolver<T>
+  cache?: {
+    enabled: boolean
+    ttl: number
+    key?: (params: Record<string, string>) => string
+  }
+  validation?: {
+    required?: boolean
+    validator?: (model: T) => boolean | Promise<boolean>
+  }
+  errorHandler?: (error: Error, params: Record<string, string>) => Response
+}
+
+/**
+ * Model resolver function type
+ */
+export type ModelResolver<T = any> = (
+  params: Record<string, string>,
+  req: EnhancedRequest
+) => T | Promise<T> | null
+
+/**
+ * Model registry interface
+ */
+export interface ModelRegistry {
+  register: <T>(binding: ModelBinding<T>) => void
+  resolve: <T>(name: string, params: Record<string, string>, req: EnhancedRequest) => Promise<T | null>
+  has: (name: string) => boolean
+  clear: () => void
+  getAll: () => ModelBinding[]
+}
+
+/**
+ * Model binding middleware configuration
+ */
+export interface ModelBindingConfig {
+  parameterName: string
+  modelName: string
+  required?: boolean
+  cacheKey?: (params: Record<string, string>) => string
+}
+
+/**
+ * Resource route configuration with model binding
+ */
+export interface ResourceConfig {
+  controller: string
+  only?: ('index' | 'show' | 'create' | 'store' | 'edit' | 'update' | 'destroy')[]
+  except?: ('index' | 'show' | 'create' | 'store' | 'edit' | 'update' | 'destroy')[]
+  middleware?: (BuiltInMiddleware | MiddlewareWithParams<BuiltInMiddleware>)[]
+  bindings?: Record<string, string>
+  names?: Partial<Record<'index' | 'show' | 'create' | 'store' | 'edit' | 'update' | 'destroy', string>>
+}
+
+/**
+ * Stream route handler with typed path parameters
+ */
+export interface StreamRouteHandler<TPath extends string = string> {
+  (
+    req: EnhancedRequest & { params: ExtractRouteParams<TPath> },
+    writer: StreamWriter
+  ): Promise<void> | void
+}
+
+/**
+ * SSE route handler with typed path parameters
+ */
+export interface SSERouteHandler<TPath extends string = string> {
+  (
+    req: EnhancedRequest & { params: ExtractRouteParams<TPath> }
+  ): SSEGenerator | AsyncGenerator<SSEEvent, void, unknown>
+}
 
 /**
  * Route matching result
@@ -1538,60 +1744,60 @@ export interface RequestMacroMethods {
   wantsHtml: () => boolean
   wantsXml: () => boolean
   expectsJson: () => boolean
-  
+
   // Request information
   isAjax: () => boolean
   isPjax: () => boolean
   isMobile: () => boolean
   isBot: () => boolean
   isSecure: () => boolean
-  
+
   // Client information
   ip: () => string
   ips: () => string[]
   userAgent: () => string
   referer: () => string | null
-  
+
   // Authentication
   bearerToken: () => string | null
   basicAuth: () => { username: string, password: string } | null
-  
+
   // Headers
   hasHeader: (name: string) => boolean
   header: (name: string, defaultValue?: string) => string | null
   allHeaders: () => Record<string, string>
-  
+
   // Input handling
   input: (key: string, defaultValue?: any) => any
   all: () => Record<string, any>
   only: (keys: string[]) => Record<string, any>
   except: (keys: string[]) => Record<string, any>
-  
+
   // Validation checks
   has: (key: string) => boolean
   hasAny: (keys: string[]) => boolean
   missing: (key: string) => boolean
   filled: (key: string) => boolean
-  
+
   // Query and params
   getQuery: (key?: string, defaultValue?: any) => any
   param: (key: string, defaultValue?: any) => any
-  
+
   // Cookies
   cookie: (name: string, defaultValue?: string) => string | null
   cookies: () => Record<string, string>
-  
+
   // Files
   file: (name: string) => any
   hasFile: (name: string) => boolean
-  
+
   // URL utilities
   path: () => string
   fullUrl: () => string
   root: () => string
   is: (pattern: string) => boolean
   route: () => string | null
-  
+
   // Utilities
   fingerprint: () => string
   signature: (secret: string) => string
@@ -1608,6 +1814,79 @@ export interface RequestMacroMethods {
 declare module './types' {
   interface EnhancedRequest extends Omit<RequestMacroMethods, 'ip'> {
     validated?: Record<string, any>
-    ip?: string  // Override to allow optional string property
+    ip?: string // Override to allow optional string property
   }
+}
+
+/**
+ * Enhanced streaming generator types with extreme narrowing
+ */
+export type StreamGenerator<T = string | Uint8Array> = () => Generator<T, void, unknown>
+export type AsyncStreamGenerator<T = string | Uint8Array> = () => AsyncGenerator<T, void, unknown>
+export type StreamCallbackGenerator<T = string | Uint8Array> = StreamGenerator<T> | AsyncStreamGenerator<T>
+
+/**
+ * SSE Event generator with strict typing
+ */
+export type SSEEventGenerator<T = any> = () => Generator<SSEEvent<T>, void, unknown> | AsyncGenerator<SSEEvent<T>, void, unknown>
+
+/**
+ * Extreme narrow types for Laravel-style methods with template literal patterns
+ */
+export interface EnhancedLaravelStreamingMethods {
+  /**
+   * Laravel-style response()->stream() with extreme type narrowing
+   */
+  stream: <T extends string | Uint8Array = string>(
+    callback: StreamCallbackGenerator<T>,
+    status?: ResponseStatus,
+    headers?: Record<string, string>
+  ) => Response
+
+  /**
+   * Laravel-style response()->streamJson() with strict object key typing
+   */
+  streamJson: <T, K extends string = string>(
+    data: Record<K, Iterable<T> | AsyncIterable<T>>,
+    status?: ResponseStatus,
+    headers?: Record<string, string>
+  ) => Response
+
+  /**
+   * Laravel-style response()->eventStream() with strict SSE typing
+   */
+  eventStream: <T = any>(
+    callback: SSEEventGenerator<T>,
+    headers?: Record<string, string>
+  ) => Response
+
+  /**
+   * Laravel-style response()->streamDownload() with filename validation
+   */
+  streamDownload: <T extends string | Uint8Array = string>(
+    callback: StreamCallbackGenerator<T>,
+    filename: `${string}.${string}`, // Must have extension
+    headers?: Record<string, string>
+  ) => Response
+}
+
+/**
+ * Enhanced model binding with strict key typing
+ */
+export interface EnhancedLaravelModelBindingMethods {
+  /**
+   * Laravel-style Route::model() with key validation
+   */
+  model: <T, K extends string>(
+    key: K,
+    modelClass: string | ((value: string) => Promise<T | null>),
+    callback?: (model: T | null) => Response | null
+  ) => Router & { [P in K]: T }
+
+  /**
+   * Scoped bindings with relationship validation
+   */
+  scopedBindings: <Parent extends string, Child extends string>(
+    bindings: Record<Child, Parent>
+  ) => MiddlewareHandler
 }

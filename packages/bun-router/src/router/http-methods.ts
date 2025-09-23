@@ -1,5 +1,5 @@
 import type { ActionHandler, EnhancedRequest, MiddlewareHandler, Route } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { extractParamNames, joinPaths, matchPath } from '../utils'
 
 /**
@@ -91,10 +91,10 @@ export function registerHttpMethods(RouterClass: typeof Router): void {
           exec: (url: URL): { pathname: { groups: Record<string, string> } } | null => {
             const params: Record<string, string> = {}
             // Pass constraints directly to matchPath for more efficient matching
-            const constraintsRecord = route.constraints && !Array.isArray(route.constraints) 
+            const constraintsRecord = route.constraints && !Array.isArray(route.constraints)
               ? route.constraints as Record<string, string>
               : undefined
-            
+
             const isMatch = matchPath(routePath, url.pathname, params, constraintsRecord)
 
             if (!isMatch) {

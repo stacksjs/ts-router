@@ -1,5 +1,5 @@
 import type { HTTPMethod, MatchResult, Route } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { RouteCompiler } from './route-compiler'
 
 /**
@@ -19,7 +19,7 @@ export function registerOptimizedRouteMatching(RouterClass: typeof Router): void
             enableMethodGrouping: true,
             enablePriorityOptimization: true,
             cacheSize: 1000,
-            precompilePatterns: true
+            precompilePatterns: true,
           })
         }
       },
@@ -45,16 +45,16 @@ export function registerOptimizedRouteMatching(RouterClass: typeof Router): void
     matchRoute: {
       value(path: string, method: HTTPMethod, domain?: string): MatchResult | undefined {
         this.initializeRouteCompiler()
-        
+
         // Use the optimized compiler for matching
         const match = this.routeCompiler.match(path, method)
-        
+
         if (match) {
           // Check domain constraints if specified
           if (domain && match.route.domain && match.route.domain !== domain) {
             return undefined
           }
-          
+
           return match
         }
 
@@ -219,7 +219,7 @@ export function registerOptimizedRouteMatching(RouterClass: typeof Router): void
           enableMethodGrouping: true,
           enablePriorityOptimization: true,
           cacheSize: 1000,
-          precompilePatterns: true
+          precompilePatterns: true,
         })
 
         // Re-add all routes
@@ -248,6 +248,6 @@ export function registerOptimizedRouteMatching(RouterClass: typeof Router): void
       },
       writable: true,
       configurable: true,
-    }
+    },
   })
 }

@@ -1,12 +1,12 @@
 /**
  * Advanced Error Handling - Circuit Breaker Pattern
- * 
+ *
  * Prevents cascading failures by monitoring external service health
  * and temporarily blocking requests when services are failing
  */
 
-import { CircuitBreakerOpenException, ExternalServiceException, TimeoutException } from './exceptions'
 import type { ErrorContext } from './exceptions'
+import { CircuitBreakerOpenException, ExternalServiceException, TimeoutException } from './exceptions'
 
 export interface CircuitBreakerConfig {
   name: string
@@ -69,7 +69,7 @@ export class CircuitBreaker {
       errorThresholdPercentage: 50,
       halfOpenMaxCalls: 3,
       resetTimeout: 60000,
-      ...config
+      ...config,
     }
 
     this.metrics = {
@@ -80,7 +80,7 @@ export class CircuitBreaker {
       averageResponseTime: 0,
       state: this.state,
       consecutiveFailures: 0,
-      consecutiveSuccesses: 0
+      consecutiveSuccesses: 0,
     }
 
     // Clean up old requests periodically
@@ -98,19 +98,21 @@ export class CircuitBreaker {
         const error = new CircuitBreakerOpenException(
           this.config.name,
           this.nextAttemptTime,
-          call.context
+          call.context,
         )
-        
+
         if (call.fallback) {
           try {
             return await call.fallback()
-          } catch (fallbackError) {
+          }
+          catch (fallbackError) {
             throw error
           }
         }
-        
+
         throw error
-      } else {
+      }
+      else {
         // Time to try half-open
         this.transitionToHalfOpen()
       }
@@ -121,17 +123,18 @@ export class CircuitBreaker {
       const error = new CircuitBreakerOpenException(
         this.config.name,
         this.nextAttemptTime || new Date(Date.now() + this.config.recoveryTimeout),
-        call.context
+        call.context,
       )
-      
+
       if (call.fallback) {
         try {
           return await call.fallback()
-        } catch (fallbackError) {
+        }
+        catch (fallbackError) {
           throw error
         }
       }
-      
+
       throw error
     }
 
@@ -154,12 +157,12 @@ export class CircuitBreaker {
       })
 
       result = await Promise.race([call.execute(), timeoutPromise])
-      
+
       // Success
       this.onSuccess(Date.now() - startTime)
       return result
-
-    } catch (err) {
+    }
+    catch (err) {
       error = err as Error
       this.onFailure(error, Date.now() - startTime)
 
@@ -167,7 +170,8 @@ export class CircuitBreaker {
       if (call.fallback) {
         try {
           return await call.fallback()
-        } catch (fallbackError) {
+        }
+        catch (fallbackError) {
           // Fallback failed, throw original error
           throw error
         }
@@ -191,7 +195,7 @@ export class CircuitBreaker {
     return {
       ...this.metrics,
       state: this.state,
-      nextAttemptTime: this.nextAttemptTime
+      nextAttemptTime: this.nextAttemptTime,
     }
   }
 
@@ -221,7 +225,7 @@ export class CircuitBreaker {
       averageResponseTime: 0,
       state: this.state,
       consecutiveFailures: 0,
-      consecutiveSuccesses: 0
+      consecutiveSuccesses: 0,
     }
     this.recentRequests = []
   }
@@ -232,15 +236,15 @@ export class CircuitBreaker {
     this.metrics.consecutiveSuccesses++
     this.metrics.consecutiveFailures = 0
     this.metrics.lastSuccessTime = new Date()
-    
+
     // Update average response time
     this.updateAverageResponseTime(responseTime)
-    
+
     // Add to recent requests
     this.recentRequests.push({
       timestamp: new Date(),
       success: true,
-      responseTime
+      responseTime,
     })
 
     // Handle state transitions
@@ -273,14 +277,15 @@ export class CircuitBreaker {
     this.recentRequests.push({
       timestamp: new Date(),
       success: false,
-      responseTime
+      responseTime,
     })
 
     // Check if we should trip the circuit breaker
     if (this.shouldTrip(error)) {
       if (this.state === 'CLOSED') {
         this.transitionToOpen()
-      } else if (this.state === 'HALF_OPEN') {
+      }
+      else if (this.state === 'HALF_OPEN') {
         this.transitionToOpen()
       }
     }
@@ -306,7 +311,7 @@ export class CircuitBreaker {
     if (recentRequests.length >= this.config.minimumRequests) {
       const failedRequests = recentRequests.filter(r => !r.success).length
       const errorRate = (failedRequests / recentRequests.length) * 100
-      
+
       if (errorRate >= this.config.errorThresholdPercentage) {
         return true
       }
@@ -320,7 +325,7 @@ export class CircuitBreaker {
     this.nextAttemptTime = undefined
     this.halfOpenCallCount = 0
     this.metrics.state = this.state
-    
+
     if (this.config.onStateChange) {
       this.config.onStateChange(this.state, this.config.name)
     }
@@ -332,7 +337,7 @@ export class CircuitBreaker {
     this.halfOpenCallCount = 0
     this.metrics.state = this.state
     this.metrics.nextAttemptTime = this.nextAttemptTime
-    
+
     if (this.config.onStateChange) {
       this.config.onStateChange(this.state, this.config.name)
     }
@@ -342,7 +347,7 @@ export class CircuitBreaker {
     this.state = 'HALF_OPEN'
     this.halfOpenCallCount = 0
     this.metrics.state = this.state
-    
+
     if (this.config.onStateChange) {
       this.config.onStateChange(this.state, this.config.name)
     }
@@ -351,11 +356,12 @@ export class CircuitBreaker {
   private updateAverageResponseTime(responseTime: number): void {
     if (this.metrics.totalRequests === 1) {
       this.metrics.averageResponseTime = responseTime
-    } else {
+    }
+    else {
       // Exponential moving average
       const alpha = 0.1
-      this.metrics.averageResponseTime = 
-        (alpha * responseTime) + ((1 - alpha) * this.metrics.averageResponseTime)
+      this.metrics.averageResponseTime
+        = (alpha * responseTime) + ((1 - alpha) * this.metrics.averageResponseTime)
     }
   }
 
@@ -472,7 +478,7 @@ export function circuitBreaker(config: CircuitBreakerConfig) {
   return function <T extends (...args: any[]) => Promise<any>>(
     target: any,
     propertyName: string,
-    descriptor: TypedPropertyDescriptor<T>
+    descriptor: TypedPropertyDescriptor<T>,
   ) {
     const method = descriptor.value!
 
@@ -481,8 +487,8 @@ export function circuitBreaker(config: CircuitBreakerConfig) {
         execute: () => method.apply(this, args),
         context: {
           method: propertyName,
-          timestamp: new Date()
-        }
+          timestamp: new Date(),
+        },
       })
     } as T
   }
@@ -503,11 +509,11 @@ export class CircuitBreakerHttpClient {
    */
   async fetch(
     url: string,
-    options: RequestInit & { 
+    options: RequestInit & {
       circuitBreaker?: string | CircuitBreakerConfig
       fallback?: () => Promise<Response>
       context?: ErrorContext
-    } = {}
+    } = {},
   ): Promise<Response> {
     const { circuitBreaker, fallback, context, ...fetchOptions } = options
 
@@ -515,12 +521,14 @@ export class CircuitBreakerHttpClient {
     let breakerName: string
     if (typeof circuitBreaker === 'string') {
       breakerName = circuitBreaker
-    } else if (circuitBreaker) {
+    }
+    else if (circuitBreaker) {
       breakerName = circuitBreaker.name
       if (!this.registry.get(breakerName)) {
         this.registry.register(circuitBreaker)
       }
-    } else {
+    }
+    else {
       // Create default circuit breaker based on hostname
       const hostname = new URL(url).hostname
       breakerName = `http-${hostname}`
@@ -534,7 +542,7 @@ export class CircuitBreakerHttpClient {
           minimumRequests: 10,
           errorThresholdPercentage: 50,
           halfOpenMaxCalls: 3,
-          resetTimeout: 60000
+          resetTimeout: 60000,
         })
       }
     }
@@ -542,7 +550,7 @@ export class CircuitBreakerHttpClient {
     return this.registry.execute(breakerName, {
       execute: async () => {
         const response = await fetch(url, fetchOptions)
-        
+
         // Consider 5xx status codes as failures
         if (response.status >= 500) {
           throw new ExternalServiceException(
@@ -551,14 +559,14 @@ export class CircuitBreakerHttpClient {
             url,
             response.status,
             undefined,
-            context
+            context,
           )
         }
-        
+
         return response
       },
       fallback,
-      context
+      context,
     })
   }
 
@@ -591,8 +599,8 @@ export function createCircuitBreakerMiddleware(registry: CircuitBreakerRegistry)
         requestId: req.requestId,
         route: req.route,
         method: req.method,
-        url: req.url
-      }
+        url: req.url,
+      },
     })
   }
 }
@@ -613,7 +621,7 @@ export const CircuitBreakerPresets = {
     minimumRequests: 5,
     errorThresholdPercentage: 30,
     halfOpenMaxCalls: 2,
-    resetTimeout: 30000
+    resetTimeout: 30000,
   }),
 
   /**
@@ -628,7 +636,7 @@ export const CircuitBreakerPresets = {
     minimumRequests: 10,
     errorThresholdPercentage: 50,
     halfOpenMaxCalls: 3,
-    resetTimeout: 60000
+    resetTimeout: 60000,
   }),
 
   /**
@@ -643,7 +651,7 @@ export const CircuitBreakerPresets = {
     minimumRequests: 20,
     errorThresholdPercentage: 70,
     halfOpenMaxCalls: 5,
-    resetTimeout: 120000
+    resetTimeout: 120000,
   }),
 
   /**
@@ -662,7 +670,7 @@ export const CircuitBreakerPresets = {
     shouldTripOnError: (error) => {
       // Don't trip on validation errors or client errors
       return !(error.message.includes('validation') || error.message.includes('constraint'))
-    }
+    },
   }),
 
   /**
@@ -684,8 +692,8 @@ export const CircuitBreakerPresets = {
         return error.statusCode >= 500
       }
       return true
-    }
-  })
+    },
+  }),
 }
 
 /**
@@ -705,7 +713,7 @@ export function createCircuitBreaker(config: CircuitBreakerConfig): CircuitBreak
  */
 export async function withCircuitBreaker<T>(
   name: string,
-  call: CircuitBreakerCall<T>
+  call: CircuitBreakerCall<T>,
 ): Promise<T> {
   return globalCircuitBreakerRegistry.execute(name, call)
 }

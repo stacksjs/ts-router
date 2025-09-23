@@ -2,7 +2,7 @@ import type { EnhancedRequest, NextFunction } from '../src/types'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { Router } from '../src/router'
+import { Router } from '../src/router/index'
 
 describe('Router', () => {
   let router: Router

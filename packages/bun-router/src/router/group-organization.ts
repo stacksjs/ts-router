@@ -1,5 +1,5 @@
 import type { ActionHandler, RouteGroup } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { joinPaths } from '../utils'
 
 /**

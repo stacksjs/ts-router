@@ -4,8 +4,6 @@
  * Route listing, metadata inspection, and route analysis
  */
 
-import type { EnhancedRequest } from '../types'
-
 export interface RouteMetadata {
   id: string
   method: string

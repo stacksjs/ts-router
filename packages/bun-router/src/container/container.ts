@@ -326,7 +326,7 @@ export class Container {
           resolving: new Set(),
           depth: 0,
           container: this.parent,
-          token
+          token,
         }
         return this.parent.resolveInternal<T>(token, parentContext)
       }
