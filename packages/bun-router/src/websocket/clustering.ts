@@ -5,6 +5,7 @@
  */
 
 import type { ServerWebSocket } from 'bun'
+import type { Buffer } from 'node:buffer'
 import process from 'node:process'
 
 export interface WebSocketClusterConfig {
@@ -66,7 +67,7 @@ export class WebSocketCluster {
   private workers = new Map<string, Worker>()
   private connections = new Map<string, WebSocketConnection>()
   private rooms = new Map<string, WebSocketRoom>()
-  private messageHandlers = new Map<string, Function>()
+  private messageHandlers = new Map<string, (...args: any[]) => any>()
   private stats: ClusterStats
   private heartbeatTimer?: Timer
   private isMainWorker: boolean
@@ -103,7 +104,7 @@ export class WebSocketCluster {
     onMessage?: (ws: ServerWebSocket<any>, message: string | Buffer) => void
     onClose?: (ws: ServerWebSocket<any>, code?: number, reason?: string) => void
     onError?: (ws: ServerWebSocket<any>, error: Error) => void
-  } = {}) {
+  } = {}): any {
     const server = Bun.serve({
       port: options.port || 3000,
       hostname: options.hostname || 'localhost',
@@ -137,20 +138,15 @@ export class WebSocketCluster {
       },
 
       websocket: {
-        compression: this.config.compression,
-        backpressureLimit: this.config.backpressureLimit,
-        closeOnBackpressureLimit: this.config.closeOnBackpressureLimit,
-        idleTimeout: this.config.idleTimeout,
-        maxPayloadLength: this.config.maxPayloadLength,
 
         open: (ws) => {
-          const connectionId = ws.data.connectionId
+          const connectionId = (ws.data as any).connectionId
           const connection: WebSocketConnection = {
             id: connectionId,
             workerId: this.workerId,
             socket: ws,
             rooms: new Set(),
-            metadata: ws.data.metadata || {},
+            metadata: (ws.data as any).metadata || {},
             lastHeartbeat: Date.now(),
             connected: true,
           }
@@ -167,11 +163,11 @@ export class WebSocketCluster {
             timestamp: Date.now(),
           })
 
-          options.onConnection?.(ws, ws.data.request)
+          options.onConnection?.(ws, (ws.data as any).request)
         },
 
         message: (ws, message) => {
-          const connectionId = ws.data.connectionId
+          const connectionId = (ws.data as any).connectionId
           const connection = this.connections.get(connectionId)
 
           if (!connection)
@@ -191,7 +187,7 @@ export class WebSocketCluster {
         },
 
         close: (ws, code, reason) => {
-          const connectionId = ws.data.connectionId
+          const connectionId = (ws.data as any).connectionId
           const connection = this.connections.get(connectionId)
 
           if (connection) {
@@ -218,10 +214,6 @@ export class WebSocketCluster {
           options.onClose?.(ws, code, reason)
         },
 
-        error: (ws, error) => {
-          console.error('WebSocket error:', error)
-          options.onError?.(ws, error)
-        },
       },
     })
 
@@ -484,7 +476,7 @@ export class WebSocketCluster {
     else {
       // Worker listens for messages from main worker
       process.on('message', (message) => {
-        this.handleWorkerMessage(message)
+        this.handleWorkerMessage(message as ClusterMessage)
       })
     }
   }
@@ -697,7 +689,7 @@ export const WebSocketClusterHelpers = {
   /**
    * Create room-based chat system
    */
-  createChatSystem: (cluster: WebSocketCluster) => ({
+  createChatSystem: (cluster: WebSocketCluster): any => ({
     joinRoom: (connectionId: string, roomId: string, userInfo: any) => {
       return cluster.joinRoom(connectionId, roomId, { userInfo, joinedAt: Date.now() })
     },
@@ -725,7 +717,7 @@ export const WebSocketClusterHelpers = {
   /**
    * Create real-time notifications system
    */
-  createNotificationSystem: (cluster: WebSocketCluster) => ({
+  createNotificationSystem: (cluster: WebSocketCluster): any => ({
     subscribe: (connectionId: string, topics: string[]) => {
       topics.forEach((topic) => {
         cluster.joinRoom(connectionId, `notification:${topic}`)
@@ -752,7 +744,7 @@ export const WebSocketClusterHelpers = {
   /**
    * Create presence system
    */
-  createPresenceSystem: (cluster: WebSocketCluster) => ({
+  createPresenceSystem: (cluster: WebSocketCluster): any => ({
     setPresence: (connectionId: string, status: 'online' | 'away' | 'busy' | 'offline', metadata?: any) => {
       cluster.broadcastToRoom('presence', JSON.stringify({
         type: 'presence_update',

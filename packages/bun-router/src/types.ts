@@ -1132,7 +1132,7 @@ export type RouteParam<T extends string> = T extends `{${infer P}}` ? P : never
 export type ExtractRouteParams<T extends string> =
   T extends `${string}{${infer Param}}${infer Rest}`
     ? { [K in Param]: string } & ExtractRouteParams<Rest>
-    : {}
+    : object
 
 /**
  * Route method constraints
@@ -1379,7 +1379,6 @@ export interface SSEEvent<T = any> {
 /**
  * Stream generator function types
  */
-export type StreamGenerator<T = any> = () => AsyncGenerator<T, void, unknown>
 export type SSEGenerator<T = any> = () => AsyncGenerator<SSEEvent<T>, void, unknown>
 
 /**
@@ -1821,7 +1820,7 @@ declare module './types' {
 /**
  * Enhanced streaming generator types with extreme narrowing
  */
-export type StreamGenerator<T = string | Uint8Array> = () => Generator<T, void, unknown>
+export type StreamGeneratorSync<T = string | Uint8Array> = () => Generator<T, void, unknown>
 export type AsyncStreamGenerator<T = string | Uint8Array> = () => AsyncGenerator<T, void, unknown>
 export type StreamCallbackGenerator<T = string | Uint8Array> = StreamGenerator<T> | AsyncStreamGenerator<T>
 

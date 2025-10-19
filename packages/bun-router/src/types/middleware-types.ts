@@ -10,7 +10,7 @@ import type { RouteHandler, TypedRequest } from './route-inference'
 export interface TypedMiddleware<
   TInput = any,
   TOutput = TInput,
-  TContext = {},
+  _TContext = object,
   TNext = any,
 > {
   (
@@ -200,12 +200,12 @@ export interface MiddlewareFactory<TOptions = any, TMiddleware extends TypedMidd
 
 // Conditional middleware types
 export type ConditionalMiddleware<
-  TCondition extends (req: any) => boolean,
+  _TCondition extends (req: any) => boolean,
   TMiddleware extends TypedMiddleware<any, any, any, any>,
 > = TypedMiddleware<
   Parameters<TMiddleware>[0],
   TMiddleware extends TypedMiddleware<any, infer Output, any, any> ? Output : never,
-  TMiddleware extends TypedMiddleware<any, any, infer Context, any> ? Context : {},
+  TMiddleware extends TypedMiddleware<any, any, infer Context, any> ? Context : object,
   any
 >
 
@@ -258,9 +258,9 @@ export type MiddlewareCompatible<
 // Route-specific middleware types
 export type RouteMiddleware<
   TPath extends string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = object,
   TBody = unknown,
-  TContext = {},
+  TContext = object,
 > = TypedMiddleware<
   TypedRequest<TPath, TQuery, TBody, TContext>,
   TypedRequest<TPath, TQuery, TBody, TContext>,
@@ -269,7 +269,7 @@ export type RouteMiddleware<
 >
 
 // Middleware builder interface
-export interface MiddlewareBuilder<TContext = {}> {
+export interface MiddlewareBuilder<TContext = object> {
   use: <TNewContext>(
     middleware: TypedMiddleware<any, any, TNewContext, any>
   ) => MiddlewareBuilder<TContext & TNewContext>
@@ -302,7 +302,7 @@ export interface MiddlewareBuilder<TContext = {}> {
 }
 
 // Middleware execution context
-export interface MiddlewareExecutionContext<TContext = {}> {
+export interface MiddlewareExecutionContext<TContext = object> {
   request: Request
   response?: Response
   context: TContext
@@ -312,7 +312,7 @@ export interface MiddlewareExecutionContext<TContext = {}> {
 }
 
 // Middleware hooks
-export interface MiddlewareHooks<TContext = {}> {
+export interface MiddlewareHooks<TContext = object> {
   beforeExecution?: (context: MiddlewareExecutionContext<TContext>) => Promise<void> | void
   afterExecution?: (context: MiddlewareExecutionContext<TContext>, result: any) => Promise<void> | void
   onError?: (context: MiddlewareExecutionContext<TContext>, error: Error) => Promise<Response> | Response
@@ -322,7 +322,7 @@ export interface MiddlewareHooks<TContext = {}> {
 export type AsyncMiddleware<
   TInput = any,
   TOutput = TInput,
-  TContext = {},
+  TContext = object,
   TNext = any,
 > = TypedMiddleware<TInput, Promise<TOutput>, TContext, TNext>
 
@@ -340,7 +340,7 @@ export interface MiddlewareMetadata {
 export interface DecoratedMiddleware<
   TInput = any,
   TOutput = TInput,
-  TContext = {},
+  TContext = object,
   TNext = any,
 > extends TypedMiddleware<TInput, TOutput, TContext, TNext> {
   metadata: MiddlewareMetadata
@@ -373,7 +373,7 @@ export type Compose<T extends readonly TypedMiddleware<any, any, any, any>[]> =
             : never
         : never
       : never
-    : TypedMiddleware<any, any, {}, any>
+    : TypedMiddleware<any, any, object, any>
 
 // Middleware type guards
 export type IsMiddleware<T> = T extends TypedMiddleware<any, any, any, any> ? true : false
@@ -395,7 +395,7 @@ export type TransformMiddleware<
   : never
 
 // Route-aware middleware
-export type RouteAwareMiddleware<TRoutes extends Record<string, any> = {}> = {
+export type RouteAwareMiddleware<TRoutes extends Record<string, any> = object> = {
   [K in keyof TRoutes]: TRoutes[K] extends RouteHandler<infer Path, infer Query, infer Body, infer Context>
     ? RouteMiddleware<Path, Query, Body, Context>
     : never
@@ -417,52 +417,3 @@ export type PerformanceTrackingMiddleware<T extends TypedMiddleware<any, any, an
   }
 
 // Export all middleware types
-export type {
-  AsyncMiddleware,
-  AugmentContext,
-  AugmentRequest,
-  AuthenticatedRequest,
-  AuthMiddleware,
-  AuthorizedRequest,
-  AuthzMiddleware,
-  CachedRequest,
-  CacheMiddleware,
-  Compose,
-  ComposeMiddleware,
-  ConditionalMiddleware,
-  CORSMiddleware,
-  CORSRequest,
-  DecoratedMiddleware,
-  ErrorHandlingRequest,
-  ErrorMiddleware,
-  FileUploadMiddleware,
-  FileUploadRequest,
-  IsCompatibleMiddleware,
-  IsMiddleware,
-  LoggedRequest,
-  LoggingMiddleware,
-  MiddlewareBuilder,
-  MiddlewareChain,
-  MiddlewareCompatible,
-  MiddlewareConstraint,
-  MiddlewareExecutionContext,
-  MiddlewareFactory,
-  MiddlewareGroup,
-  MiddlewareHooks,
-  MiddlewareMetadata,
-  MiddlewarePerformance,
-  MiddlewarePipeline,
-  MiddlewareRegistry,
-  PerformanceTrackingMiddleware,
-  RateLimitedRequest,
-  RateLimitMiddleware,
-  RouteAwareMiddleware,
-  RouteMiddleware,
-  SessionMiddleware,
-  SessionRequest,
-  TransformMiddleware,
-  TypedMiddleware,
-  UnauthenticatedRequest,
-  ValidatedRequest,
-  ValidationMiddleware,
-}

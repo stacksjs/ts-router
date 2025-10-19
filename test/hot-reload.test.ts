@@ -40,7 +40,8 @@ describe('Hot Reload', () => {
     try {
       rmSync(tempDir, { recursive: true, force: true })
     }
-    catch (_error) {
+    catch (error) {
+      console.log(error)
       // Ignore cleanup errors
     }
   })

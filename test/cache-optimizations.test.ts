@@ -348,19 +348,29 @@ describe('Cache Optimizations', () => {
       const expensiveMiddleware = async (_req: EnhancedRequest, _next: any) => {
         executionCount++
         await new Promise(resolve => setTimeout(resolve, 10))
-        return { result: 'expensive-computation', count: executionCount }
+        return new Response(JSON.stringify({ result: 'expensive-computation', count: executionCount }), {
+          headers: { 'content-type': 'application/json' },
+        })
       }
 
       const memoizedMiddleware = memoizer.memoize(expensiveMiddleware)
 
       // First call should execute
       const result1 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
-      expect(result1.count).toBe(1)
+      expect(result1).toBeInstanceOf(Response)
+      if (result1) {
+        const data1 = await result1.json() as { result: string, count: number }
+        expect(data1.count).toBe(1)
+      }
       expect(executionCount).toBe(1)
 
       // Second call should use cache
       const result2 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
-      expect(result2.count).toBe(1) // Same result from cache
+      expect(result2).toBeInstanceOf(Response)
+      if (result2) {
+        const data2 = await result2.json() as { result: string, count: number }
+        expect(data2.count).toBe(1) // Same result from cache
+      }
       expect(executionCount).toBe(1) // Not executed again
 
       const stats = memoizer.getStats()
@@ -388,7 +398,9 @@ describe('Cache Optimizations', () => {
 
     it('should handle custom key generation', async () => {
       const middleware = async (_req: EnhancedRequest, _next: any) => {
-        return { userId: _req.user?.id, timestamp: Date.now() }
+        return new Response(JSON.stringify({ userId: _req.user?.id, timestamp: Date.now() }), {
+          headers: { 'content-type': 'application/json' },
+        })
       }
 
       const memoizedMiddleware = memoizer.memoize(middleware, {
@@ -399,7 +411,11 @@ describe('Cache Optimizations', () => {
 
       // Same user should hit cache
       const result = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
-      expect(result.userId).toBe('123')
+      expect(result).toBeInstanceOf(Response)
+      if (result) {
+        const data = await result.json() as { userId: string, timestamp: number }
+        expect(data.userId).toBe('123')
+      }
 
       const stats = memoizer.getStats()
       expect(stats.cacheHits).toBe(1)
@@ -408,30 +424,51 @@ describe('Cache Optimizations', () => {
     it('should support conditional memoization', async () => {
       let executionCount = 0
 
-      const middleware = async (req: EnhancedRequest, next: any) => {
+      const middleware = async (req: EnhancedRequest, _next: any) => {
         executionCount++
-        return { success: req.method === 'GET', count: executionCount }
+        return new Response(JSON.stringify({ success: req.method === 'GET', count: executionCount }), {
+          headers: { 'content-type': 'application/json' },
+        })
       }
 
       const memoizedMiddleware = memoizer.memoize(middleware, {
-        shouldMemoize: (req, result) => result.success,
+        shouldMemoize: (req, result) => {
+          if (result instanceof Response) {
+            return result.status === 200 // Only memoize successful responses
+          }
+          return false
+        },
       })
 
       // GET request - should be memoized
       const result1 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
       const result2 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
-      expect(result2.count).toBe(result1.count)
+      expect(result1).toBeInstanceOf(Response)
+      expect(result2).toBeInstanceOf(Response)
+      if (result1 && result2) {
+        const data1 = await result1.json() as { success: boolean, count: number }
+        const data2 = await result2.json() as { success: boolean, count: number }
+        expect(data2.count).toBe(data1.count)
+      }
 
       // POST request - should not be memoized
-      mockRequest.method = 'POST'
-      const result3 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
-      const result4 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
-      expect(result4.count).not.toBe(result3.count)
+      const postRequest = { ...mockRequest, method: 'POST' as const }
+      const result3 = await memoizedMiddleware(postRequest, () => Promise.resolve(null))
+      const result4 = await memoizedMiddleware(postRequest, () => Promise.resolve(null))
+      expect(result3).toBeInstanceOf(Response)
+      expect(result4).toBeInstanceOf(Response)
+      if (result3 && result4) {
+        const data3 = await result3.json() as { success: boolean, count: number }
+        const data4 = await result4.json() as { success: boolean, count: number }
+        expect(data4.count).not.toBe(data3.count)
+      }
     })
 
     it('should invalidate cache by pattern', async () => {
-      const middleware = async (req: EnhancedRequest, next: any) => {
-        return { path: req.url }
+      const middleware = async (req: EnhancedRequest, _next: any) => {
+        return new Response(JSON.stringify({ path: req.url }), {
+          headers: { 'content-type': 'application/json' },
+        })
       }
 
       const memoizedMiddleware = memoizer.memoize(middleware, { name: 'testMiddleware' })
@@ -452,8 +489,10 @@ describe('Cache Optimizations', () => {
     })
 
     it('should track popular results', async () => {
-      const middleware = async (req: EnhancedRequest, next: any) => {
-        return { url: req.url }
+      const middleware = async (req: EnhancedRequest, _next: any) => {
+        return new Response(JSON.stringify({ url: req.url }), {
+          headers: { 'content-type': 'application/json' },
+        })
       }
 
       const memoizedMiddleware = memoizer.memoize(middleware, { name: 'popular' })
@@ -471,7 +510,9 @@ describe('Cache Optimizations', () => {
     it('should provide accurate statistics', async () => {
       const middleware = async (_req: EnhancedRequest, _next: any) => {
         await new Promise(resolve => setTimeout(resolve, 10))
-        return { processed: true }
+        return new Response(JSON.stringify({ processed: true }), {
+          headers: { 'content-type': 'application/json' },
+        })
       }
 
       const memoizedMiddleware = memoizer.memoize(middleware)
@@ -574,9 +615,11 @@ describe('Cache Optimizations', () => {
       ])
 
       // Create memoized middleware
-      const expensiveMiddleware = async (req: EnhancedRequest, next: any) => {
+      const expensiveMiddleware = async (req: EnhancedRequest, _next: any) => {
         await new Promise(resolve => setTimeout(resolve, 5))
-        return { processed: true, url: req.url }
+        return new Response(JSON.stringify({ processed: true, url: req.url }), {
+          headers: { 'content-type': 'application/json' },
+        })
       }
 
       const memoizedMiddleware = memoizer.memoize(expensiveMiddleware)
@@ -594,7 +637,13 @@ describe('Cache Optimizations', () => {
       const result1 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
       const result2 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
 
-      expect(result1).toEqual(result2)
+      expect(result1).toBeInstanceOf(Response)
+      expect(result2).toBeInstanceOf(Response)
+      if (result1 && result2) {
+        const data1 = await result1.json() as { processed: boolean, url: string }
+        const data2 = await result2.json() as { processed: boolean, url: string }
+        expect(data1).toEqual(data2)
+      }
 
       // Test route cache
       routeCache.set('api:users', { users: ['user1', 'user2'] })

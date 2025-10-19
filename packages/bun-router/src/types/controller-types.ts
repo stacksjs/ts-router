@@ -39,7 +39,7 @@ export interface MethodDecoratorMetadata extends ControllerMethodMetadata {
 
 // Extract controller method names
 export type ControllerMethodNames<T> = {
-  [K in keyof T]: T[K] extends Function ? K : never
+  [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never
 }[keyof T]
 
 // Extract controller methods
@@ -74,9 +74,9 @@ export type InferControllerMethodType<T> = T extends (
 // Controller route registration
 export interface ControllerRoute<
   TPath extends string = string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = object,
   TBody = unknown,
-  TContext = {},
+  TContext = object,
 > {
   method: RouteMethod
   path: TPath
@@ -97,7 +97,7 @@ export interface ControllerDecorator<TPrefix extends string = ''> {
 // Route method decorators
 export type RouteDecorator<
   TPath extends string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = object,
   TBody = unknown,
 > = <T extends BaseController>(
   target: T,
@@ -106,19 +106,19 @@ export type RouteDecorator<
 ) => void
 
 // HTTP method decorators
-export type GetDecorator<TPath extends string, TQuery extends Record<string, any> = {}> =
+export type GetDecorator<TPath extends string, TQuery extends Record<string, any> = object> =
   RouteDecorator<TPath, TQuery, never>
 
-export type PostDecorator<TPath extends string, TQuery extends Record<string, any> = {}, TBody = unknown> =
+export type PostDecorator<TPath extends string, TQuery extends Record<string, any> = object, TBody = unknown> =
   RouteDecorator<TPath, TQuery, TBody>
 
-export type PutDecorator<TPath extends string, TQuery extends Record<string, any> = {}, TBody = unknown> =
+export type PutDecorator<TPath extends string, TQuery extends Record<string, any> = object, TBody = unknown> =
   RouteDecorator<TPath, TQuery, TBody>
 
-export type PatchDecorator<TPath extends string, TQuery extends Record<string, any> = {}, TBody = unknown> =
+export type PatchDecorator<TPath extends string, TQuery extends Record<string, any> = object, TBody = unknown> =
   RouteDecorator<TPath, TQuery, TBody>
 
-export type DeleteDecorator<TPath extends string, TQuery extends Record<string, any> = {}> =
+export type DeleteDecorator<TPath extends string, TQuery extends Record<string, any> = object> =
   RouteDecorator<TPath, TQuery, never>
 
 // Parameter decorators
@@ -131,11 +131,11 @@ export interface ParameterDecorator<T = any> {
 }
 
 // Parameter extraction types
-export type ParamDecorator<TName extends string> = ParameterDecorator<string>
-export type QueryDecorator<TName extends string> = ParameterDecorator<string>
+export type ParamDecorator<_TName extends string> = ParameterDecorator<string>
+export type QueryDecorator<_TName extends string> = ParameterDecorator<string>
 export type BodyDecorator<T = any> = ParameterDecorator<T>
-export type HeaderDecorator<TName extends string> = ParameterDecorator<string>
-export type CookieDecorator<TName extends string> = ParameterDecorator<string>
+export type HeaderDecorator<_TName extends string> = ParameterDecorator<string>
+export type CookieDecorator<_TName extends string> = ParameterDecorator<string>
 export type RequestDecorator = ParameterDecorator<Request>
 export type ResponseDecorator = ParameterDecorator<Response>
 
@@ -157,7 +157,7 @@ export type ValidateControllerParams<T extends any[]> = {
 
 // Controller dependency injection
 export interface ControllerDependency<T = any> {
-  token: string | symbol | Function
+  token: string | symbol | ((...args: any[]) => any)
   value?: T
   factory?: () => T
   singleton?: boolean
@@ -165,8 +165,8 @@ export interface ControllerDependency<T = any> {
 
 export interface DependencyContainer {
   register: <T>(dependency: ControllerDependency<T>) => void
-  resolve: <T>(token: string | symbol | Function) => T
-  has: (token: string | symbol | Function) => boolean
+  resolve: <T>(token: string | symbol | ((...args: any[]) => any)) => T
+  has: (token: string | symbol | ((...args: any[]) => any)) => boolean
 }
 
 // Injectable decorator
@@ -176,7 +176,7 @@ export interface InjectableDecorator {
 
 // Inject decorator
 export interface InjectDecorator<T = any> {
-  (token: string | symbol | Function): ParameterDecorator<T>
+  (token: string | symbol | ((...args: any[]) => any)): ParameterDecorator<T>
 }
 
 // Controller factory
@@ -207,7 +207,7 @@ export interface ControllerRegistry {
 
 // Controller method validation at compile time
 export type ValidateController<T extends BaseController> = {
-  [K in keyof T]: T[K] extends Function
+  [K in keyof T]: T[K] extends (...args: any[]) => any
     ? ValidateControllerMethod<T[K]> extends string
       ? ValidateControllerMethod<T[K]>
       : T[K]
@@ -231,14 +231,14 @@ export type BindControllerMethod<
 
 // Controller instance type
 export type ControllerInstance<T extends BaseController> = {
-  [K in keyof T]: T[K] extends Function
+  [K in keyof T]: T[K] extends (...args: any[]) => any
     ? BindControllerMethod<T, K>
     : T[K]
 }
 
 // Controller method metadata extraction
 export type ExtractMethodMetadata<T extends BaseController> = {
-  [K in keyof T]: T[K] extends Function
+  [K in keyof T]: T[K] extends (...args: any[]) => any
     ? InferControllerMethodType<T[K]> extends never
       ? never
       : {
@@ -276,8 +276,8 @@ export type ComposeControllers<T extends readonly BaseController[]> = T extends 
     ? Rest extends readonly BaseController[]
       ? First & ComposeControllers<Rest>
       : First
-    : {}
-  : {}
+    : object
+  : object
 
 // Controller middleware application
 export type ApplyControllerMiddleware<
@@ -383,54 +383,3 @@ export interface ControllerLifecycleHooks {
 // Controller with lifecycle
 export type LifecycleController<T extends BaseController> = T & ControllerLifecycleHooks
 
-// Export all controller types
-export type {
-  ApplyControllerMiddleware,
-  BaseController,
-  BindControllerMethod,
-  BodyDecorator,
-  ComposeControllers,
-  ControllerDecorator,
-  ControllerDependency,
-  ControllerFactory,
-  ControllerInstance,
-  ControllerLifecycleHooks,
-  ControllerMethodMetadata,
-  ControllerMethodNames,
-  ControllerMethodParams,
-  ControllerMethods,
-  ControllerPerformanceMetrics,
-  ControllerRegistry,
-  ControllerRoute,
-  ControllerTestUtils,
-  ControllerValidationError,
-  CookieDecorator,
-  DeleteDecorator,
-  DependencyContainer,
-  DetectControllerConflicts,
-  ExtractControllerRoutes,
-  ExtractMethodMetadata,
-  GenerateControllerOpenAPI,
-  GetDecorator,
-  HeaderDecorator,
-  InferControllerMethodType,
-  InjectableDecorator,
-  InjectDecorator,
-  IsValidController,
-  IsValidControllerMethod,
-  LifecycleController,
-  MethodDecoratorMetadata,
-  ParamDecorator,
-  ParameterDecorator,
-  PatchDecorator,
-  PerformanceTrackingController,
-  PostDecorator,
-  PutDecorator,
-  QueryDecorator,
-  RequestDecorator,
-  ResponseDecorator,
-  RouteDecorator,
-  ValidateController,
-  ValidateControllerMethod,
-  ValidateControllerParams,
-}

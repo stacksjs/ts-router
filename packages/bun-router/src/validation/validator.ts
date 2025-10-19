@@ -85,8 +85,8 @@ export const BuiltInRules: Record<string, ValidationRule> = {
     name: 'url',
     validate: (value) => {
       try {
-        new URL(value)
-        return true
+        const url = new URL(value)
+        return Boolean(url)
       }
       catch {
         return false
@@ -184,7 +184,7 @@ export const BuiltInRules: Record<string, ValidationRule> = {
     name: 'date',
     validate: (value) => {
       const date = new Date(value)
-      return !isNaN(date.getTime())
+      return !Number.isNaN(date.getTime())
     },
     message: 'The :field field must be a valid date.',
   },
@@ -194,7 +194,7 @@ export const BuiltInRules: Record<string, ValidationRule> = {
     validate: (value, parameters) => {
       const date = new Date(value)
       const afterDate = new Date(parameters[0])
-      return !isNaN(date.getTime()) && !isNaN(afterDate.getTime()) && date > afterDate
+      return !Number.isNaN(date.getTime()) && !Number.isNaN(afterDate.getTime()) && date > afterDate
     },
     message: (field, parameters) => `The ${field} field must be after ${parameters[0]}.`,
   },
@@ -204,7 +204,7 @@ export const BuiltInRules: Record<string, ValidationRule> = {
     validate: (value, parameters) => {
       const date = new Date(value)
       const beforeDate = new Date(parameters[0])
-      return !isNaN(date.getTime()) && !isNaN(beforeDate.getTime()) && date < beforeDate
+      return !Number.isNaN(date.getTime()) && !Number.isNaN(beforeDate.getTime()) && date < beforeDate
     },
     message: (field, parameters) => `The ${field} field must be before ${parameters[0]}.`,
   },
@@ -276,7 +276,7 @@ export const BuiltInRules: Record<string, ValidationRule> = {
 export const DatabaseRules: Record<string, ValidationRule> = {
   unique: {
     name: 'unique',
-    validate: async (value, parameters) => {
+    validate: async (_value, _parameters) => {
       // This would need to be implemented with actual database queries
       // For now, return true as a placeholder
       console.warn('Database validation rule "unique" requires external implementation')
@@ -287,7 +287,7 @@ export const DatabaseRules: Record<string, ValidationRule> = {
 
   exists: {
     name: 'exists',
-    validate: async (value, parameters) => {
+    validate: async (_value, _parameters) => {
       // This would need to be implemented with actual database queries
       // For now, return true as a placeholder
       console.warn('Database validation rule "exists" requires external implementation')
@@ -443,7 +443,7 @@ export class Validator {
 /**
  * Global validator instance
  */
-export const globalValidator = new Validator()
+export const globalValidator: Validator = new Validator()
 
 /**
  * Validation middleware factory

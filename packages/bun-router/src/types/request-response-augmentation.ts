@@ -38,7 +38,7 @@ export type ExtractMiddlewareAugmentation<T> =
         input: Input
         output: Output
         context: Context
-        augmentation: Output extends Input & infer Aug ? Aug : {}
+        augmentation: Output extends Input & infer Aug ? Aug : object
       }
     : never
 
@@ -62,16 +62,16 @@ export type AccumulateContext<
     ? Rest extends readonly TypedMiddleware<any, any, any, any>[]
       ? Context & AccumulateContext<Rest>
       : Context
-    : {}
-  : {}
+    : object
+  : object
 
 // Enhanced request with middleware augmentations
 export interface EnhancedRequest<
   TPath extends string = string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = object,
   TBody = unknown,
-  TContext = {},
-  TAugmentations = {},
+  TContext = object,
+  TAugmentations = object,
 > extends TypedRequest<TPath, TQuery, TBody, TContext> {
   // Core request properties
   params: ExtractTypedParams<TPath>
@@ -138,7 +138,7 @@ export interface EnhancedRequest<
 }
 
 // Enhanced response with middleware augmentations
-export interface EnhancedResponse<TAugmentations = {}> extends Response {
+export interface EnhancedResponse<TAugmentations = object> extends Response {
   // Middleware-added properties
   cached?: TAugmentations extends { cache: any }
     ? boolean
@@ -160,9 +160,9 @@ export interface EnhancedResponse<TAugmentations = {}> extends Response {
 // Middleware-aware route handler
 export type AugmentedRouteHandler<
   TPath extends string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = object,
   TBody = unknown,
-  TContext = {},
+  TContext = object,
   TMiddlewares extends readonly TypedMiddleware<any, any, any, any>[] = [],
 > = (
   request: EnhancedRequest<
@@ -210,11 +210,11 @@ export type ApplyMiddlewareSequence<
         }
     : {
         request: TRequest
-        context: {}
+        context: object
       }
   : {
       request: TRequest
-      context: {}
+      context: object
     }
 
 // Conditional augmentation based on middleware presence
@@ -222,7 +222,7 @@ export type ConditionalAugmentation<
   TMiddlewares extends readonly TypedMiddleware<any, any, any, any>[],
   TAugmentation,
 > = TMiddlewares extends readonly []
-  ? {}
+  ? object
   : TAugmentation
 
 // Authentication augmentation
@@ -288,8 +288,8 @@ export type CombineAugmentations<T extends Record<string, any>[]> = T extends [
     ? Rest extends Record<string, any>[]
       ? First & CombineAugmentations<Rest>
       : First
-    : {}
-  : {}
+    : object
+  : object
 
 // Middleware type detection
 export type HasAuthMiddleware<T extends readonly TypedMiddleware<any, any, any, any>[]> =
@@ -359,9 +359,9 @@ export interface AugmentationBuilder<TBase = Request> {
 // Route with augmented types
 export interface AugmentedRoute<
   TPath extends string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = object,
   TBody = unknown,
-  TContext = {},
+  TContext = object,
   TMiddlewares extends readonly TypedMiddleware<any, any, any, any>[] = [],
 > {
   method: string
@@ -373,10 +373,10 @@ export interface AugmentedRoute<
 }
 
 // Type-safe route builder with augmentation
-export interface AugmentedRouteBuilder<TContext = {}> {
+export interface AugmentedRouteBuilder<TContext = object> {
   get: <
     TPath extends string,
-    TQuery extends Record<string, any> = {},
+    TQuery extends Record<string, any> = object,
     TMiddlewares extends readonly TypedMiddleware<any, any, any, any>[] = [],
   >(
     path: TPath,
@@ -386,7 +386,7 @@ export interface AugmentedRouteBuilder<TContext = {}> {
 
   post: <
     TPath extends string,
-    TQuery extends Record<string, any> = {},
+    TQuery extends Record<string, any> = object,
     TBody = unknown,
     TMiddlewares extends readonly TypedMiddleware<any, any, any, any>[] = [],
   >(
@@ -397,7 +397,7 @@ export interface AugmentedRouteBuilder<TContext = {}> {
 
   put: <
     TPath extends string,
-    TQuery extends Record<string, any> = {},
+    TQuery extends Record<string, any> = object,
     TBody = unknown,
     TMiddlewares extends readonly TypedMiddleware<any, any, any, any>[] = [],
   >(
@@ -408,7 +408,7 @@ export interface AugmentedRouteBuilder<TContext = {}> {
 
   patch: <
     TPath extends string,
-    TQuery extends Record<string, any> = {},
+    TQuery extends Record<string, any> = object,
     TBody = unknown,
     TMiddlewares extends readonly TypedMiddleware<any, any, any, any>[] = [],
   >(
@@ -419,7 +419,7 @@ export interface AugmentedRouteBuilder<TContext = {}> {
 
   delete: <
     TPath extends string,
-    TQuery extends Record<string, any> = {},
+    TQuery extends Record<string, any> = object,
     TMiddlewares extends readonly TypedMiddleware<any, any, any, any>[] = [],
   >(
     path: TPath,

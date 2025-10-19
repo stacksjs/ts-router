@@ -152,7 +152,7 @@ export function matchPath(
             return false
           }
         }
-        catch (e) {
+        catch {
           // If regex is invalid, treat as no constraint
           console.warn(`Invalid constraint regex for parameter ${paramName}: ${constraints[paramName]}`)
         }

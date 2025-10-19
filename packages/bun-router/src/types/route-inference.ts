@@ -208,7 +208,7 @@ export type InferRouteContext<T> = T extends TypedRoute<any, any, any, infer Con
   : never
 
 // Route group types
-export interface RouteGroup<TPrefix extends string = '', TContext = {}> {
+export interface RouteGroup<TPrefix extends string = '', TContext = object> {
   prefix: TPrefix
   middleware?: TypedMiddleware<any, any, any, TContext>[]
   routes: TypedRoute<any, any, any, TContext>[]
@@ -219,34 +219,34 @@ export interface TypedMiddleware<
   TRequest = any,
   TResponse = any,
   TNext = any,
-  TContext = Record<string, never>,
+  _TContext = Record<string, never>,
 > {
   (request: TRequest, next: TNext): Promise<TResponse> | TResponse
 }
 
 // Route builder helper types
-export interface RouteBuilder<TContext = {}> {
-  get: <TPath extends string, TQuery extends Record<string, any> = {}>(
+export interface RouteBuilder<TContext = object> {
+  get: <TPath extends string, TQuery extends Record<string, any> = object>(
     path: ValidateRoutePattern<TPath>,
     handler: RouteHandler<TPath, TQuery, never, TContext>
   ) => TypedRoute<TPath, TQuery, never, TContext>
 
-  post: <TPath extends string, TQuery extends Record<string, any> = {}, TBody = unknown>(
+  post: <TPath extends string, TQuery extends Record<string, any> = object, TBody = unknown>(
     path: ValidateRoutePattern<TPath>,
     handler: RouteHandler<TPath, TQuery, TBody, TContext>
   ) => TypedRoute<TPath, TQuery, TBody, TContext>
 
-  put: <TPath extends string, TQuery extends Record<string, any> = {}, TBody = unknown>(
+  put: <TPath extends string, TQuery extends Record<string, any> = object, TBody = unknown>(
     path: ValidateRoutePattern<TPath>,
     handler: RouteHandler<TPath, TQuery, TBody, TContext>
   ) => TypedRoute<TPath, TQuery, TBody, TContext>
 
-  patch: <TPath extends string, TQuery extends Record<string, any> = {}, TBody = unknown>(
+  patch: <TPath extends string, TQuery extends Record<string, any> = object, TBody = unknown>(
     path: ValidateRoutePattern<TPath>,
     handler: RouteHandler<TPath, TQuery, TBody, TContext>
   ) => TypedRoute<TPath, TQuery, TBody, TContext>
 
-  delete: <TPath extends string, TQuery extends Record<string, any> = {}>(
+  delete: <TPath extends string, TQuery extends Record<string, any> = object>(
     path: ValidateRoutePattern<TPath>,
     handler: RouteHandler<TPath, TQuery, never, TContext>
   ) => TypedRoute<TPath, TQuery, never, TContext>
@@ -281,8 +281,8 @@ export type ExtractParamsFromPath<TPattern extends string, TPath extends string>
       : Record<string, never>
 
 // Type-safe route registration
-export interface TypeSafeRouter<TContext = {}> {
-  register: <TPath extends string, TQuery extends Record<string, any> = {}, TBody = unknown>(
+export interface TypeSafeRouter<TContext = object> {
+  register: <TPath extends string, TQuery extends Record<string, any> = object, TBody = unknown>(
     route: TypedRoute<TPath, TQuery, TBody, TContext>
   ) => void
 
