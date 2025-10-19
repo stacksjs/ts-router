@@ -305,7 +305,7 @@ export const fileUploadMocks = {
       return storagePath
     }),
 
-    delete: mock(async (path: string): Promise<void> => {
+    delete: mock(async (_path: string): Promise<void> => {
       // Mock file deletion
     }),
 

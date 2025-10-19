@@ -470,26 +470,25 @@ export class PerformanceProfiler {
    */
   private setupGcObserver(): void {
     try {
-      this.gcObserver = new PerformanceObserver((list) => {
-        const entries = list.getEntries()
-        entries.forEach((entry) => {
-          if (entry.entryType === 'gc') {
-            // Update GC metrics for active profiles
-            this.activeProfiles.forEach((profile) => {
-              if (!profile.gc) {
-                profile.gc = { collections: 0, duration: 0, reclaimedMemory: 0 }
-              }
-              profile.gc.collections++
-              profile.gc.duration += entry.duration
-            })
-          }
-        })
+      this.gcObserver = new PerformanceObserver()
+
+      this.gcObserver.on('entry', (entry) => {
+        if (entry.entryType === 'gc') {
+          // Update GC metrics for active profiles
+          this.activeProfiles.forEach((profile) => {
+            if (!profile.gc) {
+              profile.gc = { collections: 0, duration: 0, reclaimedMemory: 0 }
+            }
+            profile.gc.collections++
+            profile.gc.duration += entry.duration
+          })
+        }
       })
 
       this.gcObserver.observe({ entryTypes: ['gc'] })
     }
-    catch (error) {
-      // GC observer not available in this environment
+    catch (err) {
+      console.error('Failed to setup GC observer:', err)
     }
   }
 

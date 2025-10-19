@@ -9,7 +9,7 @@ export class WebSocketTester {
   private messages: WSTestMessage[] = []
   private isConnected: boolean = false
   private readyState: number = 0 // CONNECTING
-  private eventHandlers: Map<string, Function[]> = new Map()
+  private eventHandlers: Map<string, ((...args: any[]) => any)[]> = new Map()
 
   constructor() {
     this.setupEventHandlers()
@@ -68,7 +68,7 @@ export class WebSocketTester {
       throw new Error('WebSocket is not connected')
     }
 
-    const message: WSTestMessage = {
+    const _message: WSTestMessage = {
       type: typeof data === 'string' ? 'text' : 'binary',
       data,
       timestamp: Date.now(),
@@ -103,7 +103,7 @@ export class WebSocketTester {
   /**
    * Add event listener
    */
-  on(event: string, handler: Function): WebSocketTester {
+  on(event: string, handler: (...args: any[]) => any): WebSocketTester {
     if (!this.eventHandlers.has(event)) {
       this.eventHandlers.set(event, [])
     }
@@ -114,7 +114,7 @@ export class WebSocketTester {
   /**
    * Remove event listener
    */
-  off(event: string, handler: Function): WebSocketTester {
+  off(event: string, handler: (...args: any[]) => any): WebSocketTester {
     const handlers = this.eventHandlers.get(event)
     if (handlers) {
       const index = handlers.indexOf(handler)
@@ -214,15 +214,15 @@ export class MockServerWebSocket {
     this.tester.send(message)
   }
 
-  subscribe(topic: string): void {
+  subscribe(_topic: string): void {
     // Mock subscribe functionality
   }
 
-  unsubscribe(topic: string): void {
+  unsubscribe(_topic: string): void {
     // Mock unsubscribe functionality
   }
 
-  isSubscribed(topic: string): boolean {
+  isSubscribed(_topic: string): boolean {
     return true // Mock implementation
   }
 
@@ -254,7 +254,7 @@ export const wsHandlerMocks = {
   /**
    * Mock WebSocket open handler
    */
-  onOpen: () => mock(async (ws: ServerWebSocket<any>) => {
+  onOpen: () => mock(async (_ws: ServerWebSocket<any>) => {
     // Mock open handler
   }),
 
@@ -262,7 +262,7 @@ export const wsHandlerMocks = {
    * Mock WebSocket message handler
    */
   onMessage: (response?: string | ArrayBuffer | Uint8Array) =>
-    mock(async (ws: ServerWebSocket<any>, message: string | Uint8Array | ArrayBuffer) => {
+    mock(async (ws: ServerWebSocket<any>, _message: string | Uint8Array | ArrayBuffer) => {
       if (response) {
         ws.send(response)
       }
@@ -271,14 +271,14 @@ export const wsHandlerMocks = {
   /**
    * Mock WebSocket close handler
    */
-  onClose: () => mock(async (ws: ServerWebSocket<any>, code: number, reason: string) => {
+  onClose: () => mock(async (_ws: ServerWebSocket<any>, _code: number, _reason: string) => {
     // Mock close handler
   }),
 
   /**
    * Mock WebSocket error handler
    */
-  onError: () => mock(async (ws: ServerWebSocket<any>, error: Error) => {
+  onError: () => mock(async (_ws: ServerWebSocket<any>, _error: Error) => {
     // Mock error handler
   }),
 
@@ -514,7 +514,7 @@ export const wsPerformance = {
         connectionTimes.push(endTime - startTime)
         results.successfulConnections++
       }
-      catch (error) {
+      catch (_error) {
         results.failedConnections++
       }
     })

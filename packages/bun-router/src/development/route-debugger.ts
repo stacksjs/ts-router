@@ -64,7 +64,7 @@ export interface RouteDebugInfo {
 export class RouteDebugger {
   private config: RouteDebugConfig
   private debugSessions = new Map<string, RouteDebugInfo>()
-  private routePatterns = new Map<string, { pattern: string, method: string, handler: Function, middleware: Function[] }>()
+  private routePatterns = new Map<string, { pattern: string, method: string, handler: (...args: any[]) => any, middleware: ((...args: any[]) => any)[] }>()
 
   constructor(config: RouteDebugConfig = {}) {
     this.config = {
@@ -189,8 +189,8 @@ export class RouteDebugger {
   recordFinalMatch(
     requestId: string,
     pattern: string,
-    handler: Function,
-    middleware: Function[],
+    handler: (...args: any[]) => any,
+    middleware: ((...args: any[]) => any)[],
     params: Record<string, string>,
   ): void {
     if (!this.config.enabled || !requestId)
@@ -281,7 +281,7 @@ export class RouteDebugger {
   /**
    * Register route pattern for debugging
    */
-  registerRoute(method: string, pattern: string, handler: Function, middleware: Function[] = []): void {
+  registerRoute(method: string, pattern: string, handler: (...args: any[]) => any, middleware: ((...args: any[]) => any)[] = []): void {
     const key = `${method}:${pattern}`
     this.routePatterns.set(key, { pattern, method, handler, middleware })
   }

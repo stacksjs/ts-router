@@ -270,7 +270,7 @@ export function parseThrottleString(throttleStr: ThrottlePattern): RateLimitConf
   const parts = throttleStr.split(',')
   const maxAttempts = Number.parseInt(parts[0], 10)
 
-  if (isNaN(maxAttempts) || maxAttempts <= 0) {
+  if (Number.isNaN(maxAttempts) || maxAttempts <= 0) {
     throw new Error(`Invalid throttle max attempts: ${parts[0]}`)
   }
 
@@ -305,7 +305,7 @@ function parseTimeString(timeStr: string): number {
   const value = Number.parseInt(match[1], 10)
   const unit = match[2] || 'm' // Default to minutes
 
-  if (isNaN(value) || value <= 0) {
+  if (Number.isNaN(value) || value <= 0) {
     throw new Error(`Invalid time value: ${match[1]}`)
   }
 

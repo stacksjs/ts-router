@@ -425,7 +425,7 @@ export const routeModelHelpers = {
             request.context[key] = resolver
           }
         }
-        catch (error) {
+        catch (_error) {
           return new Response(`${key} not found`, { status: 404 })
         }
       }

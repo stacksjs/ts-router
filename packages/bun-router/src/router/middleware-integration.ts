@@ -131,7 +131,7 @@ export class MiddlewareFactory {
         return new Response('Unauthorized', { status: 401 })
       }
 
-      const token = authHeader.slice(7)
+      const _token = authHeader.slice(7)
 
       // In a real implementation, this would verify the JWT
       // For demo purposes, we'll simulate user extraction
@@ -157,7 +157,7 @@ export class MiddlewareFactory {
         req.user = user
         return next()
       }
-      catch (error) {
+      catch (_error) {
         return new Response('Invalid token', { status: 401 })
       }
     }

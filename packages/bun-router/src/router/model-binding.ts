@@ -44,7 +44,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
             },
             errorHandling: callback
               ? {
-                  notFound: params => callback(null) || new Response('Not Found', { status: 404 }),
+                  notFound: _params => callback(null) || new Response('Not Found', { status: 404 }),
                 }
               : undefined,
           })
@@ -60,7 +60,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
             },
             errorHandling: callback
               ? {
-                  notFound: params => callback(null) || new Response('Not Found', { status: 404 }),
+                  notFound: _params => callback(null) || new Response('Not Found', { status: 404 }),
                 }
               : undefined,
           })
@@ -82,7 +82,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
             return next()
 
           // Resolve all parameters that might be models
-          for (const [paramName, paramValue] of Object.entries(req.params)) {
+          for (const [paramName, _paramValue] of Object.entries(req.params)) {
             // Check if we have a registered model for this parameter
             if (this.modelRegistry.has(paramName)) {
               try {
@@ -140,7 +140,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
           try {
             return await next()
           }
-          catch (error) {
+          catch (_error) {
             // If it's a model not found error, use the custom callback
             return callback(req)
           }

@@ -289,14 +289,14 @@ export class DevelopmentRouter {
   /**
    * Get all registered routes
    */
-  routes() {
+  getRoutes() {
     return this.devTools.routes().list()
   }
 
   /**
    * Register route with development tools
    */
-  private registerRoute(method: string, pattern: string, handler: Function, options: any = {}) {
+  private registerRoute(method: string, pattern: string, handler: (...args: any[]) => any, options: any = {}) {
     const routeId = this.devTools.registerRoute(method, pattern, handler, [], options)
 
     const route = {

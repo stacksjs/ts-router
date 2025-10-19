@@ -85,7 +85,7 @@ export class StreamHandler {
       contentType,
       headers = {},
       status = 200,
-      enableCompression = false,
+      enableCompression: _enableCompression = false,
     } = config
 
     const stream = new ReadableStream({
@@ -242,7 +242,7 @@ export class StreamHandler {
       async start(controller) {
         try {
           const encoder = new TextEncoder()
-          const isFirst = true
+          const _isFirst = true
 
           // Write CSV headers if provided
           if (csvHeaders && csvHeaders.length > 0) {
@@ -438,7 +438,7 @@ export class FileStreamHandler {
       chunkSize?: number
     } = {},
   ): Promise<Response> {
-    const { contentType, enableRanges = true, chunkSize = 64 * 1024 } = options
+    const { contentType, enableRanges = true, chunkSize: _chunkSize = 64 * 1024 } = options
 
     try {
       const file = Bun.file(filePath)
@@ -463,7 +463,7 @@ export class FileStreamHandler {
         headers,
       })
     }
-    catch (error) {
+    catch (_error) {
       return new Response('File not found', { status: 404 })
     }
   }
