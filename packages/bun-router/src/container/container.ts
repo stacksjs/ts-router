@@ -7,6 +7,7 @@
 
 // Extend Reflect with metadata methods
 declare global {
+  // eslint-disable-next-line ts/no-namespace
   namespace Reflect {
     function getMetadata(metadataKey: any, target: any, propertyKey?: string | symbol): any
     function defineMetadata(metadataKey: any, metadataValue: any, target: any, propertyKey?: string | symbol): void
@@ -21,13 +22,13 @@ export interface BindingMetadata {
   tags?: string[]
   when?: (context: ResolutionContext) => boolean
   factory?: (...args: any[]) => any
-  dependencies?: (string | symbol | Function)[]
+  dependencies?: (string | symbol | ((...args: any[]) => any))[]
   lazy?: boolean
-  decorators?: Function[]
+  decorators?: ((...args: any[]) => any)[]
 }
 
 export interface Binding<T = any> {
-  token: string | symbol | Function
+  token: string | symbol | ((...args: any[]) => any)
   implementation?: new (...args: any[]) => T
   instance?: T
   factory?: (...args: any[]) => T
@@ -37,12 +38,12 @@ export interface Binding<T = any> {
 
 export interface ResolutionContext {
   container: Container
-  token: string | symbol | Function
+  token: string | symbol | ((...args: any[]) => any)
   parent?: ResolutionContext
   environment?: string
   requestId?: string
   depth: number
-  resolving: Set<string | symbol | Function>
+  resolving: Set<string | symbol | ((...args: any[]) => any)>
 }
 
 export interface ContainerOptions {
@@ -68,7 +69,7 @@ export interface InjectableMetadata {
 }
 
 export interface InjectMetadata {
-  token: string | symbol | Function
+  token: string | symbol | ((...args: any[]) => any)
   optional?: boolean
   tags?: string[]
   when?: (context: ResolutionContext) => boolean
@@ -78,10 +79,10 @@ export interface InjectMetadata {
  * Main IoC Container implementation
  */
 export class Container {
-  private bindings = new Map<string | symbol | Function, Binding>()
-  private instances = new Map<string | symbol | Function, any>()
-  private scopedInstances = new Map<string, Map<string | symbol | Function, any>>()
-  private interceptors = new Map<string | symbol | Function, Function[]>()
+  private bindings = new Map<string | symbol | ((...args: any[]) => any), Binding>()
+  private instances = new Map<string | symbol | ((...args: any[]) => any), any>()
+  private scopedInstances = new Map<string, Map<string | symbol | ((...args: any[]) => any), any>>()
+  private interceptors = new Map<string | symbol | ((...args: any[]) => any), ((...args: any[]) => any)[]>()
   private parent?: Container
   private children = new Set<Container>()
   private options: Required<ContainerOptions>
@@ -100,7 +101,7 @@ export class Container {
   /**
    * Bind a token to an implementation
    */
-  bind<T>(token: string | symbol | Function): BindingBuilder<T> {
+  bind<T>(token: string | symbol | ((...args: any[]) => any)): BindingBuilder<T> {
     return new BindingBuilder<T>(this, token)
   }
 
@@ -116,7 +117,7 @@ export class Container {
    * Bind a singleton
    */
   singleton<T>(
-    token: string | symbol | Function,
+    token: string | symbol | ((...args: any[]) => any),
     implementation: new (...args: any[]) => T,
   ): Container {
     return this.bind<T>(token).to(implementation).inSingletonScope().build()
@@ -126,7 +127,7 @@ export class Container {
    * Bind a transient
    */
   transient<T>(
-    token: string | symbol | Function,
+    token: string | symbol | ((...args: any[]) => any),
     implementation: new (...args: any[]) => T,
   ): Container {
     return this.bind<T>(token).to(implementation).inTransientScope().build()
@@ -135,7 +136,7 @@ export class Container {
   /**
    * Bind a value
    */
-  value<T>(token: string | symbol | Function, value: T): Container {
+  value<T>(token: string | symbol | ((...args: any[]) => any), value: T): Container {
     return this.bind<T>(token).toValue(value).build()
   }
 
@@ -143,7 +144,7 @@ export class Container {
    * Bind a factory
    */
   factory<T>(
-    token: string | symbol | Function,
+    token: string | symbol | ((...args: any[]) => any),
     factory: (...args: any[]) => T,
   ): Container {
     return this.bind<T>(token).toFactory(factory).build()
@@ -152,11 +153,11 @@ export class Container {
   /**
    * Resolve a dependency
    */
-  resolve<T>(token: string | symbol | Function, context?: Partial<ResolutionContext>): T {
+  resolve<T>(token: string | symbol | ((...args: any[]) => any), context?: Partial<ResolutionContext>): T {
     const resolutionContext: ResolutionContext = {
       container: this,
       token,
-      environment: context?.environment || process.env.NODE_ENV || 'development',
+      environment: context?.environment || 'development',
       requestId: context?.requestId || this.generateRequestId(),
       depth: context?.depth || 0,
       resolving: context?.resolving || new Set(),
@@ -169,7 +170,7 @@ export class Container {
   /**
    * Resolve all instances of a token (useful for arrays of services)
    */
-  resolveAll<T>(token: string | symbol | Function): T[] {
+  resolveAll<T>(token: string | symbol | ((...args: any[]) => any)): T[] {
     const bindings = Array.from(this.bindings.values()).filter(
       binding => binding.token === token || this.hasTag(binding, token as string),
     )
@@ -200,7 +201,7 @@ export class Container {
   /**
    * Add interceptor for a service
    */
-  addInterceptor<T>(token: string | symbol | Function, interceptor: (service: T) => T): void {
+  addInterceptor<T>(token: string | symbol | ((...args: any[]) => any), interceptor: (service: T) => T): void {
     const key = this.tokenToString(token)
     if (!this.interceptors.has(key)) {
       this.interceptors.set(key, [])
@@ -226,14 +227,14 @@ export class Container {
   /**
    * Check if a token is bound
    */
-  isBound(token: string | symbol | Function): boolean {
+  isBound(token: string | symbol | ((...args: any[]) => any)): boolean {
     return this.bindings.has(token) || (this.parent?.isBound(token) ?? false)
   }
 
   /**
    * Unbind a token
    */
-  unbind(token: string | symbol | Function): this {
+  unbind(token: string | symbol | ((...args: any[]) => any)): this {
     this.bindings.delete(token)
     this.instances.delete(token)
     return this
@@ -261,7 +262,7 @@ export class Container {
   /**
    * Get all bindings
    */
-  getBindings(): Map<string | symbol | Function, Binding> {
+  getBindings(): Map<string | symbol | ((...args: any[]) => any), Binding> {
     return new Map(this.bindings)
   }
 
@@ -279,7 +280,7 @@ export class Container {
    * Add interceptor
    */
   intercept<T>(
-    token: string | symbol | Function,
+    token: string | symbol | ((...args: any[]) => any),
     interceptor: (instance: T, context: ResolutionContext) => T,
   ): this {
     if (!this.interceptors.has(token)) {
@@ -292,7 +293,7 @@ export class Container {
   /**
    * Internal resolution logic
    */
-  private resolveInternal<T>(token: string | symbol | Function, context: ResolutionContext): T {
+  private resolveInternal<T>(token: string | symbol | ((...args: any[]) => any), context: ResolutionContext): T {
     // Check for circular dependencies
     if (context.resolving.has(token)) {
       throw new Error(`Circular dependency detected: ${this.tokenToString(token)}`)
@@ -447,7 +448,7 @@ export class Container {
   /**
    * Get constructor dependencies using reflection
    */
-  private getConstructorDependencies(constructor: Function): (string | symbol | Function)[] {
+  private getConstructorDependencies(constructor: ((...args: any[]) => any)): (string | symbol | ((...args: any[]) => any))[] {
     // Check for explicit metadata
     const injectMetadata = Reflect.getMetadata?.(INJECT_METADATA_KEY, constructor) as InjectMetadata[]
     if (injectMetadata) {
@@ -455,7 +456,7 @@ export class Container {
     }
 
     // Try to get parameter types from TypeScript metadata
-    const paramTypes = Reflect.getMetadata?.('design:paramtypes', constructor) as Function[]
+    const paramTypes = Reflect.getMetadata?.('design:paramtypes', constructor) as ((...args: any[]) => any)[]
     if (paramTypes) {
       return paramTypes
     }
@@ -467,7 +468,7 @@ export class Container {
   /**
    * Parse constructor dependencies from function string
    */
-  private parseConstructorDependencies(constructor: Function): string[] {
+  private parseConstructorDependencies(constructor: ((...args: any[]) => any)): string[] {
     const constructorString = constructor.toString()
     const match = constructorString.match(/constructor\s*\(([^)]*)\)/)
 
@@ -485,7 +486,7 @@ export class Container {
    * Resolve array of dependencies
    */
   private resolveDependencies(
-    dependencies: (string | symbol | Function)[],
+    dependencies: (string | symbol | ((...args: any[]) => any))[],
     context: ResolutionContext,
   ): any[] {
     return dependencies.map(dep => this.resolveInternal(dep, context))
@@ -517,8 +518,8 @@ export class Container {
   /**
    * Apply decorators to instance
    */
-  private applyDecorators(instance: any, constructor: Function): void {
-    const decorators = Reflect.getMetadata?.('decorators', constructor) as Function[]
+  private applyDecorators(instance: any, constructor: ((...args: any[]) => any)): void {
+    const decorators = Reflect.getMetadata?.('decorators', constructor) as ((...args: any[]) => any)[]
     if (decorators) {
       for (const decorator of decorators) {
         decorator(instance)
@@ -536,7 +537,7 @@ export class Container {
   /**
    * Convert token to string for error messages
    */
-  private tokenToString(token: string | symbol | Function): string {
+  private tokenToString(token: string | symbol | ((...args: any[]) => any)): string {
     if (typeof token === 'string')
       return token
     if (typeof token === 'symbol')
@@ -560,7 +561,7 @@ export class Container {
 export class BindingBuilder<T> {
   private binding: Partial<Binding<T>>
 
-  constructor(private container: Container, token: string | symbol | Function) {
+  constructor(private container: Container, token: string | symbol | ((...args: any[]) => any)) {
     this.binding = {
       token,
       metadata: {

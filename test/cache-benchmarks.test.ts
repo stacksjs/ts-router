@@ -327,7 +327,7 @@ describe('Cache Performance Benchmarks', () => {
 
     it('should demonstrate memoization performance benefits', async () => {
       let executionCount = 0
-      const expensiveMiddleware = async (req: EnhancedRequest, next: any) => {
+      const expensiveMiddleware = async (_req: EnhancedRequest, _next: any) => {
         executionCount++
         // Simulate expensive operation
         await new Promise(resolve => setTimeout(resolve, 10))
@@ -437,8 +437,8 @@ describe('Cache Performance Benchmarks', () => {
 
     it('should demonstrate invalidation performance', async () => {
       // Create many cached entries
-      const middleware = async (req: EnhancedRequest, next: any) => {
-        return { url: req.url, timestamp: Date.now() }
+      const middleware = async (_req: EnhancedRequest, _next: any) => {
+        return { url: _req.url, timestamp: Date.now() }
       }
 
       const memoizedMiddleware = memoizer.memoize(middleware, { name: 'invalidation-test' })
@@ -487,9 +487,9 @@ describe('Cache Performance Benchmarks', () => {
       warmer.registerRoutes(routes)
 
       // Create expensive middleware
-      const expensiveMiddleware = async (req: EnhancedRequest, next: any) => {
+      const expensiveMiddleware = async (_req: EnhancedRequest, _next: any) => {
         await new Promise(resolve => setTimeout(resolve, 2))
-        return { processed: true, url: req.url }
+        return { processed: true, url: _req.url }
       }
 
       const memoizedMiddleware = memoizer.memoize(expensiveMiddleware)

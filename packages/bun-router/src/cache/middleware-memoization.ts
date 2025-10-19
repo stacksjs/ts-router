@@ -61,7 +61,7 @@ export class MiddlewareMemoizer {
   /**
    * Create a memoized version of a middleware function
    */
-  memoize<T = any>(
+  memoize<_T = any>(
     middleware: MiddlewareHandler,
     options: {
       name?: string
@@ -99,41 +99,35 @@ export class MiddlewareMemoizer {
       this.stats.cacheMisses++
       const startTime = performance.now()
 
-      try {
-        const result = await middleware(req, next)
-        const executionTime = performance.now() - startTime
+      const result = await middleware(req, next)
+      const executionTime = performance.now() - startTime
 
-        // Update average execution time
-        this.stats.averageExecutionTime
-          = (this.stats.averageExecutionTime * (this.stats.totalRequests - 1) + executionTime)
-            / this.stats.totalRequests
+      // Update average execution time
+      this.stats.averageExecutionTime
+        = (this.stats.averageExecutionTime * (this.stats.totalRequests - 1) + executionTime)
+          / this.stats.totalRequests
 
-        // Check if result should be memoized
-        const shouldMemoize = options.shouldMemoize || this.options.shouldMemoize
-        if (!shouldMemoize || shouldMemoize(req, result)) {
-          // Serialize and cache result
-          const serializedResult = this.options.resultSerializer
-            ? this.options.resultSerializer(result)
-            : result
+      // Check if result should be memoized
+      const shouldMemoize = options.shouldMemoize || this.options.shouldMemoize
+      if (!shouldMemoize || shouldMemoize(req, result)) {
+        // Serialize and cache result
+        const serializedResult = this.options.resultSerializer
+          ? this.options.resultSerializer(result)
+          : result
 
-          const memoizedResult: MemoizedResult = {
-            value: serializedResult,
-            timestamp: Date.now(),
-            requestFingerprint: this.generateRequestFingerprint(req),
-            executionTime,
-            hitCount: 0,
-          }
-
-          this.cache.set(cacheKey, memoizedResult, options.ttl)
+        const memoizedResult: MemoizedResult = {
+          value: serializedResult,
+          timestamp: Date.now(),
+          requestFingerprint: this.generateRequestFingerprint(req),
+          executionTime,
+          hitCount: 0,
         }
 
-        this.updateHitRate()
-        return result
+        this.cache.set(cacheKey, memoizedResult, options.ttl)
       }
-      catch (error) {
-        // Don't cache errors
-        throw error
-      }
+
+      this.updateHitRate()
+      return result
     }
   }
 
@@ -177,37 +171,32 @@ export class MiddlewareMemoizer {
       this.stats.cacheMisses++
       const startTime = performance.now()
 
-      try {
-        const result = await fn(...args)
-        const executionTime = performance.now() - startTime
+      const result = await fn(...args)
+      const executionTime = performance.now() - startTime
 
-        this.stats.averageExecutionTime
-          = (this.stats.averageExecutionTime * (this.stats.totalRequests - 1) + executionTime)
-            / this.stats.totalRequests
+      this.stats.averageExecutionTime
+        = (this.stats.averageExecutionTime * (this.stats.totalRequests - 1) + executionTime)
+          / this.stats.totalRequests
 
-        // Check if result should be memoized
-        if (!options.shouldMemoize || options.shouldMemoize(result, ...args)) {
-          const serializedResult = this.options.resultSerializer
-            ? this.options.resultSerializer(result)
-            : result
+      // Check if result should be memoized
+      if (!options.shouldMemoize || options.shouldMemoize(result, ...args)) {
+        const serializedResult = this.options.resultSerializer
+          ? this.options.resultSerializer(result)
+          : result
 
-          const memoizedResult: MemoizedResult = {
-            value: serializedResult,
-            timestamp: Date.now(),
-            requestFingerprint: JSON.stringify(args),
-            executionTime,
-            hitCount: 0,
-          }
-
-          this.cache.set(cacheKey, memoizedResult, options.ttl)
+        const memoizedResult: MemoizedResult = {
+          value: serializedResult,
+          timestamp: Date.now(),
+          requestFingerprint: JSON.stringify(args),
+          executionTime,
+          hitCount: 0,
         }
 
-        this.updateHitRate()
-        return result
+        this.cache.set(cacheKey, memoizedResult, options.ttl)
       }
-      catch (error) {
-        throw error
-      }
+
+      this.updateHitRate()
+      return result
     }
   }
 
@@ -438,7 +427,7 @@ export class MemoizationPatterns {
         const clientId = req.ip || req.headers.get('x-forwarded-for') || 'unknown'
         return `ratelimit:${clientId}`
       },
-      shouldMemoize: (req, result) => {
+      shouldMemoize: (_req, _result) => {
         // Always memoize rate limit results
         return true
       },

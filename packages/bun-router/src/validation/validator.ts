@@ -56,7 +56,7 @@ export const BuiltInRules: Record<string, ValidationRule> = {
 
   number: {
     name: 'number',
-    validate: value => typeof value === 'number' && !isNaN(value),
+    validate: value => typeof value === 'number' && !Number.isNaN(value),
     message: 'The :field field must be a number.',
   },
 

@@ -98,7 +98,7 @@ class WebSocketInterceptor {
   patchWebSocket() {
     const self = this
 
-    window.WebSocket = function (url, protocols) {
+    window.WebSocket = function WebSocket(url, protocols) {
       // Create the actual WebSocket
       const ws = new self.originalWebSocket(url, protocols)
       const connectionId = self.generateId()

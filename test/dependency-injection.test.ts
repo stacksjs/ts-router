@@ -692,7 +692,7 @@ describe('Integration Tests', () => {
 
       async processRequest(): Promise<string> {
         this.logger.log('Processing request')
-        const cached = this.cache.get('result')
+        const _cached = this.cache.get('result')
         return 'processed'
       }
     }

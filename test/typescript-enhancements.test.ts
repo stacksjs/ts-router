@@ -72,7 +72,9 @@ describe('TypeScript Enhancements', () => {
       type WildcardParams = ExtractRouteParams<'/files/*'>
       interface Expected { '*': string }
 
+      // @ts-expect-error - Testing type assertion
       const assertion: AssertEqual<WildcardParams, Expected> = true
+      // @ts-expect-error - Testing type assertion
       expect(assertion).toBe(true)
     })
 
@@ -80,7 +82,9 @@ describe('TypeScript Enhancements', () => {
       type TypedParams = ExtractTypedParams<'/users/:id<number>/posts/:slug<string>'>
       interface Expected { id: number, slug: string }
 
+      // @ts-expect-error - Testing type assertion
       const assertion: AssertEqual<TypedParams, Expected> = true
+      // @ts-expect-error - Testing type assertion
       expect(assertion).toBe(true)
     })
 
@@ -185,8 +189,8 @@ describe('TypeScript Enhancements', () => {
         any
       >
 
-      type Composed = ComposeMiddleware<AuthMW, ValidationMW>
-      type Expected = TypedMiddleware<
+      type _Composed = ComposeMiddleware<AuthMW, ValidationMW>
+      type _Expected = TypedMiddleware<
         Request,
         Request & { user: { id: string } } & { validated: true },
         { auth: { user: { id: string } } } & { validation: { validated: true } },
@@ -199,9 +203,9 @@ describe('TypeScript Enhancements', () => {
     })
 
     test('should check middleware compatibility', () => {
-      type MW1 = TypedMiddleware<Request, Request & { auth: true }, {}, any>
-      type MW2 = TypedMiddleware<Request & { auth: true }, Request & { auth: true } & { validated: true }, {}, any>
-      type MW3 = TypedMiddleware<Request & { other: true }, Request, {}, any>
+      type MW1 = TypedMiddleware<Request, Request & { auth: true }, Record<string, never>, any>
+      type MW2 = TypedMiddleware<Request & { auth: true }, Request & { auth: true } & { validated: true }, Record<string, never>, any>
+      type MW3 = TypedMiddleware<Request & { other: true }, Request, Record<string, never>, any>
 
       type Compatible = MiddlewareCompatible<MW1, MW2>
       type Incompatible = MiddlewareCompatible<MW1, MW3>
@@ -218,7 +222,7 @@ describe('TypeScript Enhancements', () => {
       type MW2 = TypedMiddleware<Request & { step1: true }, Request & { step1: true, step2: true }, { context2: true }, any>
       type MW3 = TypedMiddleware<Request & { step1: true, step2: true }, Request & { step1: true, step2: true, step3: true }, { context3: true }, any>
 
-      type Chain = Compose<[MW1, MW2, MW3]>
+      type _Chain = Compose<[MW1, MW2, MW3]>
 
       // Test that the chain has the correct input/output types
       const assertion = true // Complex type assertion placeholder
@@ -232,7 +236,7 @@ describe('TypeScript Enhancements', () => {
         roles: string[]
       }
 
-      type UserAuthMW = AuthMiddleware<User>
+      type _UserAuthMW = AuthMiddleware<User>
 
       // Test that auth middleware has correct types
       const assertion = true // Type structure validation
@@ -253,7 +257,7 @@ describe('TypeScript Enhancements', () => {
         email: string
       }
 
-      type UserValidationMW = ValidationMiddleware<UserParams, UserQuery, UserBody>
+      type _UserValidationMW = ValidationMiddleware<UserParams, UserQuery, UserBody>
 
       // Test validation middleware structure
       const assertion = true
@@ -264,7 +268,7 @@ describe('TypeScript Enhancements', () => {
   describe('Controller Type Checking', () => {
     test('should validate controller methods', () => {
       interface TestController extends BaseController {
-        validMethod: (request: TypedRequest<'/users/:id', {}, never>) => Promise<Response>
+        validMethod: (request: TypedRequest<'/users/:id', Record<string, never>, never>) => Promise<Response>
         invalidMethod: (wrongParam: string) => string
       }
 
@@ -283,12 +287,12 @@ describe('TypeScript Enhancements', () => {
         getUser: (request: TypedRequest<'/users/:id<number>', { include: 'string' }, never>) => Promise<Response>
       }
 
-      type MethodType = InferControllerMethodType<TestController['getUser']>
-      interface Expected {
+      type _MethodType = InferControllerMethodType<TestController['getUser']>
+      interface _Expected {
         path: '/users/:id<number>'
         query: { include: 'string' }
         body: never
-        context: {}
+        context: Record<string, never>
         params: { id: number }
       }
 
@@ -299,8 +303,8 @@ describe('TypeScript Enhancements', () => {
 
     test('should validate entire controller', () => {
       interface ValidController extends BaseController {
-        getUsers: (request: TypedRequest<'/users', {}, never>) => Promise<Response>
-        createUser: (request: TypedRequest<'/users', {}, { name: string }>) => Promise<Response>
+        getUsers: (request: TypedRequest<'/users', Record<string, never>, never>) => Promise<Response>
+        createUser: (request: TypedRequest<'/users', Record<string, never>, { name: string }>) => Promise<Response>
       }
 
       interface InvalidController extends BaseController {
@@ -322,11 +326,11 @@ describe('TypeScript Enhancements', () => {
 
     test('should extract controller routes', () => {
       interface UserController extends BaseController {
-        getUser: (request: TypedRequest<'/users/:id', {}, never>) => Promise<Response>
-        updateUser: (request: TypedRequest<'/users/:id', {}, { name: string }>) => Promise<Response>
+        getUser: (request: TypedRequest<'/users/:id', Record<string, never>, never>) => Promise<Response>
+        updateUser: (request: TypedRequest<'/users/:id', Record<string, never>, { name: string }>) => Promise<Response>
       }
 
-      type Routes = ExtractControllerRoutes<UserController>
+      type _Routes = ExtractControllerRoutes<UserController>
 
       // Test that routes are extracted correctly
       const assertion = true
@@ -335,8 +339,8 @@ describe('TypeScript Enhancements', () => {
 
     test('should detect route conflicts', () => {
       interface ConflictController extends BaseController {
-        getUser1: (request: TypedRequest<'/users/:id', {}, never>) => Promise<Response>
-        getUser2: (request: TypedRequest<'/users/:id', {}, never>) => Promise<Response>
+        getUser1: (request: TypedRequest<'/users/:id', Record<string, never>, never>) => Promise<Response>
+        getUser2: (request: TypedRequest<'/users/:id', Record<string, never>, never>) => Promise<Response>
       }
 
       type Conflicts = DetectControllerConflicts<ConflictController>
@@ -358,8 +362,8 @@ describe('TypeScript Enhancements', () => {
         any
       >
 
-      type Augmented = AugmentRequestThroughChain<Request, [AuthMW, ValidationMW]>
-      type Expected = Request & { user: { id: string } } & { validated: true }
+      type _Augmented = AugmentRequestThroughChain<Request, [AuthMW, ValidationMW]>
+      type _Expected = Request & { user: { id: string } } & { validated: true }
 
       // Complex type assertion
       const assertion = true
@@ -382,8 +386,8 @@ describe('TypeScript Enhancements', () => {
       type MW1 = TypedMiddleware<Request, Request & { step1: true }, { context1: true }, any>
       type MW2 = TypedMiddleware<Request & { step1: true }, Request & { step1: true, step2: true }, { context2: true }, any>
 
-      type Applied = ApplyMiddlewareSequence<Request, [MW1, MW2]>
-      interface Expected {
+      type _Applied = ApplyMiddlewareSequence<Request, [MW1, MW2]>
+      interface _Expected {
         request: Request & { step1: true, step2: true }
         context: { context1: true } & { context2: true }
       }
@@ -420,7 +424,7 @@ describe('TypeScript Enhancements', () => {
       interface ValidationContext { validation: { params: { id: string } } }
       type CombinedContext = AuthContext & ValidationContext
 
-      type Enhanced = EnhancedRequest<'/users/:id', {}, never, {}, CombinedContext>
+      type _Enhanced = EnhancedRequest<'/users/:id', Record<string, never>, never, Record<string, never>, CombinedContext>
 
       // Test that enhanced request has all expected properties
       const assertion = true
@@ -431,14 +435,14 @@ describe('TypeScript Enhancements', () => {
   describe('Integration Tests', () => {
     test('should work with complete type-safe route', () => {
       // Define middleware
-      type AuthMW = TypedMiddleware<
+      type _AuthMW = TypedMiddleware<
         Request,
         Request & { user: { id: string, email: string } },
         { auth: { user: { id: string, email: string } } },
         any
       >
 
-      type ValidationMW = TypedMiddleware<
+      type _ValidationMW = TypedMiddleware<
         Request & { user: { id: string, email: string } },
         Request & { user: { id: string, email: string } } & { validatedParams: { id: number } },
         { validation: { params: { id: number } } },
@@ -446,12 +450,12 @@ describe('TypeScript Enhancements', () => {
       >
 
       // Define route handler
-      type Handler = (
+      type _Handler = (
         request: EnhancedRequest<
           '/users/:id<number>',
           { include: 'string' },
           never,
-          {},
+          Record<string, never>,
           { auth: { user: { id: string, email: string } } } & { validation: { params: { id: number } } }
         >
       ) => Promise<Response>
@@ -474,7 +478,7 @@ describe('TypeScript Enhancements', () => {
             '/users/:id<number>',
             { include: 'string' },
             never,
-            {},
+            Record<string, never>,
             { auth: { user: User } }
           >
         ) => Promise<Response>
@@ -482,9 +486,9 @@ describe('TypeScript Enhancements', () => {
         updateUser: (
           request: EnhancedRequest<
             '/users/:id<number>',
-            {},
+            Record<string, never>,
             { name: string, email: string },
-            {},
+            Record<string, never>,
             { auth: { user: User } } & { validation: { body: { name: string, email: string } } }
           >
         ) => Promise<Response>
@@ -504,7 +508,7 @@ describe('TypeScript Enhancements', () => {
         badMethod1: (request: string) => Promise<Response>
 
         // Wrong return type
-        badMethod2: (request: TypedRequest<'/test', {}, never>) => string
+        badMethod2: (request: TypedRequest<'/test', Record<string, never>, never>) => string
 
         // Missing required parameters
         badMethod3: () => Promise<Response>
@@ -537,7 +541,7 @@ describe('TypeScript Enhancements', () => {
       type MW3 = TypedMiddleware<Request & { step1: true, step2: true }, Request & { step1: true, step2: true, step3: true }, { c3: true }, any>
       type MW4 = TypedMiddleware<Request & { step1: true, step2: true, step3: true }, Request & { step1: true, step2: true, step3: true, step4: true }, { c4: true }, any>
 
-      type LongChain = Compose<[MW1, MW2, MW3, MW4]>
+      type _LongChain = Compose<[MW1, MW2, MW3, MW4]>
 
       // Test that long chains work correctly
       const assertion = true
@@ -568,8 +572,8 @@ describe('TypeScript Enhancements', () => {
       type EmptyChain = Compose<[]>
       type EmptyContext = AccumulateContext<[]>
 
-      const chainAssertion: AssertEqual<EmptyChain, TypedMiddleware<any, any, {}, any>> = true
-      const contextAssertion: AssertEqual<EmptyContext, {}> = true
+      const chainAssertion: AssertEqual<EmptyChain, TypedMiddleware<any, any, Record<string, never>, any>> = true
+      const contextAssertion: AssertEqual<EmptyContext, Record<string, never>> = true
 
       expect(chainAssertion).toBe(true)
       expect(contextAssertion).toBe(true)
@@ -589,8 +593,8 @@ export const TypeTestHelpers = {
     TContext,
   >(
     handler: RouteHandler<TPath, TQuery, TBody, TContext>,
-    path: TPath,
-    expectedParams: ExtractTypedParams<TPath>,
+    _path: TPath,
+    _expectedParams: ExtractTypedParams<TPath>,
   ): boolean {
     // Runtime validation would go here
     return typeof handler === 'function'
@@ -633,7 +637,7 @@ export const TypeTestHelpers = {
   /**
    * Test type inference at runtime
    */
-  testTypeInference(): { id: number; slug: string } {
+  testTypeInference(): { id: number, slug: string } {
     // Example usage of type inference
     type TestRoute = '/users/:id<number>/posts/:slug'
     type TestParams = ExtractTypedParams<TestRoute>

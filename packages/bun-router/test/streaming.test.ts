@@ -309,7 +309,7 @@ describe('Laravel-style Streaming APIs', () => {
     // These tests would require actual files, so we'll test with mock implementations
     it('should handle file streaming (integration test)', async () => {
       // Create a simple test file handler
-      await router.get('/file', async (req) => {
+      await router.get('/file', async (_req) => {
         // Mock file streaming - in real use case this would use streamFile()
         return new Response('Mock file content', {
           headers: { 'Content-Type': 'text/plain' },

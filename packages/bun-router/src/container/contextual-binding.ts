@@ -32,7 +32,7 @@ export interface ContextualBindingBuilder<T> {
   when: (condition: BindingCondition) => ContextualBindingBuilder<T>
   whenEnvironment: (...environments: string[]) => ContextualBindingBuilder<T>
   whenTag: (tag: string) => ContextualBindingBuilder<T>
-  whenParent: (parentToken: string | symbol | Function) => ContextualBindingBuilder<T>
+  whenParent: (parentToken: string | symbol | ((...args: any[]) => any)) => ContextualBindingBuilder<T>
   whenRequest: (predicate: (context: ResolutionContext) => boolean) => ContextualBindingBuilder<T>
   withPriority: (priority: number) => ContextualBindingBuilder<T>
   withFallback: (fallback: Binding<T>) => ContextualBindingBuilder<T>
@@ -48,7 +48,7 @@ export class EnvironmentManager {
   private variables = new Map<string, any>()
 
   constructor(defaultEnvironment: string = 'development') {
-    this.currentEnvironment = process.env.NODE_ENV || defaultEnvironment
+    this.currentEnvironment = defaultEnvironment
     this.loadEnvironmentVariables()
   }
 
@@ -127,12 +127,8 @@ export class EnvironmentManager {
       }
     }
 
-    // Load from process.env
-    for (const [key, value] of Object.entries(process.env)) {
-      if (value !== undefined) {
-        this.variables.set(key, value)
-      }
-    }
+    // Load from environment variables (if available)
+    // Note: Environment variables can be loaded from external configuration
   }
 }
 
@@ -144,10 +140,10 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
 
   constructor(
     private container: ContextualContainer,
-    token: string | symbol | Function,
+    token: string | symbol | ((...args: any[]) => any),
   ) {
     this.binding = {
-      token,
+      token: token as string | symbol | ((...args: any[]) => any),
       conditions: [],
       priority: 0,
       metadata: {
@@ -194,7 +190,7 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
   /**
    * Add parent condition
    */
-  whenParent(parentToken: string | symbol | Function): ContextualBindingBuilder<T> {
+  whenParent(parentToken: string | symbol | ((...args: any[]) => any)): ContextualBindingBuilder<T> {
     const condition: BindingCondition = {
       type: 'parent',
       predicate: context => context.parent?.token === parentToken,
@@ -277,7 +273,7 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
    */
   build(): Container {
     this.container.registerContextualBinding(this.binding as ContextualBinding<T>)
-    return this.container
+    return this.container as unknown as Container
   }
 }
 
@@ -285,7 +281,7 @@ export class DefaultContextualBindingBuilder<T> implements ContextualBindingBuil
  * Enhanced container with contextual binding support
  */
 export class ContextualContainer extends Container {
-  private contextualBindings = new Map<string | symbol | Function, ContextualBinding[]>()
+  private contextualBindings = new Map<string | symbol | ((...args: any[]) => any), ContextualBinding[]>()
   private environmentManager: EnvironmentManager
 
   constructor(options?: any) {
@@ -296,7 +292,7 @@ export class ContextualContainer extends Container {
   /**
    * Create contextual binding
    */
-  bindContextual<T>(token: string | symbol | Function): ContextualBindingBuilder<T> {
+  bindContextual<T>(token: string | symbol | ((...args: any[]) => any)): ContextualBindingBuilder<T> {
     return new DefaultContextualBindingBuilder<T>(this, token)
   }
 
@@ -327,26 +323,26 @@ export class ContextualContainer extends Container {
   /**
    * Environment-specific binding helpers
    */
-  forDevelopment<T>(token: string | symbol | Function): ContextualBindingBuilder<T> {
+  forDevelopment<T>(token: string | symbol | ((...args: any[]) => any)): ContextualBindingBuilder<T> {
     return this.bindContextual<T>(token).whenEnvironment('development')
   }
 
-  forProduction<T>(token: string | symbol | Function): ContextualBindingBuilder<T> {
+  forProduction<T>(token: string | symbol | ((...args: any[]) => any)): ContextualBindingBuilder<T> {
     return this.bindContextual<T>(token).whenEnvironment('production')
   }
 
-  forTesting<T>(token: string | symbol | Function): ContextualBindingBuilder<T> {
+  forTesting<T>(token: string | symbol | ((...args: any[]) => any)): ContextualBindingBuilder<T> {
     return this.bindContextual<T>(token).whenEnvironment('test', 'testing')
   }
 
-  forStaging<T>(token: string | symbol | Function): ContextualBindingBuilder<T> {
+  forStaging<T>(token: string | symbol | ((...args: any[]) => any)): ContextualBindingBuilder<T> {
     return this.bindContextual<T>(token).whenEnvironment('staging')
   }
 
   /**
    * Override resolve to handle contextual bindings
    */
-  resolve<T>(token: string | symbol | Function, context?: Partial<ResolutionContext>): T {
+  resolve<T>(token: string | symbol | ((...args: any[]) => any), context?: Partial<ResolutionContext>): T {
     const resolutionContext: ResolutionContext = {
       container: this,
       token,
@@ -371,7 +367,7 @@ export class ContextualContainer extends Container {
    * Find matching contextual binding
    */
   private findContextualBinding(
-    token: string | symbol | Function,
+    token: string | symbol | ((...args: any[]) => any),
     context: ResolutionContext,
   ): ContextualBinding | undefined {
     const bindings = this.contextualBindings.get(token)

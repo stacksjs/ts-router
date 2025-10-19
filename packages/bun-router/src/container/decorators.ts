@@ -311,7 +311,7 @@ export class DecoratorContainer extends Container {
 
     // Process routes
     const routes = MetadataReader.getAllRoutes(controllerClass)
-    for (const route of routes) {
+    for (const _route of routes) {
       // Route registration logic would go here
       // This is a simplified version for the DI system
     }

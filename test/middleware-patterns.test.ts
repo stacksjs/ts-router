@@ -72,11 +72,11 @@ describe('Advanced Middleware Patterns', () => {
   })
 
   it('should handle middleware execution order', async () => {
-    const router = new Router()
+    const _router = new Router()
     const executionOrder: string[] = []
 
     // Mock middleware that tracks execution
-    const createTrackingMiddleware = (name: string) => async (req: any, next: any) => {
+    const _createTrackingMiddleware = (name: string) => async (req: any, next: any) => {
       executionOrder.push(name)
       return await next()
     }

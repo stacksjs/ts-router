@@ -3,6 +3,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
+import { Buffer } from 'node:buffer'
 import {
   BunOptimizationFactory,
   BunOptimizer,

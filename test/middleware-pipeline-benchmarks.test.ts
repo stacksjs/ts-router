@@ -46,7 +46,7 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
         mockRequest.context = {}
 
         // Simulate traditional middleware execution
-        let result: Response | null = null
+        let _result: Response | null = null
         let currentIndex = 0
 
         const next = async (): Promise<Response | null> => {
@@ -57,7 +57,7 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
           return mw(mockRequest, next)
         }
 
-        result = await next()
+        _result = await next()
       }
       const uncachedTime = performance.now() - uncachedStart
 

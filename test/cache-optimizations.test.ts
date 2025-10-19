@@ -345,7 +345,7 @@ describe('Cache Optimizations', () => {
     it('should memoize middleware results', async () => {
       let executionCount = 0
 
-      const expensiveMiddleware = async (req: EnhancedRequest, next: any) => {
+      const expensiveMiddleware = async (_req: EnhancedRequest, _next: any) => {
         executionCount++
         await new Promise(resolve => setTimeout(resolve, 10))
         return { result: 'expensive-computation', count: executionCount }
@@ -387,8 +387,8 @@ describe('Cache Optimizations', () => {
     })
 
     it('should handle custom key generation', async () => {
-      const middleware = async (req: EnhancedRequest, next: any) => {
-        return { userId: req.user?.id, timestamp: Date.now() }
+      const middleware = async (_req: EnhancedRequest, _next: any) => {
+        return { userId: _req.user?.id, timestamp: Date.now() }
       }
 
       const memoizedMiddleware = memoizer.memoize(middleware, {
@@ -469,7 +469,7 @@ describe('Cache Optimizations', () => {
     })
 
     it('should provide accurate statistics', async () => {
-      const middleware = async (req: EnhancedRequest, next: any) => {
+      const middleware = async (_req: EnhancedRequest, _next: any) => {
         await new Promise(resolve => setTimeout(resolve, 10))
         return { processed: true }
       }

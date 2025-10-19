@@ -317,7 +317,7 @@ export class StreamingCache {
     let offset = 0
 
     const stream = new ReadableStream({
-      start(controller) {
+      start(_controller) {
         // Set content length
         headers.set('Content-Length', body.length.toString())
       },
@@ -476,7 +476,7 @@ export class StreamingCache {
 
       return `"${hashHex.slice(0, 16)}"` // Use first 16 characters
     }
-    catch (error) {
+    catch {
       // Simple fallback hash
       let hash = 0
       for (let i = 0; i < data.length; i++) {

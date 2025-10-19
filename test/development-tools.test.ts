@@ -28,7 +28,7 @@ function createMockRequest(method: string = 'GET', url: string = 'http://localho
 }
 
 // Mock handler
-async function mockHandler(req: EnhancedRequest): Promise<Response> {
+async function mockHandler(_req: EnhancedRequest): Promise<Response> {
   return new Response('OK')
 }
 
@@ -322,11 +322,11 @@ describe('Performance Profiler', () => {
     const profileId2 = profiler.startProfiling(req2, '/slow')
 
     // Simulate different durations
-    const profile1 = profiler.finishProfiling(profileId1!)
+    const _profile1 = profiler.finishProfiling(profileId1!)
 
     // Add artificial duration to second profile
     await new Promise(resolve => setTimeout(resolve, 50))
-    const profile2 = profiler.finishProfiling(profileId2!)
+    const _profile2 = profiler.finishProfiling(profileId2!)
 
     const allProfiles = profiler.getProfiles()
     expect(allProfiles).toHaveLength(2)

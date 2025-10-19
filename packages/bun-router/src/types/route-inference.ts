@@ -13,7 +13,7 @@ export type ExtractRouteParams<T extends string> = T extends `${infer _Start}:${
       ? { [K in Param]: string }
       : T extends `${infer _Start}*${infer Rest}`
         ? { '*': string } & ExtractRouteParams<Rest>
-        : {}
+        : Record<string, never>
 
 // Advanced parameter extraction with type constraints
 export type ExtractTypedParams<T extends string> = T extends `${infer _Start}:${infer Param}<${infer Type}>${infer Rest}`
@@ -24,7 +24,7 @@ export type ExtractTypedParams<T extends string> = T extends `${infer _Start}:${
       ? { [K in Param]?: string } & ExtractTypedParams<Rest>
       : T extends `${infer _Start}:${infer Param}`
         ? { [K in Param]: string }
-        : {}
+        : Record<string, never>
 
 // Type parsing for parameter constraints
 export type ParseParamType<T extends string> =
@@ -35,8 +35,8 @@ export type ParseParamType<T extends string> =
           T extends 'email' ? string :
             T extends 'url' ? string :
               T extends `enum(${infer Values})` ? ParseEnumValues<Values> :
-                T extends `range(${infer Min},${infer Max})` ? number :
-                  T extends `length(${infer MinMax})` ? string :
+                T extends `range(${infer _Min},${infer _Max})` ? number :
+                  T extends `length(${infer _MinMax})` ? string :
                     T extends `pattern(${infer _Pattern})` ? string :
                       string
 
@@ -65,7 +65,7 @@ export type ExtractQueryParams<T extends Record<string, any>> = {
 
 // Route pattern validation
 export type ValidateRoutePattern<T extends string> =
-  T extends `${infer _}:${infer Param}:${infer _}`
+  T extends `${infer _}:${infer _Param}:${infer _}`
     ? `Invalid route pattern: consecutive parameters not allowed in "${T}"`
     : T extends `${infer _}::${infer _}`
       ? `Invalid route pattern: empty parameter name in "${T}"`
@@ -103,17 +103,17 @@ export type RouteMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' |
 // Route handler type with inferred parameters
 export type RouteHandler<
   TPath extends string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = Record<string, never>,
   TBody = unknown,
-  TContext = {},
+  TContext = Record<string, never>,
 > = (request: TypedRequest<TPath, TQuery, TBody, TContext>) => Promise<Response> | Response
 
 // Typed request interface
 export interface TypedRequest<
   TPath extends string = string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = Record<string, never>,
   TBody = unknown,
-  TContext = {},
+  TContext = Record<string, never>,
 > extends Omit<Request, 'body'> {
   params: ExtractTypedParams<TPath>
   query: ExtractQueryParams<TQuery>
@@ -124,9 +124,9 @@ export interface TypedRequest<
 // Route definition with type inference
 export interface TypedRoute<
   TPath extends string,
-  TQuery extends Record<string, any> = {},
+  TQuery extends Record<string, any> = Record<string, never>,
   TBody = unknown,
-  TContext = {},
+  TContext = Record<string, never>,
 > {
   method: RouteMethod
   path: ValidateRoutePattern<TPath>
@@ -166,9 +166,9 @@ export interface BodySchema<T = unknown> {
         T[K] extends number ? 'number' :
           T[K] extends boolean ? 'boolean' :
             T[K] extends Date ? 'date' :
-              T[K] extends Array<infer U> ? 'array' : 'object'
+              T[K] extends Array<infer _U> ? 'array' : 'object'
       required?: boolean
-      items?: T[K] extends Array<infer U> ? BodySchema<U> : never
+      items?: T[K] extends Array<infer _U> ? BodySchema<_U> : never
       properties?: T[K] extends object ? BodySchema<T[K]> : never
     }
   } : never
@@ -219,7 +219,7 @@ export interface TypedMiddleware<
   TRequest = any,
   TResponse = any,
   TNext = any,
-  TContext = {},
+  TContext = Record<string, never>,
 > {
   (request: TRequest, next: TNext): Promise<TResponse> | TResponse
 }
@@ -254,13 +254,13 @@ export interface RouteBuilder<TContext = {}> {
 
 // Advanced pattern matching types
 export type MatchRoute<TPattern extends string, TPath extends string> =
-  TPattern extends `${infer Start}:${infer Param}/${infer Rest}`
+  TPattern extends `${infer Start}:${infer _Param}/${infer Rest}`
     ? TPath extends `${Start}${infer Value}/${infer PathRest}`
       ? Value extends ''
         ? false
         : MatchRoute<`/${Rest}`, `/${PathRest}`>
       : false
-    : TPattern extends `${infer Start}:${infer Param}`
+    : TPattern extends `${infer Start}:${infer _Param}`
       ? TPath extends `${Start}${infer Value}`
         ? Value extends '' ? false : true
         : false
@@ -270,15 +270,15 @@ export type MatchRoute<TPattern extends string, TPath extends string> =
 
 // Route parameter extraction at runtime
 export type ExtractParamsFromPath<TPattern extends string, TPath extends string> =
-  TPattern extends `${infer Start}:${infer Param}/${infer Rest}`
+  TPattern extends `${infer Start}:${infer _Param}/${infer Rest}`
     ? TPath extends `${Start}${infer Value}/${infer PathRest}`
-      ? { [K in Param]: Value } & ExtractParamsFromPath<`/${Rest}`, `/${PathRest}`>
-      : {}
-    : TPattern extends `${infer Start}:${infer Param}`
+      ? { [K in _Param]: Value } & ExtractParamsFromPath<`/${Rest}`, `/${PathRest}`>
+      : Record<string, never>
+    : TPattern extends `${infer Start}:${infer _Param}`
       ? TPath extends `${Start}${infer Value}`
-        ? { [K in Param]: Value }
-        : {}
-      : {}
+        ? { [K in _Param]: Value }
+        : Record<string, never>
+      : Record<string, never>
 
 // Type-safe route registration
 export interface TypeSafeRouter<TContext = {}> {

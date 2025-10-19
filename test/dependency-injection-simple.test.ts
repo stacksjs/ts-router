@@ -189,11 +189,11 @@ describe('Dependency Injection System', () => {
 
     it('should detect circular dependencies', () => {
       class ServiceA {
-        constructor(serviceB: any) {}
+        constructor(_serviceB: any) {}
       }
 
       class ServiceB {
-        constructor(serviceA: any) {}
+        constructor(_serviceA: any) {}
       }
 
       container.singleton('serviceA', ServiceA)

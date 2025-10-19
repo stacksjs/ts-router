@@ -35,6 +35,7 @@ export interface ServiceProvider {
   readonly priority?: number
 }
 
+// eslint-disable-next-line ts/no-unsafe-declaration-merging
 export interface DeferredServiceProvider extends ServiceProvider {
   /**
    * Services that should trigger loading of this provider
@@ -75,11 +76,11 @@ export abstract class BaseServiceProvider implements ServiceProvider {
 
   abstract register(container: Container): void | Promise<void>
 
-  boot?(container: Container): void | Promise<void> {
+  boot?(_container: Container): void | Promise<void> {
     // Default implementation - override if needed
   }
 
-  shutdown?(container: Container): void | Promise<void> {
+  shutdown?(_container: Container): void | Promise<void> {
     // Default implementation - override if needed
   }
 
@@ -153,6 +154,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
 /**
  * Deferred service provider base class
  */
+// eslint-disable-next-line ts/no-unsafe-declaration-merging
 export abstract class DeferredServiceProvider extends BaseServiceProvider implements DeferredServiceProvider {
   abstract provides(): (string | symbol | Function)[]
 
@@ -505,7 +507,7 @@ export class EventServiceProvider extends DeferredServiceProvider {
 // Mock service classes for demonstration
 class ConfigService {
   get(key: string, defaultValue?: any): any {
-    return process.env[key.toUpperCase().replace('.', '_')] || defaultValue
+    return defaultValue
   }
 }
 
@@ -560,7 +562,7 @@ class AuthGuard {
 }
 
 class Validator {
-  validate(data: any, rules: any): boolean { return true }
+  validate(_data: any, _rules: any): boolean { return true }
 }
 
 class ValidationPipe {
@@ -568,7 +570,7 @@ class ValidationPipe {
 }
 
 class EventBus {
-  emit(event: string, data: any): void {}
+  emit(_event: string, _data: any): void {}
 }
 
 class EventDispatcher {

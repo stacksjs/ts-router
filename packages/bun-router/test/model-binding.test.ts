@@ -120,7 +120,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (_req) => {
         // Even with string registration, implicit binding should work
         return new Response('User route accessed', {
           headers: { 'Content-Type': 'text/plain' },

@@ -89,7 +89,11 @@ describe('Advanced Error Handling', () => {
     })
 
     test('should open circuit after failure threshold', async () => {
-      const failingCall = { execute: async () => { throw new Error('Service error') } }
+      const failingCall = {
+        execute: async () => {
+          throw new Error('Service error')
+        },
+      }
 
       // Trigger failures to open circuit
       for (let i = 0; i < 3; i++) {
@@ -97,7 +101,7 @@ describe('Advanced Error Handling', () => {
           await circuitBreaker.execute(failingCall)
         }
         catch (error) {
-          // Expected
+          console.error(error)
         }
       }
 

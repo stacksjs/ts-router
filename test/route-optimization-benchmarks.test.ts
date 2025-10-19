@@ -44,10 +44,10 @@ describe('Route Optimization Benchmarks', () => {
           const targetPath = `/api/resource${routeIndex}/123`
 
           // Linear search simulation
-          let found = false
+          let _found = false
           for (let j = 0; j < routeCount; j++) {
             if (routes[j].path.replace('{id}', '123') === targetPath) {
-              found = true
+              _found = true
               break
             }
           }
@@ -85,10 +85,18 @@ describe('Route Optimization Benchmarks', () => {
           let path: string
 
           switch (complexity) {
-            case 0: path = `/static${i}`; break
-            case 1: path = `/param${i}/{id}`; break
-            case 2: path = `/multi${i}/{id}/{action}`; break
-            case 3: path = `/constrained${i}/{id:\\d+}`; break
+            case 0:
+              path = `/static${i}`
+              break
+            case 1:
+              path = `/param${i}/{id}`
+              break
+            case 2:
+              path = `/multi${i}/{id}/{action}`
+              break
+            case 3:
+              path = `/constrained${i}/{id:\\d+}`
+              break
             default: path = `/default${i}`
           }
 
@@ -167,7 +175,7 @@ describe('Route Optimization Benchmarks', () => {
       }
       const secondPassTime = performance.now() - secondPassStart
 
-      const stats = compiler.getStats()
+      const _stats = compiler.getStats()
       const cacheStats = compiler.getCacheStats()
 
       console.log('\n=== Cache Performance ===')

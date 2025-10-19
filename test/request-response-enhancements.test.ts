@@ -329,7 +329,7 @@ describe('Request/Response Enhancements', () => {
         return new Response('OK')
       }
 
-      const response = await middleware(mockRequest, next)
+      const _response = await middleware(mockRequest, next)
       expect(nextCalled).toBe(true)
       expect(mockRequest.validated).toBeDefined()
     })
@@ -357,7 +357,7 @@ describe('Request/Response Enhancements', () => {
 
   describe('Enhanced Route Builder', () => {
     test('should create route with validation', () => {
-      const handler = async (req: EnhancedRequest) => new Response('OK')
+      const handler = async (_req: EnhancedRequest) => new Response('OK')
       const builder = new EnhancedRouteBuilder('POST', '/users', handler)
 
       const route = builder
@@ -374,7 +374,7 @@ describe('Request/Response Enhancements', () => {
     })
 
     test('should create route without validation', () => {
-      const handler = async (req: EnhancedRequest) => new Response('OK')
+      const handler = async (_req: EnhancedRequest) => new Response('OK')
       const builder = new EnhancedRouteBuilder('GET', '/users', handler)
 
       const route = builder.build()

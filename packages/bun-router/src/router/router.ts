@@ -257,20 +257,20 @@ export class MiddlewareBuilder {
     private middleware: MiddlewareHandler[],
   ) {}
 
-  get(path: string, handler: RouteHandler): this {
+  get(_path: string, _handler: RouteHandler): this {
     // This would integrate with the router's route registration
     return this
   }
 
-  post(path: string, handler: RouteHandler): this {
+  post(_path: string, _handler: RouteHandler): this {
     return this
   }
 
-  put(path: string, handler: RouteHandler): this {
+  put(_path: string, _handler: RouteHandler): this {
     return this
   }
 
-  delete(path: string, handler: RouteHandler): this {
+  delete(_path: string, _handler: RouteHandler): this {
     return this
   }
 }
@@ -284,31 +284,20 @@ export class RouteGroupBuilder {
     private middleware: MiddlewareHandler[],
   ) {}
 
-  get(path: string, handler: RouteHandler): this {
+  get(_path: string, _handler: RouteHandler): this {
     // This would integrate with the router's route registration
     return this
   }
 
-  post(path: string, handler: RouteHandler): this {
+  post(_path: string, _handler: RouteHandler): this {
     return this
   }
 
-  put(path: string, handler: RouteHandler): this {
+  put(_path: string, _handler: RouteHandler): this {
     return this
   }
 
-  delete(path: string, handler: RouteHandler): this {
+  delete(_path: string, _handler: RouteHandler): this {
     return this
   }
-}
-
-// Re-export types for module augmentation
-export type {
-  ActionHandler,
-  MiddlewareHandler,
-  Route,
-  RouteGroup,
-  RouteHandler,
-  RouterConfig,
-  WebSocketConfig,
 }

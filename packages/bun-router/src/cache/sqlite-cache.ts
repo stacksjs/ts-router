@@ -5,6 +5,7 @@
  */
 
 import { Database } from 'bun:sqlite'
+import { Buffer } from 'node:buffer'
 
 export interface SQLiteCacheConfig {
   filename?: string
