@@ -173,7 +173,7 @@ export default class Security {
       /(\bor\b|\band\b).+['"]\s*=\s*['"]|['"]\s*=\s*['"].+(\bor\b|\band\b)/gi,
       /\b(sleep|benchmark|waitfor)\s*\(/gi,
       /\b(information_schema|sys\.databases|sysobjects)\b/gi,
-      /('|(\\'))+.+(or|and)\s+(?:\S.*|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF])[=><]/gi,
+      /('|(\\')).+(or|and)\s+(?:\S.*|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF])[=><]/gi,
       /\b(concat|group_concat|load_file|into\s+outfile)\b/gi,
     ]
 

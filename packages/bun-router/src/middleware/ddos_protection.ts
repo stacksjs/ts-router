@@ -130,7 +130,7 @@ export default class DDoSProtection {
     }
 
     // Check burst limit (requests per second)
-    const secondWindow = 1000
+    const _secondWindow = 1000
     const recentRequests = info.count // Simplified for this implementation
     if (recentRequests > this.options.burstLimit!) {
       return true

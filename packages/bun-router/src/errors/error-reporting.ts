@@ -351,7 +351,7 @@ export class BugsnagReporter implements ErrorReporter {
     }
   }
 
-  addBreadcrumb(message: string, category = 'manual', level = 'info', data?: Record<string, any>): void {
+  addBreadcrumb(message: string, category = 'manual', _level = 'info', data?: Record<string, any>): void {
     if (!this.bugsnag || !this.config.breadcrumbs?.enabled) {
       return
     }

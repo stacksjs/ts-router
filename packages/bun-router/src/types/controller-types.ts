@@ -122,7 +122,7 @@ export type DeleteDecorator<TPath extends string, TQuery extends Record<string, 
   RouteDecorator<TPath, TQuery, never>
 
 // Parameter decorators
-export interface ParameterDecorator<T = any> {
+export interface ParameterDecorator<_T = any> {
   <TController extends BaseController>(
     target: TController,
     propertyKey: keyof TController,
@@ -382,4 +382,3 @@ export interface ControllerLifecycleHooks {
 
 // Controller with lifecycle
 export type LifecycleController<T extends BaseController> = T & ControllerLifecycleHooks
-

@@ -57,7 +57,7 @@ export function extractBasicAuth(authHeader: string): { username: string, passwo
 
     return { username, password }
   }
-  catch (error) {
+  catch (_error) {
     return null
   }
 }

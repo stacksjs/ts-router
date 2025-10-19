@@ -90,7 +90,7 @@ export class RouteDebugger {
       return ''
 
     const requestId = this.generateRequestId()
-    const startTime = performance.now()
+    const _startTime = performance.now()
 
     const debugInfo: RouteDebugInfo = {
       requestId,

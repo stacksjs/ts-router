@@ -206,7 +206,7 @@ export class LoadTester {
       return endTime - startTime
     }
     catch (error) {
-      const endTime = performance.now()
+      const _endTime = performance.now()
       throw error
     }
   }
@@ -307,7 +307,7 @@ export const benchmarkTests = {
 
     for (let i = 0; i < iterations; i++) {
       const start = performance.now()
-      const serialized = JSON.stringify(data)
+      const _serialized = JSON.stringify(data)
       const end = performance.now()
       times.push(end - start)
     }
@@ -398,8 +398,8 @@ export const memoryTests = {
     const heapUsages: number[] = []
 
     // Force garbage collection if available
-    if (global.gc) {
-      global.gc()
+    if (globalThis.gc) {
+      globalThis.gc()
     }
 
     const initialHeap = process.memoryUsage().heapUsed
@@ -412,14 +412,14 @@ export const memoryTests = {
       heapUsages.push(memUsage.heapUsed)
 
       // Periodic garbage collection
-      if (i % 10 === 0 && global.gc) {
-        global.gc()
+      if (i % 10 === 0 && globalThis.gc) {
+        globalThis.gc()
       }
     }
 
     // Final garbage collection
-    if (global.gc) {
-      global.gc()
+    if (globalThis.gc) {
+      globalThis.gc()
     }
 
     const finalHeap = process.memoryUsage().heapUsed
@@ -449,21 +449,21 @@ export const memoryTests = {
     finalMemory: number
     memoryGrowth: number
   }> => {
-    if (global.gc)
-      global.gc()
+    if (globalThis.gc)
+      globalThis.gc()
     const initialMemory = process.memoryUsage().heapUsed
 
     for (let i = 0; i < iterations; i++) {
       const request = createMockRequest()
       await handler(request)
 
-      if (i % 100 === 0 && global.gc) {
-        global.gc()
+      if (i % 100 === 0 && globalThis.gc) {
+        globalThis.gc()
       }
     }
 
-    if (global.gc)
-      global.gc()
+    if (globalThis.gc)
+      globalThis.gc()
     const finalMemory = process.memoryUsage().heapUsed
     const memoryGrowth = finalMemory - initialMemory
     const memoryLeakDetected = memoryGrowth > (5 * 1024 * 1024) // 5MB threshold

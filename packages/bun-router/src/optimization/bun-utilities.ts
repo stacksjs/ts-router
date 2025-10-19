@@ -215,9 +215,9 @@ export class BunOptimizer {
     setInterval(() => {
       const memUsage = process.memoryUsage()
       if (memUsage.heapUsed > this.config.memoryLimit * 0.8) {
-        if (global.gc) {
+        if (globalThis.gc) {
           const before = memUsage.heapUsed
-          global.gc()
+          globalThis.gc()
           const after = process.memoryUsage().heapUsed
           this.metrics.gc.freed += before - after
         }

@@ -52,13 +52,13 @@ declare module './router' {
       headers?: Record<string, string>
     ): Response
 
-    streamDownload(
+    streamDownload: (
       callback: () => Generator<string | Uint8Array, void, unknown> | AsyncGenerator<string | Uint8Array, void, unknown>,
       filename: string,
       headers?: Record<string, string>
-    ): Response
+    ) => Response
 
-    streamFile(
+    streamFile: (
       filePath: string,
       request: any,
       options?: {
@@ -66,36 +66,36 @@ declare module './router' {
         enableRanges?: boolean
         chunkSize?: number
       }
-    ): Promise<Response>
+    ) => Promise<Response>
 
-    streamFileWithRanges(filePath: string, req: any): Promise<Response>
+    streamFileWithRanges: (filePath: string, req: any) => Promise<Response>
 
-    streamResponse(
+    streamResponse: (
       generator: () => AsyncGenerator<string | Uint8Array, void, unknown>,
       options?: { headers?: Record<string, string>, status?: number }
-    ): Response
+    ) => Response
 
-    transformStream(
+    transformStream: (
       transformer: (chunk: string | Uint8Array) => string | Uint8Array | Promise<string | Uint8Array>,
       options?: { headers?: Record<string, string>, status?: number }
-    ): (req: Request) => Response
+    ) => (req: Request) => Response
 
     // Laravel-style model binding methods
-    model<T>(
+    model: <T>(
       key: string,
       modelClass: string | ((value: string) => Promise<T | null>),
       callback?: (model: T | null) => Response | null
-    ): Router
+    ) => Router
 
-    implicitBinding(): any
+    implicitBinding: () => any
 
-    missing(callback: (req: any) => Response): any
+    missing: (callback: (req: any) => Response) => any
 
-    scopedBindings(bindings: Record<string, string>): any
+    scopedBindings: (bindings: Record<string, string>) => any
 
-    clearModelCache(modelName?: string): Router
+    clearModelCache: (modelName?: string) => Router
 
-    getModelStats(): {
+    getModelStats: () => {
       totalEntries: number
       validEntries: number
       expiredEntries: number
@@ -103,17 +103,17 @@ declare module './router' {
     }
 
     readonly modelRegistry: {
-      has(name: string): boolean
-      register<T>(name: string, config: any): void
-      resolve<T>(modelName: string, params: Record<string, string>, req?: any): Promise<any>
-      createErrorResponse(modelName: string, result: any, params: Record<string, string>): Response
-      clearCache(modelName: string, params?: Record<string, string>): void
-      clearAllCache(): void
-      getCacheStats(): any
+      has: (name: string) => boolean
+      register: <T>(name: string, config: any) => void
+      resolve: <T>(modelName: string, params: Record<string, string>, req?: any) => Promise<any>
+      createErrorResponse: (modelName: string, result: any, params: Record<string, string>) => Response
+      clearCache: (modelName: string, params?: Record<string, string>) => void
+      clearAllCache: () => void
+      getCacheStats: () => any
     }
 
     // Health check method
-    health(): Promise<Router>
+    health: () => Promise<Router>
   }
 }
 export { Dependencies, FluentRouteBuilder, FluentRouter, globalMiddlewarePipeline, MiddlewareFactory, MiddlewarePipeline, RouteFactory, router, RouterUtils, SkipConditions }

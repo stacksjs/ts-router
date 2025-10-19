@@ -268,7 +268,7 @@ export class PerformanceProfiler {
   /**
    * Finish profiling a request
    */
-  finishProfiling(profileId: string, response?: Response): RouteProfile | null {
+  finishProfiling(profileId: string, _response?: Response): RouteProfile | null {
     const profile = this.activeProfiles.get(profileId)
     if (!profile)
       return null
@@ -535,7 +535,7 @@ export class PerformanceProfiler {
   /**
    * Update performance metrics
    */
-  private updateMetrics(profile: RouteProfile): void {
+  private updateMetrics(_profile: RouteProfile): void {
     const profiles = Array.from(this.profiles.values())
     const durations = profiles.map(p => p.totalDuration || 0).sort((a, b) => a - b)
 

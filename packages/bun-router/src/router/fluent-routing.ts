@@ -574,7 +574,7 @@ export class FluentRouter {
     }
 
     const url = new URL(request.url)
-    const routePattern = route.path.replace(/\{(\w+):?(\w+)?\}/g, '([^/]+)')
+    const routePattern = route.path.replace(/\{(\w+):?(\w*)\}/g, '([^/]+)')
     const regex = new RegExp(`^${routePattern}$`)
 
     return regex.test(url.pathname)

@@ -153,7 +153,7 @@ export class ServiceHealthMonitor {
         }
       }
     }
-    catch (error) {
+    catch (_error) {
       isHealthy = false
     }
 
@@ -293,7 +293,7 @@ export class GracefulDegradationManager {
         this.updateMetrics(context.serviceName, true, Date.now() - context.startTime.getTime())
         return result
       }
-      catch (retryError) {
+      catch (_retryError) {
         context.attemptCount++
         if (context.attemptCount <= strategy.retries) {
           return this.executeFallbackStrategy(strategy, context, originalHandler)

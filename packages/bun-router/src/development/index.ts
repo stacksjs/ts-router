@@ -92,8 +92,8 @@ export class DevelopmentTools {
   registerRoute(
     method: string,
     pattern: string,
-    handler: Function,
-    middleware: Function[] = [],
+    handler: (...args: any[]) => any,
+    middleware: ((...args: any[]) => any)[] = [],
     options: any = {},
   ): string {
     // Register with debugger
@@ -218,7 +218,7 @@ export class DevelopmentTools {
   private createInspectionMiddleware() {
     return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       const startTime = performance.now()
-      const pattern = (req as any).route?.pattern || req.url
+      const _pattern = (req as any).route?.pattern || req.url
       const routeId = (req as any).route?.id
 
       try {
@@ -258,11 +258,11 @@ export class DevelopmentRouter {
    */
   debug() {
     return {
-      get: (pattern: string, handler: Function) => this.registerRoute('GET', pattern, handler, { debug: true }),
-      post: (pattern: string, handler: Function) => this.registerRoute('POST', pattern, handler, { debug: true }),
-      put: (pattern: string, handler: Function) => this.registerRoute('PUT', pattern, handler, { debug: true }),
-      patch: (pattern: string, handler: Function) => this.registerRoute('PATCH', pattern, handler, { debug: true }),
-      delete: (pattern: string, handler: Function) => this.registerRoute('DELETE', pattern, handler, { debug: true }),
+      get: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('GET', pattern, handler, { debug: true }),
+      post: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('POST', pattern, handler, { debug: true }),
+      put: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('PUT', pattern, handler, { debug: true }),
+      patch: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('PATCH', pattern, handler, { debug: true }),
+      delete: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('DELETE', pattern, handler, { debug: true }),
     }
   }
 
@@ -274,7 +274,7 @@ export class DevelopmentRouter {
       group: (callback: () => void) => {
         // Enable profiling for routes registered in callback
         const originalRegister = this.registerRoute.bind(this)
-        this.registerRoute = (method: string, pattern: string, handler: Function, options: any = {}) => {
+        this.registerRoute = (method: string, pattern: string, handler: (...args: any[]) => any, options: any = {}) => {
           return originalRegister(method, pattern, handler, { ...options, profile: true })
         }
 

@@ -87,7 +87,7 @@ export class BunQueryBuilderModel<T extends Model = Model> {
     try {
       return await this.queryBuilder.findOrFail(this.getTableName(), id)
     }
-    catch (error) {
+    catch (_error) {
       throw new ModelNotFoundError(this.definition.name, id)
     }
   }

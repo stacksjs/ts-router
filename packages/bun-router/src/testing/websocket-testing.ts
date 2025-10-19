@@ -186,11 +186,11 @@ export class WebSocketTester {
  */
 export class MockServerWebSocket {
   private tester: WebSocketTester
-  private data: any
+  private _data: any
 
   constructor(data: any = {}) {
     this.tester = new WebSocketTester()
-    this.data = data
+    this._data = data
   }
 
   send(message: string | ArrayBuffer | Uint8Array): void {
@@ -235,11 +235,11 @@ export class MockServerWebSocket {
   }
 
   get data(): any {
-    return this.data
+    return this._data
   }
 
   set data(value: any) {
-    this.data = value
+    this._data = value
   }
 
   getTester(): WebSocketTester {

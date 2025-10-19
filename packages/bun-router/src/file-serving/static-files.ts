@@ -566,8 +566,9 @@ export const FileServingUtils = {
   /**
    * Create file watcher for cache invalidation
    */
-  createFileWatcher: (server: StaticFileServer, watchPath: string) => {
-    const watcher = require('node:fs').watch(watchPath, { recursive: true }, (eventType: string, filename: string) => {
+  createFileWatcher: async (server: StaticFileServer, watchPath: string) => {
+    const fs = await import('node:fs')
+    const watcher = fs.watch(watchPath, { recursive: true }, (eventType: string, filename: string) => {
       if (eventType === 'change' || eventType === 'rename') {
         server.clearCache()
         console.warn(`File changed: ${filename}, cache cleared`)

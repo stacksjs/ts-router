@@ -106,9 +106,9 @@ export default class InputValidation {
         }
         break
 
-      case 'number':
+      case 'number': {
         const num = Number(value)
-        if (isNaN(num)) {
+        if (Number.isNaN(num)) {
           errors.push({
             field: fieldPath,
             message: 'Must be a number',
@@ -147,7 +147,7 @@ export default class InputValidation {
         }
         break
 
-      case 'email':
+      case 'email': {
         const emailRegex = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
         if (typeof value === 'string' && !emailRegex.test(value)) {
           errors.push({
@@ -173,7 +173,7 @@ export default class InputValidation {
         }
         break
 
-      case 'uuid':
+      case 'uuid': {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
         if (typeof value === 'string' && !uuidRegex.test(value)) {
           errors.push({
@@ -185,9 +185,9 @@ export default class InputValidation {
         }
         break
 
-      case 'date':
+      case 'date': {
         const date = new Date(value)
-        if (isNaN(date.getTime())) {
+        if (Number.isNaN(date.getTime())) {
           errors.push({
             field: fieldPath,
             message: 'Must be a valid date',
