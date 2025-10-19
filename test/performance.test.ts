@@ -454,15 +454,15 @@ describe('Performance Monitoring System', () => {
     test('should add and resolve alerts', async () => {
       // Create a new router instance for this test
       const testRouter = new Router()
-      
+
       // Create a shared state object that can be modified between requests
       const mockState = {
         alerts: [
           { id: 'alert-1', type: 'warning', message: 'Test warning message', resolved: false, timestamp: Date.now() },
           { id: 'alert-2', type: 'critical', message: 'Test critical message', resolved: false, timestamp: Date.now() },
-        ]
+        ],
       }
-      
+
       // Mock endpoint that returns dashboard data based on the current state
       testRouter.get('/performance/api/data', () => {
         const mockData = {

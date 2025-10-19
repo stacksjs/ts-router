@@ -4,16 +4,16 @@
  * Comprehensive tests for route debugging, inspection, profiling, and TypeScript utilities
  */
 
-import { describe, test, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test'
 import type { EnhancedRequest } from '../packages/bun-router/src/types'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import {
-  DevelopmentTools,
-  DevelopmentRouter,
   DevelopmentPresets,
+  DevelopmentRouter,
+  DevelopmentTools,
+  PerformanceProfiler,
   RouteDebugger,
   RouteInspector,
-  PerformanceProfiler,
-  TypeScriptUtilities
+  TypeScriptUtilities,
 } from '../packages/bun-router/src/development'
 
 // Mock request helper
@@ -23,12 +23,12 @@ function createMockRequest(method: string = 'GET', url: string = 'http://localho
     params: {},
     query: {},
     body: null,
-    route: { pattern: '/test', id: 'test_route' }
+    route: { pattern: '/test', id: 'test_route' },
   }) as EnhancedRequest
 }
 
 // Mock handler
-const mockHandler = async (req: EnhancedRequest): Promise<Response> => {
+async function mockHandler(req: EnhancedRequest): Promise<Response> {
   return new Response('OK')
 }
 
@@ -42,7 +42,7 @@ describe('Route Debugger', () => {
       includeHeaders: true,
       includeBody: true,
       colorOutput: false,
-      outputFormat: 'json'
+      outputFormat: 'json',
     })
   })
 
@@ -246,7 +246,7 @@ describe('Performance Profiler', () => {
       sampleRate: 1.0, // Profile all requests for testing
       includeMemory: true,
       includeCpu: true,
-      outputFormat: 'json'
+      outputFormat: 'json',
     })
   })
 
@@ -375,7 +375,7 @@ describe('Performance Profiler', () => {
   test('should respect sample rate', () => {
     const sampledProfiler = new PerformanceProfiler({
       enabled: true,
-      sampleRate: 0.0 // Never sample
+      sampleRate: 0.0, // Never sample
     })
 
     const req = createMockRequest()
@@ -391,7 +391,7 @@ describe('TypeScript Utilities', () => {
     tsUtils = new TypeScriptUtilities({
       generateTypes: true,
       validateTypes: true,
-      generateSchemas: true
+      generateSchemas: true,
     })
   })
 
@@ -403,7 +403,7 @@ describe('TypeScript Utilities', () => {
     tsUtils.registerRouteTypes('GET', '/users/{id}', {
       paramsType: '{ id: string }',
       responseType: 'User',
-      bodyType: 'unknown'
+      bodyType: 'unknown',
     })
 
     const routeTypes = tsUtils.getRouteTypes()
@@ -416,12 +416,12 @@ describe('TypeScript Utilities', () => {
   test('should generate route types', () => {
     tsUtils.registerRouteTypes('GET', '/users/{id}', {
       paramsType: '{ id: string }',
-      responseType: 'User'
+      responseType: 'User',
     })
 
     tsUtils.registerRouteTypes('POST', '/users', {
       bodyType: 'CreateUserRequest',
-      responseType: 'User'
+      responseType: 'User',
     })
 
     const generatedTypes = tsUtils.generateRouteTypes()
@@ -434,7 +434,7 @@ describe('TypeScript Utilities', () => {
 
   test('should generate validation schemas', () => {
     tsUtils.registerRouteTypes('POST', '/users', {
-      bodyType: 'CreateUserRequest'
+      bodyType: 'CreateUserRequest',
     })
 
     const schemas = tsUtils.generateValidationSchemas()
@@ -445,12 +445,12 @@ describe('TypeScript Utilities', () => {
   test('should generate OpenAPI schema', () => {
     tsUtils.registerRouteTypes('GET', '/users/{id}', {
       paramsType: '{ id: string }',
-      responseType: 'User'
+      responseType: 'User',
     })
 
     tsUtils.registerRouteTypes('POST', '/users', {
       bodyType: 'CreateUserRequest',
-      responseType: 'User'
+      responseType: 'User',
     })
 
     const openApiSchema = tsUtils.generateOpenAPISchema()
@@ -465,7 +465,7 @@ describe('TypeScript Utilities', () => {
   test('should generate route builder', () => {
     tsUtils.registerRouteTypes('GET', '/users/{id}', {
       paramsType: '{ id: string }',
-      responseType: 'User'
+      responseType: 'User',
     })
 
     const routeBuilder = tsUtils.generateRouteBuilder()
@@ -477,7 +477,7 @@ describe('TypeScript Utilities', () => {
 
   test('should generate middleware types', () => {
     tsUtils.registerRouteTypes('GET', '/test', {
-      middlewareTypes: ['AuthMiddleware', 'ValidationMiddleware']
+      middlewareTypes: ['AuthMiddleware', 'ValidationMiddleware'],
     })
 
     const middlewareTypes = tsUtils.generateMiddlewareTypes()
@@ -490,7 +490,7 @@ describe('TypeScript Utilities', () => {
   test('should validate requests', () => {
     const routeKey = 'GET:/users/{id}'
     tsUtils.registerRouteTypes('GET', '/users/{id}', {
-      paramsType: '{ id: string }'
+      paramsType: '{ id: string }',
     })
 
     const req = createMockRequest('GET', 'http://localhost/users/123')
@@ -510,7 +510,7 @@ describe('Development Tools Integration', () => {
       debug: { enabled: true, logLevel: 'info', colorOutput: false },
       profiling: { enabled: true, sampleRate: 1.0 },
       inspection: { enabled: true, trackStats: true },
-      typescript: { generateTypes: true }
+      typescript: { generateTypes: true },
     })
   })
 
@@ -520,7 +520,7 @@ describe('Development Tools Integration', () => {
 
   test('should register routes with all tools', () => {
     const routeId = devTools.registerRoute('GET', '/test', mockHandler, [], {
-      types: { responseType: 'TestResponse' }
+      types: { responseType: 'TestResponse' },
     })
 
     expect(routeId).toBeTruthy()
@@ -565,7 +565,7 @@ describe('Development Tools Integration', () => {
 
   test('should provide typescript interface', () => {
     devTools.registerRoute('GET', '/test', mockHandler, [], {
-      types: { responseType: 'TestResponse' }
+      types: { responseType: 'TestResponse' },
     })
 
     const typescript = devTools.typescript()
@@ -678,7 +678,8 @@ describe('Middleware Integration', () => {
     const middleware = async (req: EnhancedRequest, next: () => Promise<Response>) => {
       const profileId = profiler.startProfiling(req, '/test')
       const response = await next()
-      if (profileId) profiler.finishProfiling(profileId, response)
+      if (profileId)
+        profiler.finishProfiling(profileId, response)
       return response
     }
 

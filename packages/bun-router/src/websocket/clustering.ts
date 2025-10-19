@@ -5,6 +5,7 @@
  */
 
 import type { ServerWebSocket } from 'bun'
+import process from 'node:process'
 
 export interface WebSocketClusterConfig {
   workers?: number

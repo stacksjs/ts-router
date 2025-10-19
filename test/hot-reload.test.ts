@@ -2,18 +2,18 @@
  * Hot Reload Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test'
-import { writeFileSync, unlinkSync, mkdirSync, rmSync } from 'fs'
-import { join } from 'path'
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
-  HotReloadManager,
   createHotReloadMiddleware,
-  HotReloadUtils,
-  HotReloadHelpers,
-  HotReloadDecorators,
-  initializeHotReload,
   getHotReload,
-  HotReloadFactory
+  HotReloadDecorators,
+  HotReloadFactory,
+  HotReloadHelpers,
+  HotReloadManager,
+  HotReloadUtils,
+  initializeHotReload,
 } from '../packages/bun-router/src/development/hot-reload'
 
 describe('Hot Reload', () => {
@@ -22,7 +22,7 @@ describe('Hot Reload', () => {
 
   beforeEach(() => {
     // Create temporary directory for testing
-    tempDir = join(process.cwd(), 'test-temp-' + Date.now())
+    tempDir = join(process.cwd(), `test-temp-${Date.now()}`)
     mkdirSync(tempDir, { recursive: true })
 
     // Clear global state
@@ -39,7 +39,8 @@ describe('Hot Reload', () => {
     // Remove temporary directory
     try {
       rmSync(tempDir, { recursive: true, force: true })
-    } catch (error) {
+    }
+    catch (error) {
       // Ignore cleanup errors
     }
   })
@@ -47,7 +48,7 @@ describe('Hot Reload', () => {
   describe('HotReloadManager', () => {
     it('should initialize with default config', () => {
       hotReload = new HotReloadManager()
-      
+
       const stats = hotReload.getStats()
       expect(stats.reloadCount).toBe(0)
       expect(stats.watchedPaths).toContain(process.cwd())
@@ -59,7 +60,7 @@ describe('Hot Reload', () => {
         watchPaths: [tempDir],
         extensions: ['.ts'],
         debounceMs: 50,
-        verbose: false
+        verbose: false,
       })
 
       const stats = hotReload.getStats()
@@ -69,28 +70,28 @@ describe('Hot Reload', () => {
     it('should preserve state across reloads', () => {
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
-        preserveState: true
+        preserveState: true,
       })
 
       // Preserve some state
       hotReload.preserveState('testKey', { value: 'test' })
-      
+
       // Simulate reload by creating new instance
       const newHotReload = new HotReloadManager({
         watchPaths: [tempDir],
-        preserveState: true
+        preserveState: true,
       })
 
       const restored = newHotReload.restoreState('testKey')
       expect(restored).toEqual({ value: 'test' })
-      
+
       newHotReload.stop()
     })
 
     it('should clear preserved state', () => {
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
-        preserveState: true
+        preserveState: true,
       })
 
       hotReload.preserveState('testKey', 'testValue')
@@ -102,13 +103,13 @@ describe('Hot Reload', () => {
 
     it('should handle file changes with debouncing', async () => {
       const onReload = mock(() => {})
-      
+
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
         extensions: ['.ts'],
         debounceMs: 50,
         onReload,
-        verbose: false
+        verbose: false,
       })
 
       // Create a test file
@@ -129,14 +130,14 @@ describe('Hot Reload', () => {
 
     it('should ignore files based on config', async () => {
       const onReload = mock(() => {})
-      
+
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
         ignorePaths: ['node_modules'],
         extensions: ['.ts'],
         debounceMs: 50,
         onReload,
-        verbose: false
+        verbose: false,
       })
 
       // Create ignored directory and file
@@ -154,7 +155,7 @@ describe('Hot Reload', () => {
     it('should get accurate statistics', () => {
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
-        preserveState: true
+        preserveState: true,
       })
 
       hotReload.preserveState('key1', 'value1')
@@ -172,7 +173,7 @@ describe('Hot Reload', () => {
   describe('Hot Reload Middleware', () => {
     it('should create middleware that adds headers', async () => {
       hotReload = new HotReloadManager({
-        watchPaths: [tempDir]
+        watchPaths: [tempDir],
       })
 
       // Simulate a reload to increment count
@@ -180,7 +181,7 @@ describe('Hot Reload', () => {
       globalThis.__HOT_RELOAD_STATE__!.lastReload = Date.now()
 
       const middleware = createHotReloadMiddleware(hotReload)
-      
+
       const request = new Request('http://localhost:3000/test')
       const response = await middleware(request, async () => {
         return new Response('test response')
@@ -192,11 +193,11 @@ describe('Hot Reload', () => {
 
     it('should not add headers when no reloads occurred', async () => {
       hotReload = new HotReloadManager({
-        watchPaths: [tempDir]
+        watchPaths: [tempDir],
       })
 
       const middleware = createHotReloadMiddleware(hotReload)
-      
+
       const request = new Request('http://localhost:3000/test')
       const response = await middleware(request, async () => {
         return new Response('test response')
@@ -218,7 +219,7 @@ describe('Hot Reload', () => {
         lastReload: Date.now(),
         changedFiles: [],
         preservedState: {},
-        watchers: new Map()
+        watchers: new Map(),
       }
       expect(HotReloadUtils.isHotReloadEnabled()).toBe(true)
     })
@@ -231,21 +232,21 @@ describe('Hot Reload', () => {
         lastReload: Date.now(),
         changedFiles: [],
         preservedState: {},
-        watchers: new Map()
+        watchers: new Map(),
       }
       expect(HotReloadUtils.getReloadCount()).toBe(5)
     })
 
     it('should create module cache', () => {
       const cache = HotReloadUtils.createModuleCache<string>()
-      
+
       expect(cache.size()).toBe(0)
-      
+
       cache.set('key1', 'value1')
       expect(cache.get('key1')).toBe('value1')
       expect(cache.has('key1')).toBe(true)
       expect(cache.size()).toBe(1)
-      
+
       cache.delete('key1')
       expect(cache.has('key1')).toBe(false)
       expect(cache.size()).toBe(0)
@@ -254,13 +255,13 @@ describe('Hot Reload', () => {
     it('should create hot config', async () => {
       const initialConfig = { setting1: 'value1', setting2: 42 }
       const hotConfig = HotReloadUtils.createHotConfig(initialConfig)
-      
+
       expect(hotConfig.get()).toEqual(initialConfig)
-      
+
       // Test onChange callback
       const onChange = mock(() => {})
       hotConfig.onChange(onChange)
-      
+
       await hotConfig.reload()
       expect(onChange).toHaveBeenCalledWith(initialConfig)
     })
@@ -279,7 +280,7 @@ describe('Hot Reload', () => {
       const hotHandler = HotReloadHelpers.createHotHandler(handlerFile)
       const request = new Request('http://localhost:3000/test')
       const response = await hotHandler(request)
-      
+
       expect(await response.text()).toBe('handler response')
     })
 
@@ -296,11 +297,11 @@ describe('Hot Reload', () => {
 
       const hotMiddleware = HotReloadHelpers.createHotMiddleware(middlewareFile)
       const request = new Request('http://localhost:3000/test')
-      
+
       const response = await hotMiddleware(request, async () => {
         return new Response('test')
       })
-      
+
       expect(response.headers.get('X-Hot-Middleware')).toBe('true')
     })
 
@@ -315,7 +316,7 @@ describe('Hot Reload', () => {
       const hotHandler = HotReloadHelpers.createHotHandler(handlerFile)
       const request = new Request('http://localhost:3000/test')
       const response = await hotHandler(request)
-      
+
       expect(response.status).toBe(500)
       expect(await response.text()).toBe('Handler Error')
     })
@@ -323,7 +324,7 @@ describe('Hot Reload', () => {
     it('should create development server', () => {
       const devServer = HotReloadHelpers.createDevelopmentServer({
         port: 0, // Use random port
-        hostname: 'localhost'
+        hostname: 'localhost',
       })
 
       expect(devServer.server).toBeDefined()
@@ -339,7 +340,7 @@ describe('Hot Reload', () => {
       @HotReloadDecorators.hotReloadable
       class TestClass {
         value = 'initial'
-        
+
         getValue() {
           return this.value
         }
@@ -378,11 +379,11 @@ describe('Hot Reload', () => {
     it('should initialize global hot reload', () => {
       const global1 = initializeHotReload({ watchPaths: [tempDir] })
       const global2 = initializeHotReload({ watchPaths: ['/other'] })
-      
+
       // Should return same instance
       expect(global1).toBe(global2)
       expect(getHotReload()).toBe(global1)
-      
+
       global1.stop()
     })
   })
@@ -390,29 +391,29 @@ describe('Hot Reload', () => {
   describe('Hot Reload Factory', () => {
     it('should create development hot reload', () => {
       const devHotReload = HotReloadFactory.createDevelopment()
-      
+
       const stats = devHotReload.getStats()
       expect(stats.watchedPaths.length).toBeGreaterThan(0)
-      
+
       devHotReload.stop()
     })
 
     it('should create production hot reload (disabled)', () => {
       const prodHotReload = HotReloadFactory.createProduction()
-      
+
       // Production should be disabled
       const stats = prodHotReload.getStats()
       expect(stats.reloadCount).toBe(0)
-      
+
       prodHotReload.stop()
     })
 
     it('should create testing hot reload', () => {
       const testHotReload = HotReloadFactory.createTesting()
-      
+
       const stats = testHotReload.getStats()
       expect(stats.reloadCount).toBe(0)
-      
+
       testHotReload.stop()
     })
   })
@@ -420,18 +421,18 @@ describe('Hot Reload', () => {
   describe('Integration Tests', () => {
     it('should handle multiple file changes', async () => {
       const onReload = mock(() => {})
-      
+
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
         extensions: ['.ts', '.js'],
         debounceMs: 100,
         onReload,
-        verbose: false
+        verbose: false,
       })
 
       // Create multiple test files
       const files = ['test1.ts', 'test2.js', 'test3.ts']
-      files.forEach(file => {
+      files.forEach((file) => {
         writeFileSync(join(tempDir, file), `export const ${file.replace('.', '_')} = "initial"`)
       })
 
@@ -439,7 +440,7 @@ describe('Hot Reload', () => {
       await new Promise(resolve => setTimeout(resolve, 150))
 
       // Modify all files
-      files.forEach(file => {
+      files.forEach((file) => {
         writeFileSync(join(tempDir, file), `export const ${file.replace('.', '_')} = "modified"`)
       })
 
@@ -454,40 +455,40 @@ describe('Hot Reload', () => {
     it('should preserve complex state across reloads', () => {
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
-        preserveState: true
+        preserveState: true,
       })
 
       // Preserve complex state
       const complexState = {
         user: { id: 1, name: 'Test User' },
         settings: { theme: 'dark', notifications: true },
-        cache: new Map([['key1', 'value1'], ['key2', 'value2']])
+        cache: new Map([['key1', 'value1'], ['key2', 'value2']]),
       }
 
       hotReload.preserveState('complexState', complexState)
-      
+
       // Simulate reload
       const newHotReload = new HotReloadManager({
         watchPaths: [tempDir],
-        preserveState: true
+        preserveState: true,
       })
 
       const restored = newHotReload.restoreState('complexState')
       expect(restored.user).toEqual(complexState.user)
       expect(restored.settings).toEqual(complexState.settings)
-      
+
       newHotReload.stop()
     })
 
     it('should handle rapid file changes', async () => {
       const onReload = mock(() => {})
-      
+
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
         extensions: ['.ts'],
         debounceMs: 50,
         onReload,
-        verbose: false
+        verbose: false,
       })
 
       const testFile = join(tempDir, 'rapid-test.ts')
@@ -513,11 +514,11 @@ describe('Hot Reload', () => {
   describe('Error Handling', () => {
     it('should handle watch errors gracefully', () => {
       const onError = mock(() => {})
-      
+
       hotReload = new HotReloadManager({
         watchPaths: ['/nonexistent/path'],
         onError,
-        verbose: false
+        verbose: false,
       })
 
       // Should handle the error without crashing
@@ -529,14 +530,14 @@ describe('Hot Reload', () => {
       const onReload = mock(() => {
         throw new Error('Reload error')
       })
-      
+
       hotReload = new HotReloadManager({
         watchPaths: [tempDir],
         extensions: ['.ts'],
         debounceMs: 50,
         onReload,
         onError,
-        verbose: false
+        verbose: false,
       })
 
       const testFile = join(tempDir, 'error-test.ts')

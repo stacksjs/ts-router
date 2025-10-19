@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from 'bun:test'
 import type { EnhancedRequest, MiddlewareHandler } from '../packages/bun-router/src/types'
+import { beforeEach, describe, expect, it } from 'bun:test'
 import {
   Dependencies,
   EnhancedMiddlewarePipeline,
@@ -44,11 +44,11 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
       for (let i = 0; i < 100; i++) {
         // Reset request context
         mockRequest.context = {}
-        
+
         // Simulate traditional middleware execution
         let result: Response | null = null
         let currentIndex = 0
-        
+
         const next = async (): Promise<Response | null> => {
           if (currentIndex >= middleware.length) {
             return finalHandler()
@@ -56,14 +56,14 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
           const mw = middleware[currentIndex++]
           return mw(mockRequest, next)
         }
-        
+
         result = await next()
       }
       const uncachedTime = performance.now() - uncachedStart
 
       // Benchmark with caching
       pipeline.compilePipeline('cached-route', middleware)
-      
+
       const cachedStart = performance.now()
       for (let i = 0; i < 100; i++) {
         mockRequest.context = {}
@@ -93,7 +93,7 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
 
       for (const count of middlewareCounts) {
         const middleware: MiddlewareHandler[] = []
-        
+
         for (let i = 0; i < count; i++) {
           const mw: MiddlewareHandler = async (req, next) => {
             // Simulate some work
@@ -142,14 +142,14 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
           return next()
         }
         Object.defineProperty(mw, 'name', { value: `expensive_${i}` })
-        
+
         // Add skip condition for even-numbered middleware
         if (i % 2 === 0) {
           pipeline.registerSkipConditions(`expensive_${i}`, [
-            SkipConditions.skipForHeaders({ 'x-skip-expensive': 'true' })
+            SkipConditions.skipForHeaders({ 'x-skip-expensive': 'true' }),
           ])
         }
-        
+
         middleware.push(mw)
       }
 
@@ -228,7 +228,7 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
           await new Promise(resolve => setTimeout(resolve, 10))
           return {
             initialized: Date.now(),
-            getValue: () => 'expensive-value'
+            getValue: () => 'expensive-value',
           }
         },
         singleton: true,
@@ -241,7 +241,7 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
           await new Promise(resolve => setTimeout(resolve, 10))
           return {
             initialized: Date.now(),
-            getValue: () => 'cheap-value'
+            getValue: () => 'cheap-value',
           }
         },
         singleton: false,
@@ -328,12 +328,12 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
         const mw: MiddlewareHandler = async (req, next) => {
           // Simulate work
           await new Promise(resolve => setTimeout(resolve, 2))
-          
+
           // Short-circuit on 3rd middleware when header is present
           if (i === 2 && req.headers.get('x-early-return') === 'true') {
             return new Response('Early return', { status: 200 })
           }
-          
+
           req.context = { ...req.context, [`step_${i}`]: true }
           return next()
         }
@@ -384,12 +384,12 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
       const routeCount = 1000
       for (let i = 0; i < routeCount; i++) {
         const middleware: MiddlewareHandler[] = []
-        
+
         for (let j = 0; j < 5; j++) {
           const mw: MiddlewareHandler = async (req, next) => next()
           middleware.push(mw)
         }
-        
+
         pipeline.compilePipeline(`route_${i}`, middleware)
       }
 
@@ -477,12 +477,11 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
       for (let i = 0; i < requestCount; i++) {
         mockRequest.context = {}
         mockRequest.method = i % 10 === 0 ? 'OPTIONS' : 'GET' // 10% OPTIONS requests
-        
-        await pipeline.execute('api-route', mockRequest, async () => 
+
+        await pipeline.execute('api-route', mockRequest, async () =>
           new Response(JSON.stringify({ success: true }), {
-            headers: { 'Content-Type': 'application/json' }
-          })
-        )
+            headers: { 'Content-Type': 'application/json' },
+          }))
       }
 
       const totalTime = performance.now() - start
@@ -507,26 +506,28 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
 
     it('should demonstrate overall performance improvement', async () => {
       const middleware: MiddlewareHandler[] = []
-      
+
       // Create comprehensive middleware stack
       for (let i = 0; i < 10; i++) {
         const mw: MiddlewareHandler = async (req, next) => {
           // Simulate various middleware operations
-          if (i % 3 === 0) await new Promise(resolve => setTimeout(resolve, 0.5)) // Auth-like
-          if (i % 4 === 0) await new Promise(resolve => setTimeout(resolve, 0.2)) // Validation-like
-          
+          if (i % 3 === 0)
+            await new Promise(resolve => setTimeout(resolve, 0.5)) // Auth-like
+          if (i % 4 === 0)
+            await new Promise(resolve => setTimeout(resolve, 0.2)) // Validation-like
+
           req.context = { ...req.context, [`middleware_${i}`]: true }
           return next()
         }
         Object.defineProperty(mw, 'name', { value: `comprehensive_${i}` })
-        
+
         // Add conditional skipping for some middleware
         if (i % 2 === 0) {
           pipeline.registerSkipConditions(`comprehensive_${i}`, [
-            SkipConditions.skipForPaths(['/health', '/metrics'])
+            SkipConditions.skipForPaths(['/health', '/metrics']),
           ])
         }
-        
+
         middleware.push(mw)
       }
 
@@ -557,10 +558,9 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
         mockRequest.url = testCase.url
         mockRequest.method = testCase.method
         mockRequest.context = {}
-        
-        await pipeline.execute('comprehensive-route', mockRequest, async () => 
-          new Response('Success')
-        )
+
+        await pipeline.execute('comprehensive-route', mockRequest, async () =>
+          new Response('Success'))
       }
 
       const totalTime = performance.now() - start

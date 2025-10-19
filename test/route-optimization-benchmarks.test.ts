@@ -1,7 +1,6 @@
-import { describe, expect, it, beforeEach } from 'bun:test'
+import type { HTTPMethod, Route } from '../packages/bun-router/src/types'
+import { describe, expect, it } from 'bun:test'
 import { RouteCompiler } from '../packages/bun-router/src/router/route-compiler'
-import { RouteTrie } from '../packages/bun-router/src/router/route-trie'
-import type { Route, HTTPMethod } from '../packages/bun-router/src/types'
 
 describe('Route Optimization Benchmarks', () => {
   describe('Trie vs Linear Search Performance', () => {
@@ -23,7 +22,7 @@ describe('Route Optimization Benchmarks', () => {
             method: 'GET',
             handler: () => new Response(`resource${i}`),
             middleware: [],
-            type: 'api'
+            type: 'api',
           })
         }
 
@@ -43,7 +42,7 @@ describe('Route Optimization Benchmarks', () => {
         for (let i = 0; i < 1000; i++) {
           const routeIndex = i % routeCount
           const targetPath = `/api/resource${routeIndex}/123`
-          
+
           // Linear search simulation
           let found = false
           for (let j = 0; j < routeCount; j++) {
@@ -79,12 +78,12 @@ describe('Route Optimization Benchmarks', () => {
 
       for (const routeCount of routeCounts) {
         const compiler = new RouteCompiler()
-        
+
         // Add routes with varying complexity
         for (let i = 0; i < routeCount; i++) {
           const complexity = i % 4
           let path: string
-          
+
           switch (complexity) {
             case 0: path = `/static${i}`; break
             case 1: path = `/param${i}/{id}`; break
@@ -98,19 +97,19 @@ describe('Route Optimization Benchmarks', () => {
             method: 'GET',
             handler: () => new Response(),
             middleware: [],
-            type: 'api'
+            type: 'api',
           })
         }
 
         // Measure average matching time
         const iterations = 1000
         const start = performance.now()
-        
+
         for (let i = 0; i < iterations; i++) {
           const routeIndex = Math.floor(Math.random() * routeCount)
           compiler.match(`/param${routeIndex}/test`, 'GET')
         }
-        
+
         const avgTime = (performance.now() - start) / iterations
         timings.push(avgTime)
       }
@@ -124,7 +123,7 @@ describe('Route Optimization Benchmarks', () => {
       // Time should not grow linearly with route count
       const growthRatio = timings[timings.length - 1] / timings[0]
       const routeRatio = routeCounts[routeCounts.length - 1] / routeCounts[0]
-      
+
       expect(growthRatio).toBeLessThan(routeRatio * 0.1) // Much less than linear growth
     })
   })
@@ -132,7 +131,7 @@ describe('Route Optimization Benchmarks', () => {
   describe('Cache Performance', () => {
     it('should demonstrate cache effectiveness', () => {
       const compiler = new RouteCompiler({ cacheSize: 1000 })
-      
+
       // Add test routes
       for (let i = 0; i < 100; i++) {
         compiler.addRoute({
@@ -140,7 +139,7 @@ describe('Route Optimization Benchmarks', () => {
           method: 'GET',
           handler: () => new Response(),
           middleware: [],
-          type: 'api'
+          type: 'api',
         })
       }
 
@@ -150,12 +149,12 @@ describe('Route Optimization Benchmarks', () => {
         '/api/users/2/posts/2',
         '/api/users/3/posts/3',
         '/api/users/4/posts/4',
-        '/api/users/5/posts/5'
+        '/api/users/5/posts/5',
       ]
 
       // First pass - populate cache
       const firstPassStart = performance.now()
-      testPaths.forEach(path => {
+      testPaths.forEach((path) => {
         compiler.match(path, 'GET')
       })
       const firstPassTime = performance.now() - firstPassStart
@@ -184,13 +183,13 @@ describe('Route Optimization Benchmarks', () => {
 
     it('should handle cache eviction gracefully', () => {
       const compiler = new RouteCompiler({ cacheSize: 10 }) // Small cache
-      
+
       compiler.addRoute({
         path: '/users/{id}',
         method: 'GET',
         handler: () => new Response(),
         middleware: [],
-        type: 'api'
+        type: 'api',
       })
 
       // Fill cache beyond capacity
@@ -200,7 +199,7 @@ describe('Route Optimization Benchmarks', () => {
 
       const cacheStats = compiler.getCacheStats()
       expect(cacheStats.size).toBeLessThanOrEqual(10)
-      
+
       // Should still function correctly
       const match = compiler.match('/users/999', 'GET')
       expect(match).toBeTruthy()
@@ -210,19 +209,19 @@ describe('Route Optimization Benchmarks', () => {
   describe('Method Grouping Performance', () => {
     it('should demonstrate method-specific optimization', () => {
       const compiler = new RouteCompiler({ enableMethodGrouping: true })
-      
+
       // Add routes for different methods
       const methods: HTTPMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
       const routesPerMethod = 200
 
-      methods.forEach(method => {
+      methods.forEach((method) => {
         for (let i = 0; i < routesPerMethod; i++) {
           compiler.addRoute({
             path: `/api/${method.toLowerCase()}/${i}/{id}`,
             method,
             handler: () => new Response(),
             middleware: [],
-            type: 'api'
+            type: 'api',
           })
         }
       })
@@ -230,14 +229,14 @@ describe('Route Optimization Benchmarks', () => {
       // Test method-specific matching performance
       const methodTimes: Record<string, number> = {}
 
-      methods.forEach(method => {
+      methods.forEach((method) => {
         const start = performance.now()
-        
+
         for (let i = 0; i < 100; i++) {
           const routeIndex = i % routesPerMethod
           compiler.match(`/api/${method.toLowerCase()}/${routeIndex}/test`, method)
         }
-        
+
         methodTimes[method] = performance.now() - start
       })
 
@@ -260,7 +259,7 @@ describe('Route Optimization Benchmarks', () => {
   describe('Priority System Performance', () => {
     it('should handle overlapping routes efficiently', () => {
       const compiler = new RouteCompiler({ enablePriorityOptimization: true })
-      
+
       // Add overlapping routes with different priorities
       const overlappingRoutes: Route[] = [
         { path: '/users/profile', method: 'GET', handler: () => new Response('profile'), middleware: [], type: 'api' },
@@ -268,7 +267,7 @@ describe('Route Optimization Benchmarks', () => {
         { path: '/users/{id}', method: 'GET', handler: () => new Response('user'), middleware: [], type: 'api' },
         { path: '/users/{id}/posts', method: 'GET', handler: () => new Response('posts'), middleware: [], type: 'api' },
         { path: '/users/{id}/posts/{postId}', method: 'GET', handler: () => new Response('post'), middleware: [], type: 'api' },
-        { path: '/users/*', method: 'GET', handler: () => new Response('wildcard'), middleware: [], type: 'api' }
+        { path: '/users/*', method: 'GET', handler: () => new Response('wildcard'), middleware: [], type: 'api' },
       ]
 
       overlappingRoutes.forEach(route => compiler.addRoute(route))
@@ -280,19 +279,19 @@ describe('Route Optimization Benchmarks', () => {
         { path: '/users/123', expected: 'user' },
         { path: '/users/123/posts', expected: 'posts' },
         { path: '/users/123/posts/456', expected: 'post' },
-        { path: '/users/anything/else', expected: 'wildcard' }
+        { path: '/users/anything/else', expected: 'wildcard' },
       ]
 
       const start = performance.now()
-      
+
       for (let i = 0; i < 1000; i++) {
         const testCase = testCases[i % testCases.length]
         const match = compiler.match(testCase.path, 'GET')
         expect(match).toBeTruthy()
       }
-      
+
       const totalTime = performance.now() - start
-      
+
       console.log('\n=== Priority Resolution Performance ===')
       console.log(`1000 priority resolutions: ${totalTime.toFixed(2)}ms`)
       console.log(`Average per resolution: ${(totalTime / 1000).toFixed(4)}ms`)
@@ -303,7 +302,7 @@ describe('Route Optimization Benchmarks', () => {
 
     it('should detect conflicts efficiently', () => {
       const compiler = new RouteCompiler()
-      
+
       // Add potentially conflicting routes
       const routes: Route[] = []
       for (let i = 0; i < 100; i++) {
@@ -312,9 +311,9 @@ describe('Route Optimization Benchmarks', () => {
           method: 'GET',
           handler: () => new Response(),
           middleware: [],
-          type: 'api'
+          type: 'api',
         })
-        
+
         // Add some actual conflicts
         if (i % 10 === 0) {
           routes.push({
@@ -322,7 +321,7 @@ describe('Route Optimization Benchmarks', () => {
             method: 'GET',
             handler: () => new Response(),
             middleware: [],
-            type: 'api'
+            type: 'api',
           })
         }
       }
@@ -346,10 +345,10 @@ describe('Route Optimization Benchmarks', () => {
   describe('Memory Usage', () => {
     it('should have reasonable memory footprint', () => {
       const compiler = new RouteCompiler()
-      
+
       // Measure initial memory
       const initialMemory = process.memoryUsage()
-      
+
       // Add many routes
       for (let i = 0; i < 10000; i++) {
         compiler.addRoute({
@@ -357,7 +356,7 @@ describe('Route Optimization Benchmarks', () => {
           method: 'GET',
           handler: () => new Response(),
           middleware: [],
-          type: 'api'
+          type: 'api',
         })
       }
 
@@ -383,7 +382,7 @@ describe('Route Optimization Benchmarks', () => {
   describe('Real-world Simulation', () => {
     it('should handle realistic API route patterns', () => {
       const compiler = new RouteCompiler()
-      
+
       // Simulate a real API with common patterns
       const apiRoutes: Route[] = [
         // User management
@@ -392,31 +391,31 @@ describe('Route Optimization Benchmarks', () => {
         { path: '/api/users/{id}', method: 'GET', handler: () => new Response(), middleware: [], type: 'api' },
         { path: '/api/users/{id}', method: 'PUT', handler: () => new Response(), middleware: [], type: 'api' },
         { path: '/api/users/{id}', method: 'DELETE', handler: () => new Response(), middleware: [], type: 'api' },
-        
+
         // Posts and comments
         { path: '/api/posts', method: 'GET', handler: () => new Response(), middleware: [], type: 'api' },
         { path: '/api/posts', method: 'POST', handler: () => new Response(), middleware: [], type: 'api' },
         { path: '/api/posts/{id}', method: 'GET', handler: () => new Response(), middleware: [], type: 'api' },
         { path: '/api/posts/{id}/comments', method: 'GET', handler: () => new Response(), middleware: [], type: 'api' },
         { path: '/api/posts/{id}/comments', method: 'POST', handler: () => new Response(), middleware: [], type: 'api' },
-        
+
         // File uploads
         { path: '/api/files', method: 'POST', handler: () => new Response(), middleware: [], type: 'api' },
         { path: '/api/files/{id}', method: 'GET', handler: () => new Response(), middleware: [], type: 'api' },
         { path: '/api/files/{id}', method: 'DELETE', handler: () => new Response(), middleware: [], type: 'api' },
-        
+
         // Admin routes
         { path: '/admin/dashboard', method: 'GET', handler: () => new Response(), middleware: [], type: 'web' },
         { path: '/admin/users', method: 'GET', handler: () => new Response(), middleware: [], type: 'web' },
         { path: '/admin/settings', method: 'GET', handler: () => new Response(), middleware: [], type: 'web' },
-        
+
         // Static pages
         { path: '/', method: 'GET', handler: () => new Response(), middleware: [], type: 'web' },
         { path: '/about', method: 'GET', handler: () => new Response(), middleware: [], type: 'web' },
         { path: '/contact', method: 'GET', handler: () => new Response(), middleware: [], type: 'web' },
-        
+
         // Wildcards
-        { path: '/assets/*', method: 'GET', handler: () => new Response(), middleware: [], type: 'web' }
+        { path: '/assets/*', method: 'GET', handler: () => new Response(), middleware: [], type: 'web' },
       ]
 
       apiRoutes.forEach(route => compiler.addRoute(route))
@@ -429,7 +428,7 @@ describe('Route Optimization Benchmarks', () => {
         { path: '/api/posts/456', method: 'GET' as HTTPMethod, weight: 12 },
         { path: '/', method: 'GET' as HTTPMethod, weight: 20 },
         { path: '/about', method: 'GET' as HTTPMethod, weight: 5 },
-        { path: '/assets/style.css', method: 'GET' as HTTPMethod, weight: 3 }
+        { path: '/assets/style.css', method: 'GET' as HTTPMethod, weight: 3 },
       ]
 
       const start = performance.now()

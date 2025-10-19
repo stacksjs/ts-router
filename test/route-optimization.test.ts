@@ -1,4 +1,3 @@
-import type { RouteMatch } from '../packages/bun-router/src/router/route-trie'
 import type { HTTPMethod, Route } from '../packages/bun-router/src/types'
 import { beforeEach, describe, expect, it } from 'bun:test'
 import { RouteCompiler } from '../packages/bun-router/src/router/route-compiler'

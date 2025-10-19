@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
+import { beforeEach, describe, expect, it } from 'bun:test'
 import { Router } from '../src/router/index'
 
 describe('CLI Commands', () => {
@@ -26,7 +26,7 @@ describe('CLI Commands', () => {
       await router.get('/test', () => new Response('test'))
       await router.post('/users', () => new Response('create user'))
       await router.get('/admin/dashboard', () => new Response('admin'), 'web', 'admin.dashboard')
-      await router.get('/users/{id}', (req) => new Response(`User ${req.params.id}`)) // Dynamic route
+      await router.get('/users/{id}', req => new Response(`User ${req.params.id}`)) // Dynamic route
 
       // Verify routes were added
       expect(router.routes.length).toBe(4)
@@ -127,7 +127,7 @@ describe('CLI Commands', () => {
         if (route.path && route.path.includes('{')) {
           const params = route.path.match(/\{[^}]+\}/g) || []
           for (const param of params) {
-            if (!param.match(/^\{[a-zA-Z_][a-zA-Z0-9_]*(\?|:[^}]+)?\}$/)) {
+            if (!param.match(/^\{[a-z_]\w*(\?|:[^}]+)?\}$/i)) {
               issues.push(`Invalid parameter syntax in ${route.method} ${route.path}: ${param}`)
             }
           }
@@ -135,7 +135,7 @@ describe('CLI Commands', () => {
       }
 
       expect(issues.length).toBeGreaterThan(0)
-      expect(issues.some(issue => issue.includes("should start with '/'"))).toBe(true)
+      expect(issues.some(issue => issue.includes('should start with \'/\''))).toBe(true)
       expect(issues.some(issue => issue.includes('Invalid parameter syntax'))).toBe(true)
     })
 
@@ -158,7 +158,7 @@ describe('CLI Commands', () => {
 
   describe('Route Debugging Logic', () => {
     it('should match routes successfully', async () => {
-      await router.get('/users/{id}', (req) => new Response(`User ${req.params.id}`), 'web', 'users.show')
+      await router.get('/users/{id}', req => new Response(`User ${req.params.id}`), 'web', 'users.show')
 
       // Test route matching functionality
       expect(router.matchRoute).toBeDefined()

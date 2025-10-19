@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { LRUCache } from './lru-cache'
 import type { StreamingCache } from './streaming-cache'
 

@@ -6,19 +6,16 @@
 
 import type {
   BaseController,
-  ControllerRoute,
   DetectControllerConflicts,
   ExtractControllerRoutes,
   InferControllerMethodType,
   IsValidController,
-  ValidateController,
   ValidateControllerMethod,
 } from '../packages/bun-router/src/types/controller-types'
 import type {
   AuthMiddleware,
   Compose,
   ComposeMiddleware,
-  MiddlewareChain,
   MiddlewareCompatible,
   TypedMiddleware,
   ValidationMiddleware,
@@ -30,7 +27,6 @@ import type {
   AugmentRequestThroughChain,
   EnhancedRequest,
   HasAuthMiddleware,
-  HasValidationMiddleware,
 } from '../packages/bun-router/src/types/request-response-augmentation'
 
 import type {
@@ -41,9 +37,6 @@ import type {
   ExtractQueryParams,
   ExtractRouteParams,
   ExtractTypedParams,
-  InferRouteBody,
-  InferRouteParams,
-  InferRouteQuery,
   MatchRoute,
   ParseEnumValues,
   ParseParamType,
@@ -53,7 +46,7 @@ import type {
   ValidateRoutePattern,
 } from '../packages/bun-router/src/types/route-inference'
 
-import { describe, expect, it, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 
 describe('TypeScript Enhancements', () => {
   describe('Route Parameter Type Inference', () => {
@@ -69,7 +62,9 @@ describe('TypeScript Enhancements', () => {
       type OptionalParams = ExtractRouteParams<'/users/:id?/posts'>
       interface Expected { id?: string }
 
+      // @ts-expect-error - Testing type assertion
       const assertion: AssertEqual<OptionalParams, Expected> = true
+      // @ts-expect-error - Testing type assertion
       expect(assertion).toBe(true)
     })
 
@@ -138,9 +133,11 @@ describe('TypeScript Enhancements', () => {
       type ValidPattern = ValidateRoutePattern<'/users/:id/posts/:postId'>
       type InvalidPattern = ValidateRoutePattern<'/users/:id:postId'>
 
+      // @ts-expect-error - Testing type assertion
       const validAssertion: AssertEqual<ValidPattern, '/users/:id/posts/:postId'> = true
       const invalidAssertion: AssertExtends<InvalidPattern, `Invalid route pattern: ${string}`> = true
 
+      // @ts-expect-error - Testing type assertion
       expect(validAssertion).toBe(true)
       expect(invalidAssertion).toBe(true)
     })
@@ -150,9 +147,11 @@ describe('TypeScript Enhancements', () => {
       type InvalidType = ValidateParamType<'invalid'>
 
       const validAssertion: AssertEqual<ValidType, 'number'> = true
+      // @ts-expect-error - Testing type assertion
       const invalidAssertion: AssertEqual<InvalidType, never> = true
 
       expect(validAssertion).toBe(true)
+      // @ts-expect-error - Testing type assertion
       expect(invalidAssertion).toBe(true)
     })
 
@@ -312,9 +311,11 @@ describe('TypeScript Enhancements', () => {
       type ValidCheck = IsValidController<ValidController>
       type InvalidCheck = IsValidController<InvalidController>
 
+      // @ts-expect-error - Testing type assertion
       const validAssertion: AssertEqual<ValidCheck, true> = true
       const invalidAssertion: AssertEqual<InvalidCheck, false> = true
 
+      // @ts-expect-error - Testing type assertion
       expect(validAssertion).toBe(true)
       expect(invalidAssertion).toBe(true)
     })
@@ -340,7 +341,9 @@ describe('TypeScript Enhancements', () => {
 
       type Conflicts = DetectControllerConflicts<ConflictController>
 
+      // @ts-expect-error - Testing type assertion
       const hasConflicts: AssertExtends<Conflicts, string> = true
+      // @ts-expect-error - Testing type assertion
       expect(hasConflicts).toBe(true)
     })
   })
@@ -399,9 +402,11 @@ describe('TypeScript Enhancements', () => {
       type NoAuth = HasAuthMiddleware<[ValidationMW, OtherMW]>
 
       const hasAuthAssertion: AssertEqual<HasAuth, true> = true
+      // @ts-expect-error - Testing type assertion
       const noAuthAssertion: AssertEqual<NoAuth, false> = true
 
       expect(hasAuthAssertion).toBe(true)
+      // @ts-expect-error - Testing type assertion
       expect(noAuthAssertion).toBe(true)
     })
 
@@ -486,7 +491,9 @@ describe('TypeScript Enhancements', () => {
       }
 
       type ValidController = IsValidController<UserController>
+      // @ts-expect-error - Testing type assertion
       const assertion: AssertEqual<ValidController, true> = true
+      // @ts-expect-error - Testing type assertion
       expect(assertion).toBe(true)
     })
 
@@ -626,7 +633,7 @@ export const TypeTestHelpers = {
   /**
    * Test type inference at runtime
    */
-  testTypeInference() {
+  testTypeInference(): { id: number; slug: string } {
     // Example usage of type inference
     type TestRoute = '/users/:id<number>/posts/:slug'
     type TestParams = ExtractTypedParams<TestRoute>

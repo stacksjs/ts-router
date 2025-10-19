@@ -114,7 +114,7 @@ export interface TypedRequest<
   TQuery extends Record<string, any> = {},
   TBody = unknown,
   TContext = {},
-> extends Request {
+> extends Omit<Request, 'body'> {
   params: ExtractTypedParams<TPath>
   query: ExtractQueryParams<TQuery>
   body: TBody
@@ -354,32 +354,4 @@ export type AssertEqual<T, U> = T extends U ? U extends T ? true : false : false
 export type AssertExtends<T, U> = T extends U ? true : false
 export type AssertNotEqual<T, U> = AssertEqual<T, U> extends true ? false : true
 
-// Export all types for external use
-export type {
-  BodySchema,
-  DetectRouteConflicts,
-  ExtractParamsFromPath,
-  ExtractQueryParams,
-  ExtractRouteParams,
-  ExtractTypedParams,
-  GenerateOpenAPISchema,
-  InferRouteBody,
-  InferRouteContext,
-  InferRouteParams,
-  InferRouteQuery,
-  MatchRoute,
-  ParseEnumValues,
-  ParseParamType,
-  ResponseSchema,
-  RouteBuilder,
-  RouteGroup,
-  RouteHandler,
-  RouteMethod,
-  RouteParamSchema,
-  TypedRequest,
-  TypedRoute,
-  TypeSafeRouter,
-  ValidateParamType,
-  ValidateRoutePattern,
-  ValidateRoutes,
-}
+// All types are already exported individually above

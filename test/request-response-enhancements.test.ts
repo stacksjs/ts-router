@@ -5,7 +5,6 @@
 import type { EnhancedRequest, ValidationRules } from '../packages/bun-router/src/enhancements'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import {
-  BuiltInRequestMacros,
   BuiltInResponseMacros,
   createValidationMiddleware,
   EnhancedRequestWithMacros,
@@ -14,7 +13,6 @@ import {
   rule,
   validate,
   ValidationHelpers,
-  ValidationRuleBuilder,
   Validator,
 } from '../packages/bun-router/src/enhancements'
 

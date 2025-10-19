@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { Server } from 'bun'
 import type { EnhancedRequest, HTTPMethod, Route, ServerOptions } from '../types'
 import type { Router } from './router'

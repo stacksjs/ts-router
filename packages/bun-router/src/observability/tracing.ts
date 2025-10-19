@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Observability & Monitoring - Distributed Tracing with OpenTelemetry
  *

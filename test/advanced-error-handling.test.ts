@@ -2,9 +2,8 @@
  * Advanced Error Handling Test Suite
  */
 
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
 import {
-  AuthenticationException,
   CircuitBreaker,
   CircuitBreakerOpenException,
   CircuitBreakerPresets,
@@ -170,7 +169,7 @@ describe('Advanced Error Handling', () => {
     test('should create error handler middleware', () => {
       const handler = createAdvancedErrorHandler({
         development: true,
-        logErrors: false
+        logErrors: false,
       })
 
       expect(typeof handler.middleware).toBe('function')
@@ -181,14 +180,14 @@ describe('Advanced Error Handling', () => {
     test('should handle RouterException', async () => {
       const handler = createAdvancedErrorHandler({
         development: true,
-        logErrors: false
+        logErrors: false,
       })
 
       const mockReq = {
         method: 'GET',
         url: 'http://test.com/api',
         requestId: 'req-123',
-        context: {}
+        context: {},
       } as any
 
       const mockNext = () => {

@@ -7,7 +7,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { createContainer } from '../packages/bun-router/src/container/container'
 import { ContextualContainer } from '../packages/bun-router/src/container/contextual-binding'
-import { Controller, DecoratorContainer, Get, Inject, Injectable } from '../packages/bun-router/src/container/decorators'
+import { DecoratorContainer, Inject, Injectable } from '../packages/bun-router/src/container/decorators'
 import { BaseServiceProvider, DefaultServiceProviderManager } from '../packages/bun-router/src/container/service-provider'
 
 describe('Dependency Injection System', () => {

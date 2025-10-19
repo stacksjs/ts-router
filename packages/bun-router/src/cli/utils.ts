@@ -142,7 +142,8 @@ export async function checkRouterHealth(options: { verbose?: boolean }): Promise
       // Count static vs dynamic routes
       if (route.path.includes('{') || route.path.includes('*')) {
         health.dynamicRoutes++
-      } else {
+      }
+      else {
         health.staticRoutes++
       }
     }
@@ -185,7 +186,8 @@ export async function checkRouterHealth(options: { verbose?: boolean }): Promise
         for (const issue of issues) {
           console.log(`  • ${issue}`)
         }
-      } else {
+      }
+      else {
         logger.success('\n✅ No issues detected')
       }
     }
@@ -239,7 +241,7 @@ export async function testRoutes(options: {
       total: 0,
       passed: 0,
       failed: 0,
-      errors: [] as Array<{ route: string, error: string }>
+      errors: [] as Array<{ route: string, error: string }>,
     }
 
     for (const route of filteredRoutes) {
@@ -255,17 +257,18 @@ export async function testRoutes(options: {
         const url = `${baseUrl}${route.path}`
         const response = await fetch(url, {
           method: route.method,
-          signal: AbortSignal.timeout(timeout)
+          signal: AbortSignal.timeout(timeout),
         })
 
         if (response.status < 500) {
           results.passed++
           logger.debug(`✅ ${route.method} ${route.path} → ${response.status}`)
-        } else {
+        }
+        else {
           results.failed++
           results.errors.push({
             route: `${route.method} ${route.path}`,
-            error: `HTTP ${response.status}`
+            error: `HTTP ${response.status}`,
           })
         }
       }
@@ -273,7 +276,7 @@ export async function testRoutes(options: {
         results.failed++
         results.errors.push({
           route: `${route.method} ${route.path}`,
-          error: error.message
+          error: error.message,
         })
       }
     }
@@ -293,7 +296,8 @@ export async function testRoutes(options: {
 
     if (results.failed > 0) {
       process.exit(1)
-    } else {
+    }
+    else {
       logger.success('All tests passed!')
     }
   }
@@ -339,7 +343,8 @@ export async function debugRoute(path: string, options: {
       if (match.route.name) {
         console.log(`  Named route: ${match.route.name}`)
       }
-    } else {
+    }
+    else {
       logger.error(`❌ No route matched for ${method} ${path}`)
 
       if (options.verbose) {
@@ -349,7 +354,8 @@ export async function debugRoute(path: string, options: {
 
         if (methodRoutes.length === 0) {
           console.log(`  No routes defined for ${method} method`)
-        } else {
+        }
+        else {
           for (const route of methodRoutes) {
             console.log(`  ${route.method} ${route.path}`)
           }
@@ -457,7 +463,7 @@ export async function validateRoutes(options: {
       if (route.path && route.path.includes('{')) {
         const params = route.path.match(/\{[^}]+\}/g) || []
         for (const param of params) {
-          if (!param.match(/^\{[a-zA-Z_][a-zA-Z0-9_]*(\?|:[^}]+)?\}$/)) {
+          if (!param.match(/^\{[a-z_]\w*(\?|:[^}]+)?\}$/i)) {
             issues.push(`Invalid parameter syntax in ${route.method} ${route.path}: ${param}`)
           }
         }
