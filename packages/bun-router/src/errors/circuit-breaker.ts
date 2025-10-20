@@ -105,8 +105,8 @@ export class CircuitBreaker {
           try {
             return await call.fallback()
           }
-          catch (_fallbackError) {
-            throw error
+          catch (fallbackError) {
+            console.error(fallbackError)
           }
         }
 
@@ -130,7 +130,9 @@ export class CircuitBreaker {
         try {
           return await call.fallback()
         }
-        catch (_fallbackError) {
+        catch (fallbackError) {
+          console.error(fallbackError)
+
           throw error
         }
       }
@@ -171,13 +173,14 @@ export class CircuitBreaker {
         try {
           return await call.fallback()
         }
-        catch (_fallbackError) {
-          // Fallback failed, throw original error
+        catch (fallbackError) {
+          console.error(fallbackError)
           throw error
         }
       }
-
-      throw error
+      else {
+        throw error
+      }
     }
   }
 

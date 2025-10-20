@@ -11,6 +11,7 @@ export interface RateLimitConfig {
   skipIf?: (req: EnhancedRequest) => boolean // Skip rate limiting condition
   onLimitReached?: (req: EnhancedRequest, info: RateLimitInfo) => Response // Custom response when limit reached
   headers?: boolean // Include rate limit headers in response
+  maxRequests?: number
 }
 
 /**

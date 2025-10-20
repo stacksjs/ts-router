@@ -153,7 +153,8 @@ export class ServiceHealthMonitor {
         }
       }
     }
-    catch (_error) {
+    catch (error) {
+      console.error(error)
       isHealthy = false
     }
 
@@ -293,7 +294,8 @@ export class GracefulDegradationManager {
         this.updateMetrics(context.serviceName, true, Date.now() - context.startTime.getTime())
         return result
       }
-      catch (_retryError) {
+      catch (retryError) {
+        console.error(retryError)
         context.attemptCount++
         if (context.attemptCount <= strategy.retries) {
           return this.executeFallbackStrategy(strategy, context, originalHandler)
@@ -424,6 +426,7 @@ export class GracefulDegradationManager {
       return response
     }
     catch (fallbackError) {
+      console.error(fallbackError)
       throw context.error
     }
   }
@@ -555,6 +558,7 @@ export function createGracefulDegradationMiddleware(config: DegradationConfig) {
           return await manager.handleFailure(serviceName, routerError, req, next)
         }
         catch (fallbackError) {
+          console.error(fallbackError)
           // If all fallbacks fail, throw original error
           throw error
         }

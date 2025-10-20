@@ -200,7 +200,6 @@ export class DistributedTracer {
   extractTraceContext(headers: Headers): SpanContext | null {
     // Support for multiple trace header formats
     const traceParent = headers.get('traceparent')
-    const traceState = headers.get('tracestate')
     const jaegerTrace = headers.get('uber-trace-id')
     const b3Trace = headers.get('x-b3-traceid')
 
@@ -510,7 +509,7 @@ export function getTracer(): DistributedTracer | null {
 /**
  * Tracing middleware factory
  */
-export function createTracingMiddleware(config?: Partial<TraceConfig>) {
+export function createTracingMiddleware(_config?: Partial<TraceConfig>) {
   return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
     const tracer = getTracer()
     if (!tracer) {

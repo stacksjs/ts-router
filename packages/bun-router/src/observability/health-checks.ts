@@ -133,7 +133,6 @@ export class HealthCheckManager {
    * Perform all health checks
    */
   async checkHealth(): Promise<HealthStatus> {
-    const startTime = Date.now()
     const checks: Record<string, HealthCheckResult> = {}
     const dependencies: Record<string, HealthCheckResult> = {}
 
@@ -158,7 +157,7 @@ export class HealthCheckManager {
     )
 
     // Wait for all checks to complete
-    const [depResults, checkResults] = await Promise.all([
+    await Promise.all([
       Promise.allSettled(dependencyPromises),
       Promise.allSettled(customPromises),
     ])
@@ -571,7 +570,7 @@ export const HealthEndpoints = {
   /**
    * Basic health check endpoint
    */
-  health: async (req: EnhancedRequest): Promise<Response> => {
+  health: async (_req: EnhancedRequest): Promise<Response> => {
     const manager = getHealthManager()
     if (!manager) {
       return new Response(JSON.stringify({
@@ -611,7 +610,7 @@ export const HealthEndpoints = {
   /**
    * Readiness probe endpoint
    */
-  ready: async (req: EnhancedRequest): Promise<Response> => {
+  ready: async (_req: EnhancedRequest): Promise<Response> => {
     const manager = getHealthManager()
     if (!manager) {
       return new Response('Service not ready', { status: 503 })
@@ -632,6 +631,7 @@ export const HealthEndpoints = {
       return new Response('OK', { status: 200 })
     }
     catch (error) {
+      console.error(error)
       return new Response('Service not ready', { status: 503 })
     }
   },

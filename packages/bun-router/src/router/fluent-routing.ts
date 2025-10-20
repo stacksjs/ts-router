@@ -5,7 +5,7 @@ import type { EnhancedRequest, MiddlewareHandler, RouteHandler, ThrottlePattern 
 import { createModelBindingMiddleware } from '../model-binding'
 import { createRouteCacheMiddleware, RouteCacheFactory } from '../routing/route-caching'
 import { createRateLimitMiddleware, parseThrottleString, ThrottleFactory } from '../routing/route-throttling'
-import { SubdomainRouter } from '../routing/subdomain-routing'
+import { DomainGroup, DomainMatcher, SubdomainRouter } from '../routing/subdomain-routing'
 
 /**
  * Fluent route builder with chainable API
@@ -50,14 +50,13 @@ export class FluentRouteBuilder {
   /**
    * Add route throttling with narrow type checking
    */
-  throttle(limit: ThrottlePattern | RateLimitConfig, name?: string): this {
+  throttle(limit: ThrottlePattern | RateLimitConfig, _name?: string): this {
     if (typeof limit === 'string') {
       const parsed = parseThrottleString(limit)
       this.throttleConfig = {
-        maxRequests: parsed.maxRequests,
+        maxAttempts: parsed.maxRequests ?? 60,
         windowMs: parsed.windowMs,
         keyGenerator: req => req.headers.get('x-forwarded-for') || 'anonymous',
-        name: name || `throttle_${this.path}`,
       }
     }
     else {
@@ -96,17 +95,20 @@ export class FluentRouteBuilder {
 
     // Add model binding middleware
     if (Object.keys(this.modelBindings).length > 0) {
-      finalMiddleware.push(createModelBindingMiddleware(this.modelBindings))
+      const modelBindingMiddleware = createModelBindingMiddleware(this.modelBindings)
+      finalMiddleware.push(modelBindingMiddleware as MiddlewareHandler)
     }
 
     // Add throttling middleware
     if (this.throttleConfig) {
-      finalMiddleware.push(createRateLimitMiddleware(this.throttleConfig))
+      const throttleMiddleware = createRateLimitMiddleware(this.throttleConfig)
+      finalMiddleware.push(throttleMiddleware as MiddlewareHandler)
     }
 
     // Add caching middleware
     if (this.cacheConfig) {
-      finalMiddleware.push(createRouteCacheMiddleware(this.cacheConfig))
+      const cacheMiddleware = createRouteCacheMiddleware(this.cacheConfig)
+      finalMiddleware.push(cacheMiddleware as MiddlewareHandler)
     }
 
     // Add custom middleware
@@ -262,18 +264,17 @@ export class FluentRouter {
   private setupDefaultMiddleware(): void {
     // Throttle middleware with parameters
     this.namedMiddleware.set('throttle', (params?: string) => {
-      const config = params ? parseThrottleString(params) : { maxRequests: 60, windowMs: 60000 }
+      const config = params ? parseThrottleString(params as ThrottlePattern) : { maxRequests: 60, windowMs: 60000 }
       return createRateLimitMiddleware({
-        maxRequests: config.maxRequests,
+        maxAttempts: config.maxRequests,
         windowMs: config.windowMs,
         keyGenerator: req => req.headers.get('x-forwarded-for') || 'anonymous',
-        name: `throttle_${params || '60,1'}`,
-      })
+      }) as MiddlewareHandler
     })
 
     // Auth middleware
     this.namedMiddleware.set('auth', () => {
-      return async (req, next) => {
+      return async (req: EnhancedRequest, next: () => Promise<Response | null>): Promise<Response | null> => {
         const token = req.headers.get('Authorization')?.replace('Bearer ', '')
         if (!token) {
           return new Response('Unauthorized', { status: 401 })
@@ -286,7 +287,7 @@ export class FluentRouter {
 
     // CORS middleware
     this.namedMiddleware.set('cors', () => {
-      return async (req, next) => {
+      return async (req: EnhancedRequest, next: () => Promise<Response | null>): Promise<Response | null> => {
         const response = await next()
         if (response) {
           const headers = new Headers(response.headers)
@@ -407,7 +408,13 @@ export class FluentRouter {
   /**
    * Create a cached route
    */
-  cached(tags: string[] = [], config?: Partial<RouteCacheConfig>) {
+  cached(tags: string[] = [], config?: Partial<RouteCacheConfig>): {
+    get: (path: string, handler: RouteHandler) => FluentRouteBuilder
+    post: (path: string, handler: RouteHandler) => FluentRouteBuilder
+    put: (path: string, handler: RouteHandler) => FluentRouteBuilder
+    delete: (path: string, handler: RouteHandler) => FluentRouteBuilder
+    patch: (path: string, handler: RouteHandler) => FluentRouteBuilder
+  } {
     return {
       get: (path: string, handler: RouteHandler) =>
         this.get(path, handler).cached(tags, config),
@@ -425,7 +432,13 @@ export class FluentRouter {
   /**
    * Create a throttled route
    */
-  throttled(limit: string | RateLimitConfig) {
+  throttled(limit: ThrottlePattern | RateLimitConfig): {
+    get: (path: string, handler: RouteHandler) => FluentRouteBuilder
+    post: (path: string, handler: RouteHandler) => FluentRouteBuilder
+    put: (path: string, handler: RouteHandler) => FluentRouteBuilder
+    delete: (path: string, handler: RouteHandler) => FluentRouteBuilder
+    patch: (path: string, handler: RouteHandler) => FluentRouteBuilder
+  } {
     return {
       get: (path: string, handler: RouteHandler) =>
         this.get(path, handler).throttle(limit),
@@ -467,10 +480,16 @@ export class FluentRouter {
       }
 
       if (config.domain) {
-        this.subdomainRouter.addDomainGroup({
-          pattern: config.domain,
-          routes: [groupedRoute],
-        })
+        const domainPattern = DomainMatcher.parseDomainPattern(config.domain)
+        const domainGroup = new DomainGroup(domainPattern, { domain: config.domain })
+        domainGroup.addRoute(
+          groupedRoute.method,
+          groupedRoute.path,
+          groupedRoute.handler,
+          groupedRoute.middleware,
+          groupedRoute.name,
+        )
+        this.subdomainRouter.addDomainGroup(domainGroup)
       }
       else {
         this.routes.push(groupedRoute)
@@ -483,16 +502,26 @@ export class FluentRouter {
   /**
    * Create subdomain routing group
    */
-  domain(pattern: string) {
+  domain(pattern: string): {
+    routes: (callback: (router: FluentRouter) => void) => FluentRouter
+  } {
     return {
-      routes: (callback: (router: FluentRouter) => void) => {
+      routes: (callback: (router: FluentRouter) => void): FluentRouter => {
         const domainRouter = new FluentRouter()
         callback(domainRouter)
 
-        this.subdomainRouter.addDomainGroup({
-          pattern,
-          routes: domainRouter.routes,
-        })
+        const domainPattern = DomainMatcher.parseDomainPattern(pattern)
+        const domainGroup = new DomainGroup(domainPattern, { domain: pattern })
+        for (const route of domainRouter.routes) {
+          domainGroup.addRoute(
+            route.method,
+            route.path,
+            route.handler,
+            route.middleware,
+            route.name,
+          )
+        }
+        this.subdomainRouter.addDomainGroup(domainGroup)
 
         return this
       },
@@ -539,7 +568,13 @@ export class FluentRouter {
   /**
    * Get all registered routes
    */
-  getRoutes() {
+  getRoutes(): Array<{
+    method: string
+    path: string
+    handler: RouteHandler
+    middleware: MiddlewareHandler[]
+    name?: string
+  }> {
     return [...this.routes, ...this.subdomainRouter.getAllRoutes()]
   }
 
@@ -550,9 +585,20 @@ export class FluentRouter {
     const _url = new URL(request.url)
 
     // Try subdomain routing first
-    const subdomainResponse = await this.subdomainRouter.handle(request)
-    if (subdomainResponse) {
-      return subdomainResponse
+    const url = new URL(request.url)
+    const domain = url.hostname
+    const match = this.subdomainRouter.findDomainGroup(domain)
+    if (match) {
+      // Add domain parameters to request
+      const enhancedReq = request as EnhancedRequest & { domainParams?: Record<string, string> }
+      enhancedReq.domainParams = match.parameters
+
+      // Find matching route in domain group
+      for (const route of match.group.getRoutes()) {
+        if (this.matchesRoute(route, request)) {
+          return await this.executeRoute(route, enhancedReq)
+        }
+      }
     }
 
     // Find matching route
@@ -610,16 +656,16 @@ export const RouteFactory = {
     method?: string
     cache?: string[]
     throttle?: string
-  } = {}) => {
+  } = {}): FluentRouteBuilder => {
     const method = options.method || 'GET'
-    const builder = new LaravelRouteBuilder(method, path, handler)
+    const builder = new FluentRouteBuilder(method, path, handler)
 
     if (options.cache) {
       builder.cached(options.cache)
     }
 
     if (options.throttle) {
-      builder.throttle(options.throttle)
+      builder.throttle(options.throttle as ThrottlePattern)
     }
 
     return builder
@@ -631,12 +677,12 @@ export const RouteFactory = {
   protected: (path: string, handler: RouteHandler, options: {
     method?: string
     roles?: string[]
-  } = {}) => {
+  } = {}): FluentRouteBuilder => {
     const method = options.method || 'GET'
-    const builder = new LaravelRouteBuilder(method, path, handler)
+    const builder = new FluentRouteBuilder(method, path, handler)
 
     // Add auth middleware (would need to be implemented)
-    builder.addMiddleware(async (req, next) => {
+    builder.addMiddleware(async (req: EnhancedRequest, next: () => Promise<Response | null>): Promise<Response | null> => {
       // Mock auth check
       if (!req.headers.get('Authorization')) {
         return new Response('Unauthorized', { status: 401 })
@@ -653,11 +699,11 @@ export const RouteFactory = {
   upload: (path: string, handler: RouteHandler, _options: {
     maxSize?: number
     allowedTypes?: string[]
-  } = {}) => {
+  } = {}): FluentRouteBuilder => {
     const builder = new FluentRouteBuilder('POST', path, handler)
 
     // Add file upload middleware (would need to be implemented)
-    builder.addMiddleware(async (req, next) => {
+    builder.addMiddleware(async (req: EnhancedRequest, next: () => Promise<Response | null>): Promise<Response | null> => {
       // Mock file upload handling
       return await next()
     })
@@ -673,7 +719,7 @@ export const RouterUtils = {
   /**
    * Generate route URL with parameters
    */
-  route: (name: string, params: Record<string, string> = {}, query: Record<string, string> = {}) => {
+  route: (name: string, params: Record<string, string> = {}, query: Record<string, string> = {}): string => {
     // Mock route URL generation
     let url = `/${name}`
 
@@ -692,7 +738,7 @@ export const RouterUtils = {
   /**
    * Redirect response
    */
-  redirect: (url: string, status: number = 302) => {
+  redirect: (url: string, status: number = 302): Response => {
     return new Response(null, {
       status,
       headers: { Location: url },
@@ -702,7 +748,7 @@ export const RouterUtils = {
   /**
    * JSON response
    */
-  json: (data: any, status: number = 200) => {
+  json: (data: any, status: number = 200): Response => {
     return new Response(JSON.stringify(data), {
       status,
       headers: { 'Content-Type': 'application/json' },
@@ -713,7 +759,7 @@ export const RouterUtils = {
 /**
  * Global router instance
  */
-export const router = new FluentRouter()
+export const router: FluentRouter = new FluentRouter()
 
 /**
  * Export commonly used factory functions
