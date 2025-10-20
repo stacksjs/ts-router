@@ -35,22 +35,22 @@ export { Router }
 declare module './router' {
   interface Router {
     // Laravel-style streaming methods
-    stream(
+    stream: (
       callback: () => Generator<string | Uint8Array, void, unknown> | AsyncGenerator<string | Uint8Array, void, unknown>,
       status?: number,
       headers?: Record<string, string>
-    ): Response
+    ) => Response
 
-    streamJson<T>(
+    streamJson: <T>(
       data: Record<string, Iterable<T> | AsyncIterable<T>>,
       status?: number,
       headers?: Record<string, string>
-    ): Response
+    ) => Response
 
-    eventStream<T = any>(
+    eventStream: <_T = any>(
       callback: () => Generator<{ data: any, event?: string, id?: string, retry?: number }, void, unknown> | AsyncGenerator<{ data: any, event?: string, id?: string, retry?: number }, void, unknown>,
       headers?: Record<string, string>
-    ): Response
+    ) => Response
 
     streamDownload: (
       callback: () => Generator<string | Uint8Array, void, unknown> | AsyncGenerator<string | Uint8Array, void, unknown>,
@@ -104,8 +104,8 @@ declare module './router' {
 
     readonly modelRegistry: {
       has: (name: string) => boolean
-      register: <T>(name: string, config: any) => void
-      resolve: <T>(modelName: string, params: Record<string, string>, req?: any) => Promise<any>
+      register: <_T>(name: string, config: any) => void
+      resolve: <_T>(modelName: string, params: Record<string, string>, req?: any) => Promise<any>
       createErrorResponse: (modelName: string, result: any, params: Record<string, string>) => Response
       clearCache: (modelName: string, params?: Record<string, string>) => void
       clearAllCache: () => void

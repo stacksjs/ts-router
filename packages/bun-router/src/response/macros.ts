@@ -4,6 +4,8 @@
  * Laravel-style response macros for common response patterns
  */
 
+import process from 'node:process'
+
 export interface ResponseMacro {
   name: string
   handler: (...args: any[]) => Response
@@ -87,7 +89,7 @@ class ResponseMacroRegistry {
 /**
  * Global response macro registry
  */
-export const responseMacroRegistry = new ResponseMacroRegistry()
+export const responseMacroRegistry: ResponseMacroRegistry = new ResponseMacroRegistry()
 
 /**
  * Enhanced Response class with macro support

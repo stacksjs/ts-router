@@ -143,8 +143,8 @@ export class SSEHandler {
       try {
         this.controller.close()
       }
-      catch (_error) {
-        // Connection might already be closed
+      catch (error) {
+        console.error('Error closing SSE connection:', error)
       }
     }
   }

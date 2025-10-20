@@ -5,6 +5,7 @@
  */
 
 import type { EnhancedRequest } from '../types'
+import process from 'node:process'
 
 export interface MetricConfig {
   prefix?: string
@@ -202,7 +203,7 @@ export class Histogram extends Metric {
     }
   }
 
-  observe(value: number, labels: MetricLabels = {}): void {
+  observe(value: number, _labels: MetricLabels = {}): void {
     this.sum += value
     this.count++
 
@@ -283,7 +284,7 @@ export class Summary extends Metric {
     this.maxAge = maxAge
   }
 
-  observe(value: number, labels: MetricLabels = {}): void {
+  observe(value: number, _labels: MetricLabels = {}): void {
     const now = Date.now()
     this.observations.push({ value, timestamp: now })
     this.sum += value

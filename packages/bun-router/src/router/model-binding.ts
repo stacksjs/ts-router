@@ -140,7 +140,8 @@ export function registerModelBinding(RouterClass: typeof Router): void {
           try {
             return await next()
           }
-          catch (_error) {
+          catch (error) {
+            console.error(error)
             // If it's a model not found error, use the custom callback
             return callback(req)
           }

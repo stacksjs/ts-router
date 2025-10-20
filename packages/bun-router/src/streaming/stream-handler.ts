@@ -463,7 +463,8 @@ export class FileStreamHandler {
         headers,
       })
     }
-    catch (_error) {
+    catch (error) {
+      console.error('Error streaming file:', error)
       return new Response('File not found', { status: 404 })
     }
   }

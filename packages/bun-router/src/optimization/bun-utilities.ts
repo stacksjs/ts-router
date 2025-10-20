@@ -4,6 +4,9 @@
  * Generic optimization utilities leveraging Bun's runtime capabilities
  */
 
+import { Buffer } from 'node:buffer'
+import process from 'node:process'
+
 export interface BunOptimizationConfig {
   enableJIT?: boolean
   enableGC?: boolean
@@ -159,6 +162,7 @@ export class BunOptimizer {
           op()
         }
         catch (error) {
+          console.error(error)
           // Ignore warmup errors
         }
       })
@@ -207,6 +211,7 @@ export class BunOptimizer {
         this.gcObserver.observe({ entryTypes: ['gc'] })
       }
       catch (error) {
+        console.error(error)
         // GC observation not supported
       }
     }
@@ -284,6 +289,7 @@ export class BunOptimizer {
         this.performanceObserver.observe({ entryTypes: ['measure', 'navigation'] })
       }
       catch (error) {
+        console.error(error)
         // Performance observation not supported
       }
     }
@@ -318,6 +324,7 @@ export class BunOptimizer {
           fn()
         }
         catch (error) {
+          console.error(error)
           // Ignore warmup errors
         }
       }

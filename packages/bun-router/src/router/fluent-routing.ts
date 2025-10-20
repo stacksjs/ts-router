@@ -153,7 +153,7 @@ export class FluentConditionalBuilder {
     }
 
     const middlewareHandler = middlewareFactory(params)
-    (this.router as any).conditionalMiddleware.push({
+    ;(this.router as any).conditionalMiddleware.push({
       condition: this.condition,
       middleware: [middlewareHandler],
     })
@@ -547,7 +547,7 @@ export class FluentRouter {
    * Handle incoming request
    */
   async handle(request: EnhancedRequest): Promise<Response | null> {
-    const url = new URL(request.url)
+    const _url = new URL(request.url)
 
     // Try subdomain routing first
     const subdomainResponse = await this.subdomainRouter.handle(request)
@@ -574,7 +574,7 @@ export class FluentRouter {
     }
 
     const url = new URL(request.url)
-    const routePattern = route.path.replace(/\{(\w+):?(\w*)\}/g, '([^/]+)')
+    const routePattern = route.path.replace(/\{([^:}]+):?([^}]*)\}/g, '([^/]+)')
     const regex = new RegExp(`^${routePattern}$`)
 
     return regex.test(url.pathname)
@@ -650,7 +650,7 @@ export const RouteFactory = {
   /**
    * File upload route
    */
-  upload: (path: string, handler: RouteHandler, options: {
+  upload: (path: string, handler: RouteHandler, _options: {
     maxSize?: number
     allowedTypes?: string[]
   } = {}) => {

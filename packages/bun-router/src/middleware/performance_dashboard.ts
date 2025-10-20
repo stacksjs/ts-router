@@ -1,5 +1,6 @@
 import type { EnhancedRequest, NextFunction } from '../types'
 import type { TraceSpan } from './request_tracer'
+import process from 'node:process'
 
 export interface DashboardOptions {
   enabled?: boolean

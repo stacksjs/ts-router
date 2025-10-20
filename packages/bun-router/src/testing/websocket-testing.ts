@@ -514,7 +514,8 @@ export const wsPerformance = {
         connectionTimes.push(endTime - startTime)
         results.successfulConnections++
       }
-      catch (_error) {
+      catch (error) {
+        console.error('WebSocket connection failed:', error)
         results.failedConnections++
       }
     })

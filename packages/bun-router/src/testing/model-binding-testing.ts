@@ -73,7 +73,7 @@ export class ModelBindingTester {
 
     // Mock default resolution behavior
     if (this.options.modelClass) {
-      return new this.options.modelClass({ id: paramValue })
+      return new (this.options.modelClass as any)({ id: paramValue })
     }
 
     return { id: paramValue }
@@ -308,7 +308,7 @@ export class ModelResolverTester {
           throw new Error(`${modelClass.name || 'Model'} not found`)
         return model
       }
-      return new modelClass({ id: value })
+      return new (modelClass as any)({ id: value })
     })
 
     this.resolvers.set(key, resolver)
@@ -425,7 +425,8 @@ export const routeModelHelpers = {
             request.context[key] = resolver
           }
         }
-        catch (_error) {
+        catch (error) {
+          console.error(`Error resolving model ${key}:`, error)
           return new Response(`${key} not found`, { status: 404 })
         }
       }

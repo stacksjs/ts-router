@@ -157,7 +157,8 @@ export class MiddlewareFactory {
         req.user = user
         return next()
       }
-      catch (_error) {
+      catch (error) {
+        console.error(error)
         return new Response('Invalid token', { status: 401 })
       }
     }

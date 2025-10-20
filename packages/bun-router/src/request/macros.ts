@@ -595,7 +595,7 @@ export const RequestMacroFactory = {
   /**
    * Create input validation macro
    */
-  validateInput: (rules: Record<string, string>) => {
+  validateInput: (_rules: Record<string, string>) => {
     return function (this: EnhancedRequest): boolean {
       // This would integrate with the validation system
       // For now, return true as placeholder

@@ -4,6 +4,9 @@
  * Enterprise-grade observability features for distributed systems
  */
 
+import type { EnhancedRequest } from '../types'
+import type { ObservabilityConfig, ObservabilityManager } from './integration'
+
 // Request Correlation
 export {
   type CorrelationConfig,
@@ -79,52 +82,52 @@ export {
 /**
  * Initialize observability with development preset
  */
-export function setupDevelopmentObservability(): import('./integration').ObservabilityManager {
-  const { initializeObservability: init, ObservabilityPresets } = require('./integration')
+export async function setupDevelopmentObservability(): Promise<ObservabilityManager> {
+  const { initializeObservability: init, ObservabilityPresets } = await import('./integration')
   return init(ObservabilityPresets.development())
 }
 
 /**
  * Initialize observability with production preset
  */
-export function setupProductionObservability(): import('./integration').ObservabilityManager {
-  const { initializeObservability: init, ObservabilityPresets } = require('./integration')
+export async function setupProductionObservability(): Promise<ObservabilityManager> {
+  const { initializeObservability: init, ObservabilityPresets } = await import('./integration')
   return init(ObservabilityPresets.production())
 }
 
 /**
  * Initialize observability with Kubernetes preset
  */
-export function setupKubernetesObservability(): import('./integration').ObservabilityManager {
-  const { initializeObservability: init, ObservabilityPresets } = require('./integration')
+export async function setupKubernetesObservability(): Promise<ObservabilityManager> {
+  const { initializeObservability: init, ObservabilityPresets } = await import('./integration')
   return init(ObservabilityPresets.kubernetes())
 }
 
 /**
  * Initialize observability with microservices preset
  */
-export function setupMicroservicesObservability(): import('./integration').ObservabilityManager {
-  const { initializeObservability: init, ObservabilityPresets } = require('./integration')
+export async function setupMicroservicesObservability(): Promise<ObservabilityManager> {
+  const { initializeObservability: init, ObservabilityPresets } = await import('./integration')
   return init(ObservabilityPresets.microservices())
 }
 
 /**
  * Initialize observability from environment variables
  */
-export function setupObservabilityFromEnv(): import('./integration').ObservabilityManager {
-  const { initializeObservability: init, ObservabilityUtils } = require('./integration')
+export async function setupObservabilityFromEnv(): Promise<ObservabilityManager> {
+  const { initializeObservability: init, ObservabilityUtils } = await import('./integration')
   return init(ObservabilityUtils.fromEnvironment())
 }
 
 /**
  * Create a complete observability middleware stack
  */
-export function createObservabilityStack(config?: import('./integration').ObservabilityConfig): {
-  middleware: (req: import('../types').EnhancedRequest, next: () => Promise<Response>) => Promise<Response>
-  endpoints: Record<string, (req: import('../types').EnhancedRequest) => Promise<Response>>
-  manager: import('./integration').ObservabilityManager
-} {
-  const { initializeObservability: init } = require('./integration')
+export async function createObservabilityStack(config?: ObservabilityConfig): Promise<{
+  middleware: (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>
+  endpoints: Record<string, (req: EnhancedRequest) => Promise<Response>>
+  manager: ObservabilityManager
+}> {
+  const { initializeObservability: init } = await import('./integration')
   const manager = init(config)
   return {
     middleware: manager.createMiddleware(),
@@ -136,7 +139,19 @@ export function createObservabilityStack(config?: import('./integration').Observ
 /**
  * Default export for convenience
  */
-const observabilityDefault = {
+const observabilityDefault: {
+  setupDevelopmentObservability: typeof setupDevelopmentObservability
+  setupProductionObservability: typeof setupProductionObservability
+  setupKubernetesObservability: typeof setupKubernetesObservability
+  setupMicroservicesObservability: typeof setupMicroservicesObservability
+  setupObservabilityFromEnv: typeof setupObservabilityFromEnv
+  createObservabilityStack: typeof createObservabilityStack
+  initializeObservability: Promise<any>
+  getObservabilityManager: Promise<any>
+  ObservabilityPresets: Promise<any>
+  ObservabilityIntegration: Promise<any>
+  ObservabilityUtils: Promise<any>
+} = {
   // Setup functions
   setupDevelopmentObservability,
   setupProductionObservability,
@@ -146,22 +161,22 @@ const observabilityDefault = {
   createObservabilityStack,
 
   // Core managers - use dynamic imports to avoid circular dependencies
-  get initializeObservability() {
-    return require('./integration').initializeObservability
+  get initializeObservability(): Promise<any> {
+    return import('./integration').then(m => m.initializeObservability)
   },
-  get getObservabilityManager() {
-    return require('./integration').getObservabilityManager
+  get getObservabilityManager(): Promise<any> {
+    return import('./integration').then(m => m.getObservabilityManager)
   },
 
   // Presets and utilities
-  get ObservabilityPresets() {
-    return require('./integration').ObservabilityPresets
+  get ObservabilityPresets(): Promise<any> {
+    return import('./integration').then(m => m.ObservabilityPresets)
   },
-  get ObservabilityIntegration() {
-    return require('./integration').ObservabilityIntegration
+  get ObservabilityIntegration(): Promise<any> {
+    return import('./integration').then(m => m.ObservabilityIntegration)
   },
-  get ObservabilityUtils() {
-    return require('./integration').ObservabilityUtils
+  get ObservabilityUtils(): Promise<any> {
+    return import('./integration').then(m => m.ObservabilityUtils)
   },
 }
 

@@ -212,7 +212,7 @@ export class TestClient {
     }
     else if (typeof handler === 'object' && handler.handle) {
       // Handle class-based handlers
-      const instance = new handler()
+      const instance = new (handler as any)()
       return await instance.handle(request)
     }
 

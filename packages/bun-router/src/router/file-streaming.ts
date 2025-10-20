@@ -360,7 +360,7 @@ export function registerFileStreaming(RouterClass: typeof Router): void {
     transformStream: {
       value<T, U>(
         transformFn: (chunk: T) => U | Promise<U>,
-        options?: any,
+        _options?: any,
       ): TransformStream<T, U> {
         return StreamUtils.transform(transformFn)
       },
