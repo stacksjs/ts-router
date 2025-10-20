@@ -164,7 +164,8 @@ export default class RateLimit implements Middleware {
   async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
     // If rate limiting is disabled in config, skip it
     if (config.server?.rateLimit?.enabled === false) {
-      return next()
+      const response = await next()
+      return response || new Response('Not Found', { status: 404 })
     }
 
     // If limiter isn't initialized yet, wait a bit and try again
@@ -172,7 +173,8 @@ export default class RateLimit implements Middleware {
       await new Promise(resolve => setTimeout(resolve, 50))
       if (!this.limiter) {
         // If still not initialized, just proceed
-        return next()
+        const response = await next()
+        return response || new Response('Not Found', { status: 404 })
       }
     }
 
@@ -183,15 +185,19 @@ export default class RateLimit implements Middleware {
       if (!result.allowed) {
         return this.options.handler
           ? await this.options.handler(req, {
-            remaining: result.remaining,
-            limit: result.limit,
-            resetTime: result.resetTime,
-          })
+              remaining: result.remaining,
+              limit: result.limit,
+              resetTime: result.resetTime,
+            })
           : this.defaultHandler(req, result)
       }
 
       // If allowed, proceed to next middleware
       const response = await next()
+
+      if (!response) {
+        return new Response('Not Found', { status: 404 })
+      }
 
       // Add rate limit headers to response
       const headers = new Headers(response.headers)
@@ -217,7 +223,8 @@ export default class RateLimit implements Middleware {
     catch (error) {
       console.error('[RateLimit] Error during rate limiting:', error)
       // Proceed to next middleware in case of error
-      return next()
+      const response = await next()
+      return response || new Response('Not Found', { status: 404 })
     }
   }
 }

@@ -242,7 +242,7 @@ async function sendRequest() {
         responseBody.value = text
       }
     }
-    catch (error) {
+    catch {
       responseBody.value = 'Error reading response body'
     }
 

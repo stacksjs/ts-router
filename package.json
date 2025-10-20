@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
-  "description": "A Redis-backed job queue built for Bun.",
+  "description": "A router for Bun.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
   "homepage": "https://github.com/stacksjs/bun-router#readme",
@@ -15,12 +15,7 @@
     "url": "https://github.com/stacksjs/bun-router/issues"
   },
   "keywords": [
-    "queue",
-    "job",
-    "redis",
-    "worker",
-    "task",
-    "scheduler",
+    "router",
     "bun",
     "typescript"
   ],
@@ -60,35 +55,18 @@
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
     "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
-    "postinstall": "bunx git-hooks",
     "dev:docs": "bun --bun vitepress dev docs",
     "build:docs": "bun --bun vitepress build docs",
     "preview:docs": "bun --bun vitepress preview docs",
-    "typecheck": "bun --bun tsc --noEmit"
+    "typecheck": "bunx --bun tsc --noEmit"
   },
   "devDependencies": {
-    "@stacksjs/bumpx": "^0.1.13",
     "@stacksjs/docs": "^0.70.23",
-    "@stacksjs/eslint-config": "^4.10.2-beta.3",
-    "@stacksjs/gitlint": "^0.1.5",
-    "@stacksjs/logsmith": "^0.1.8",
-    "@types/bun": "^1.2.14",
-    "buddy-bot": "^0.8.8",
-    "bun-git-hooks": "^0.2.19",
-    "bun-plugin-dtsx": "^0.21.12",
-    "bunfig": "^0.10.0",
-    "typescript": "^5.8.3"
+    "@stacksjs/eslint-config": "^4.14.0-beta.3",
+    "better-dx": "^0.2.0"
   },
   "overrides": {
     "unconfig": "0.3.10"
-  },
-  "git-hooks": {
-    "pre-commit": {
-      "staged-lint": {
-        "*.{js,ts,json,yaml,yml,md}": "bun lint:fix"
-      }
-    },
-    "commit-msg": "bunx gitlint --edit $1"
   },
   "workspaces": [
     "packages/*"

@@ -31,6 +31,7 @@ export default class JsonBody {
     }
 
     // Continue to next middleware
-    return next()
+    const response = await next()
+    return response || new Response('Not Found', { status: 404 })
   }
 }

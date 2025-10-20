@@ -1,5 +1,5 @@
 import type { WebSocketConfig } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 
 /**
  * WebSocket extension for Router class

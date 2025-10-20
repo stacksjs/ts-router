@@ -9,6 +9,7 @@ import { generateMiddlewareMap, generateMiddlewareTypes, watchDirectoryForMiddle
 import { generateOpenAPISpec } from './openapi'
 import { generateRouterTypes, watchRouterFiles } from './router'
 import { displayRoutes, generateRouteTypes, watchRoutesDirectory } from './routes'
+import { checkRouterHealth, clearCaches, debugRoute, testRoutes, validateRoutes } from './utils'
 
 /**
  * Create and configure the CLI
@@ -24,6 +25,7 @@ export function createCLI(): CAC {
   registerMiddlewareCommands(cli)
   registerRouterCommands(cli)
   registerOpenAPICommands(cli)
+  registerUtilityCommands(cli)
 
   // Add help command
   cli.help()
@@ -186,6 +188,93 @@ function registerOpenAPICommands(cli: CAC): void {
       }
       catch (error: any) {
         console.error(`Failed to generate OpenAPI specification: ${error.message}`)
+        process.exit(1)
+      }
+    })
+}
+
+/**
+ * Register utility commands for debugging and development
+ */
+function registerUtilityCommands(cli: CAC): void {
+  cli
+    .command('health', 'Check router health and configuration')
+    .option('--verbose', 'Show detailed health information')
+    .example('router health')
+    .example('router health --verbose')
+    .action(async (options: { verbose?: boolean }) => {
+      try {
+        await checkRouterHealth(options)
+      }
+      catch (error: any) {
+        console.error(`Health check failed: ${error.message}`)
+        process.exit(1)
+      }
+    })
+
+  cli
+    .command('test:routes', 'Test routes by making HTTP requests')
+    .option('--base-url <url>', 'Base URL for testing', { default: 'http://localhost:3000' })
+    .option('--filter <pattern>', 'Filter routes by path pattern')
+    .option('--method <methods>', 'Test only specific HTTP methods (comma-separated)')
+    .option('--timeout <ms>', 'Request timeout in milliseconds', { default: 5000 })
+    .example('router test:routes')
+    .example('router test:routes --base-url http://localhost:8080')
+    .example('router test:routes --filter "/api/*"')
+    .example('router test:routes --method GET,POST')
+    .action(async (options: { baseUrl?: string, filter?: string, method?: string, timeout?: number }) => {
+      try {
+        await testRoutes(options)
+      }
+      catch (error: any) {
+        console.error(`Route testing failed: ${error.message}`)
+        process.exit(1)
+      }
+    })
+
+  cli
+    .command('debug:route <path>', 'Debug route matching for a specific path')
+    .option('--method <method>', 'HTTP method to test', { default: 'GET' })
+    .option('--verbose', 'Show detailed matching information')
+    .example('router debug:route /api/users/123')
+    .example('router debug:route /api/users/123 --method POST --verbose')
+    .action(async (path: string, options: { method?: string, verbose?: boolean }) => {
+      try {
+        await debugRoute(path, options)
+      }
+      catch (error: any) {
+        console.error(`Route debugging failed: ${error.message}`)
+        process.exit(1)
+      }
+    })
+
+  cli
+    .command('cache:clear', 'Clear route caches')
+    .option('--stats', 'Show cache statistics before clearing')
+    .example('router cache:clear')
+    .example('router cache:clear --stats')
+    .action(async (options: { stats?: boolean }) => {
+      try {
+        await clearCaches(options)
+      }
+      catch (error: any) {
+        console.error(`Cache clearing failed: ${error.message}`)
+        process.exit(1)
+      }
+    })
+
+  cli
+    .command('validate', 'Validate route definitions and configuration')
+    .option('--strict', 'Use strict validation rules')
+    .option('--fix', 'Automatically fix simple issues')
+    .example('router validate')
+    .example('router validate --strict --fix')
+    .action(async (options: { strict?: boolean, fix?: boolean }) => {
+      try {
+        await validateRoutes(options)
+      }
+      catch (error: any) {
+        console.error(`Route validation failed: ${error.message}`)
         process.exit(1)
       }
     })

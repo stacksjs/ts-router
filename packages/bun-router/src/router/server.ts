@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import type { Server } from 'bun'
 import type { EnhancedRequest, HTTPMethod, Route, ServerOptions } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 
 /**
  * Server handling extension for Router class
@@ -12,7 +11,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
      * Start the HTTP server
      */
     serve: {
-      async value(options: ServerOptions = {}): Promise<Server> {
+      async value(options: ServerOptions = {}): Promise<Server<any>> {
         // Invalidate route cache before starting server
         this.invalidateCache()
 
@@ -223,7 +222,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
           cookies,
           _cookiesToSet: [],
           _cookiesToDelete: [],
-        }) as EnhancedRequest
+        }) as unknown as EnhancedRequest
       },
       writable: true,
       configurable: true,

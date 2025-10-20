@@ -17,7 +17,10 @@ export default class RequestId {
     // Continue to next middleware
     const response = await next()
 
-    // Add request ID to response headers if not already present
+    // Add request ID to response headers
+    if (!response) {
+      return new Response('Not Found', { status: 404 })
+    }
     const newHeaders = new Headers(response.headers)
     if (!newHeaders.has('X-Request-ID')) {
       newHeaders.set('X-Request-ID', requestId)

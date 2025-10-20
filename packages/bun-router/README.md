@@ -202,6 +202,184 @@ route.use(loggerMiddleware.handle)
 route.get('/users/{id}', handler)
 ```
 
+## Streaming Support
+
+The router provides comprehensive streaming capabilities for modern web applications:
+
+### File Streaming
+
+Stream files with automatic content-type detection:
+
+```typescript
+// Basic file streaming
+route.get('/download/{filename}', (req) => {
+  const { filename } = req.params
+  return route.streamFile(`./uploads/${filename}`)
+})
+
+// File streaming with range support (for video/audio)
+route.get('/video/{id}', async (req) => {
+  const { id } = req.params
+  const videoPath = `./videos/${id}.mp4`
+  return await route.streamFileWithRanges(videoPath, req)
+})
+```
+
+### Response Streaming
+
+Create streaming routes with clean, top-level API methods:
+
+```typescript
+// Default streaming (uses Bun's async generator optimization)
+route.stream('/stream-data', async function* () {
+  for (let i = 0; i < 100; i++) {
+    yield `Chunk ${i}\n`
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+})
+
+// Direct streaming for high-performance scenarios
+route.streamDirect('/stream-direct', async ({ write, close }) => {
+  for (let i = 0; i < 1000; i++) {
+    write(`Data chunk ${i}\n`)
+    if (i % 100 === 0) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+  }
+  close()
+})
+
+// Buffered streaming using Bun.ArrayBufferSink
+route.streamBuffered('/stream-buffered', async ({ write, flush, end }) => {
+  for (let i = 0; i < 1000; i++) {
+    write(`Item ${i}\n`)
+    if (i % 50 === 0) {
+      flush() // Flush buffer every 50 items
+    }
+  }
+  end()
+}, { highWaterMark: 1024 * 1024 }) // 1MB buffer
+```
+
+### Server-Sent Events (SSE)
+
+Real-time data streaming to web clients:
+
+```typescript
+// Basic SSE endpoint
+route.streamSSE('/events', async function* () {
+  let counter = 0
+  while (true) {
+    yield {
+      data: { timestamp: Date.now(), counter: counter++ },
+      event: 'update',
+      id: `msg-${counter}`
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+})
+
+// SSE with custom retry interval
+route.streamSSE('/notifications', async function* () {
+  yield {
+    data: 'Connection established',
+    event: 'connected',
+    retry: 5000 // Retry after 5 seconds if connection drops
+  }
+  
+  // Stream notifications...
+})
+```
+
+### JSON Streaming (NDJSON)
+
+Stream JSON objects line by line:
+
+```typescript
+// Stream database results
+route.streamJSON('/users/stream', async function* () {
+  const users = await getUsersFromDatabase()
+  for (const user of users) {
+    yield { id: user.id, name: user.name, email: user.email }
+  }
+})
+
+// Stream large datasets efficiently
+route.streamJSON('/analytics/data', async function* () {
+  for (let page = 1; page <= 100; page++) {
+    const data = await fetchAnalyticsPage(page)
+    for (const record of data) {
+      yield record
+    }
+  }
+})
+```
+
+### Transform Streams
+
+Process incoming request streams using Bun's TransformStream:
+
+```typescript
+// Transform uploaded data
+route.post('/process-upload', route.transformStream(
+  (chunk) => {
+    // Process each chunk (e.g., uppercase text)
+    const text = new TextDecoder().decode(chunk)
+    return text.toUpperCase()
+  },
+  { headers: { 'Content-Type': 'text/plain' } }
+))
+```
+
+### Advanced Streaming Features
+
+Leverage Bun's performance optimizations:
+
+```typescript
+// Use direct ReadableStream for maximum performance
+route.streamDirect('/high-performance-stream', async ({ write, close }) => {
+  // No queueing - data is written directly to the stream
+  for (let i = 0; i < 10000; i++) {
+    write(new Uint8Array([65 + (i % 26)])) // A-Z pattern
+  }
+  close()
+})
+
+// Buffered streaming with Bun.ArrayBufferSink
+route.streamBuffered('/buffered-data', async ({ write, flush, end }) => {
+  // Efficient incremental buffer building
+  for (let batch = 0; batch < 10; batch++) {
+    for (let i = 0; i < 100; i++) {
+      write(`Batch ${batch}, Item ${i}\n`)
+    }
+    flush() // Periodically flush the buffer
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+  end()
+}, { 
+  highWaterMark: 512 * 1024, // 512KB buffer
+  asUint8Array: true 
+})
+
+// Mix streaming with middleware and route groups
+route.group({ prefix: '/api/v1', middleware: ['Auth'] }, () => {
+  route.streamJSON('/live-metrics', async function* () {
+    while (true) {
+      yield await getSystemMetrics()
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    }
+  })
+  
+  route.streamSSE('/notifications', async function* () {
+    // Stream user-specific notifications
+    const userId = getCurrentUserId()
+    for await (const notification of watchNotifications(userId)) {
+      yield { data: notification, event: 'notification' }
+    }
+  })
+})
+```
+
 ## Server Configuration
 
 The `serve` method accepts all Bun server options:

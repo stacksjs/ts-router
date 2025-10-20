@@ -58,6 +58,7 @@ export function extractBasicAuth(authHeader: string): { username: string, passwo
     return { username, password }
   }
   catch (error) {
+    console.error(error)
     return null
   }
 }
@@ -83,7 +84,7 @@ export function extractApiKey(req: EnhancedRequest, source: 'header' | 'query' |
     case 'query':
       return new URL(req.url).searchParams.get(key)
     case 'cookie':
-      return req.cookies.get(key) || null
+      return req.cookies?.[key] || null
     default:
       return null
   }
@@ -164,7 +165,8 @@ export default class AuthMiddleware implements Middleware {
     }
 
     // Authentication successful, continue to next middleware or route handler
-    return next()
+    const response = await next()
+    return response || new Response('Not Found', { status: 404 })
   }
 }
 

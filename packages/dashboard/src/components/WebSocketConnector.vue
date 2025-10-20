@@ -13,7 +13,7 @@ const wsProtocol = ref('')
 const isConnecting = ref(false)
 const isConnected = ref(false)
 const connectionError = ref('')
-const messageDraft = ref('')
+const _messageDraft = ref('')
 
 let ws: WebSocket | null = null
 

@@ -3,7 +3,7 @@ import type { HistoryItem } from '../store/historyStore'
 import { computed, ref } from 'vue'
 import { useHistoryStore } from '../store/historyStore'
 
-const emit = defineEmits(['use-request'])
+const emit = defineEmits(['useRequest'])
 const historyStore = useHistoryStore()
 const history = computed(() => historyStore.sortedHistory)
 const isExpanded = ref<Record<string, boolean>>({})
@@ -22,13 +22,13 @@ function formatJson(json: string) {
     const parsed = JSON.parse(json)
     return JSON.stringify(parsed, null, 2)
   }
-  catch (e) {
+  catch {
     return json
   }
 }
 
 function reuseRequest(item: HistoryItem) {
-  emit('use-request', {
+  emit('useRequest', {
     method: item.method,
     url: item.url,
     headers: item.headers,
@@ -37,12 +37,14 @@ function reuseRequest(item: HistoryItem) {
 }
 
 function deleteItem(id: string) {
+  // eslint-disable-next-line no-alert
   if (confirm('Are you sure you want to delete this request from history?')) {
     historyStore.removeHistoryItem(id)
   }
 }
 
 function clearAllHistory() {
+  // eslint-disable-next-line no-alert
   if (confirm('Are you sure you want to clear all request history?')) {
     historyStore.clearHistory()
   }

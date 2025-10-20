@@ -1,5 +1,5 @@
 import type { ActionHandler, EnhancedRequest, MiddlewareHandler, Route } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { extractParamNames, joinPaths, matchPath } from '../utils'
 
 /**
@@ -90,35 +90,15 @@ export function registerHttpMethods(RouterClass: typeof Router): void {
         route.pattern = {
           exec: (url: URL): { pathname: { groups: Record<string, string> } } | null => {
             const params: Record<string, string> = {}
-            const isMatch = matchPath(routePath, url.pathname, params)
+            // Pass constraints directly to matchPath for more efficient matching
+            const constraintsRecord = route.constraints && !Array.isArray(route.constraints)
+              ? route.constraints as Record<string, string>
+              : undefined
+
+            const isMatch = matchPath(routePath, url.pathname, params, constraintsRecord)
 
             if (!isMatch) {
               return null
-            }
-
-            // Apply constraints if they exist
-            if (route.constraints) {
-              // Check each constraint against the param value
-              for (const [param, pattern] of Object.entries(route.constraints)) {
-                if (!params[param])
-                  continue
-
-                // If the param doesn't match the pattern, return null (no match)
-                const patternKey = `param:${param}:${pattern}`
-                let regex: RegExp
-
-                if (!this.precompiledPatterns.has(patternKey)) {
-                  regex = new RegExp(`^${pattern}$`)
-                  this.precompiledPatterns.set(patternKey, regex)
-                }
-                else {
-                  regex = this.precompiledPatterns.get(patternKey)!
-                }
-
-                if (!regex.test(params[param])) {
-                  return null
-                }
-              }
             }
 
             return {
@@ -129,32 +109,37 @@ export function registerHttpMethods(RouterClass: typeof Router): void {
           },
         }
 
-        // Add to the main routes array
-        this.routes.push(route)
-
-        // Register static routes for fast lookup
-        if (!routePath.includes('{') && !routePath.includes('*')) {
-          // Static route
-          if (!this.staticRoutes.has(route.method)) {
-            this.staticRoutes.set(route.method, new Map())
-          }
-          this.staticRoutes.get(route.method)!.set(routePath, route)
-        }
-
-        // Add to domain-specific routes if applicable
+        // Add to the appropriate collection
         if (domain) {
           if (!this.domains[domain]) {
             this.domains[domain] = []
           }
           this.domains[domain].push(route)
         }
+        else {
+          this.routes.push(route)
+        }
 
-        // If the route has a name, store it in the named routes map
+        // Add to static routes map for fast lookup if it's a static route
+        if (!routePath.includes('{') && !routePath.includes('*')) {
+          if (!this.staticRoutes.has(method.toUpperCase())) {
+            this.staticRoutes.set(method.toUpperCase(), new Map())
+          }
+          this.staticRoutes.get(method.toUpperCase())!.set(routePath, route)
+        }
+
+        // Add to named routes if name is provided
         if (name) {
+          route.name = name
           this.namedRoutes.set(name, route)
         }
 
-        // Invalidate route cache when a new route is added
+        // Add to optimized route compiler if available
+        if (this.addRouteToCompiler) {
+          this.addRouteToCompiler(route)
+        }
+
+        // Clear route cache when new routes are added
         this.routeCache.clear()
 
         return this
@@ -314,6 +299,16 @@ export function registerHttpMethods(RouterClass: typeof Router): void {
         }
 
         return url
+      },
+      writable: true,
+      configurable: true,
+    },
+
+    // Register an error handler
+    onError: {
+      value(handler: (error: Error) => Response | Promise<Response>): Router {
+        this.errorHandler = handler
+        return this
       },
       writable: true,
       configurable: true,

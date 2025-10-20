@@ -1,5 +1,5 @@
-import type { ActionHandler, RouterConfig } from '../types'
-import type { Router } from './core'
+import type { ActionHandler, EnhancedRequest, RouterConfig } from '../types'
+import type { Router } from './router'
 import { join } from 'node:path'
 import { processHtmlTemplate, resolveViewPath } from '../utils'
 
@@ -194,7 +194,7 @@ export function registerViewRendering(RouterClass: typeof Router): void {
         }
 
         // Create the route handler
-        const handler: ActionHandler = async (_req) => {
+        const handler: ActionHandler = async (_req: EnhancedRequest) => {
           const renderedView = await this.renderView(view, data, {
             layout: options.layout,
           })

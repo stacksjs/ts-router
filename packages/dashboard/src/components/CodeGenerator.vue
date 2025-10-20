@@ -13,6 +13,7 @@ const props = defineProps<{
 const emit = defineEmits(['close'])
 
 const selectedLanguage = ref(supportedLanguages[0].id)
+const showCopied = ref(false)
 
 const generatedCode = computed(() => {
   if (!props.show)
@@ -44,8 +45,6 @@ function copyCode() {
       console.error('Failed to copy: ', err)
     })
 }
-
-const showCopied = ref(false)
 </script>
 
 <template>

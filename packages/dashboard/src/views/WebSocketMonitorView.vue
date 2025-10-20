@@ -35,6 +35,7 @@ const showConnectionForm = ref(false)
 const messageDraft = ref('')
 
 // Demo WebSocket connection (for UI demonstration)
+// eslint-disable-next-line unused-imports/no-unused-vars
 const demoWs: WebSocket | null = null
 let demoConnectionId = ''
 let demoMessageInterval: number | null = null
@@ -59,7 +60,7 @@ function getHostFromUrl(urlString: string): string {
   try {
     return new URL(urlString).host
   }
-  catch (e) {
+  catch {
     return urlString
   }
 }
@@ -346,7 +347,8 @@ function handleRealWebsocketClose() {
   })
 }
 
-function handleRealWebsocketError(error: any) {
+// eslint-disable-next-line unused-imports/no-unused-vars, node/handle-callback-err
+function handleRealWebsocketError(_error: any) {
   if (!activeConnection.value)
     return
 

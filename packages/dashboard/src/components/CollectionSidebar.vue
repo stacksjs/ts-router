@@ -3,7 +3,7 @@ import type { RequestItem } from '../store/collectionStore'
 import { computed, onMounted, ref } from 'vue'
 import { useCollectionStore } from '../store/collectionStore'
 
-const emits = defineEmits(['select-request'])
+const emits = defineEmits(['selectRequest'])
 const collectionStore = useCollectionStore()
 const isLoading = computed(() => collectionStore.isLoading)
 const collections = computed(() => collectionStore.collections)
@@ -46,11 +46,12 @@ function createCollection() {
 }
 
 function selectRequest(request: RequestItem) {
-  emits('select-request', request)
+  emits('selectRequest', request)
 }
 
 function deleteCollection(collectionId: string, event: Event) {
   event.stopPropagation()
+  // eslint-disable-next-line no-alert
   if (confirm('Are you sure you want to delete this collection?')) {
     collectionStore.deleteCollection(collectionId)
   }
@@ -58,6 +59,7 @@ function deleteCollection(collectionId: string, event: Event) {
 
 function deleteRequest(collectionId: string, requestId: string, event: Event) {
   event.stopPropagation()
+  // eslint-disable-next-line no-alert
   if (confirm('Are you sure you want to delete this request?')) {
     collectionStore.deleteRequest(collectionId, requestId)
   }

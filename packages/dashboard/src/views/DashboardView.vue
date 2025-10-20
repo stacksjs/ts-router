@@ -58,7 +58,7 @@ onMounted(async () => {
   await fetchDashboardData()
 })
 
-async function fetchDashboardData(forceRefresh = false) {
+async function fetchDashboardData(_forceRefresh = false) {
   error.value = null
   isLoading.value = true
 

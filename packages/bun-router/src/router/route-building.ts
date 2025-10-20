@@ -1,5 +1,5 @@
 import type { Route, RouteDefinition } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { matchPath } from '../utils'
 
 /**
@@ -58,7 +58,10 @@ export function registerRouteBuilding(RouterClass: typeof Router): void {
               // Create enhanced request with params
               const url = new URL(req.url)
               const params: Record<string, string> = {}
-              matchPath(path, url.pathname, params)
+              const constraintsRecord = route.constraints && !Array.isArray(route.constraints)
+                ? route.constraints as Record<string, string>
+                : undefined
+              matchPath(path, url.pathname, params, constraintsRecord)
               const enhancedReq = this.enhanceRequest(req, params)
 
               // Run middleware
@@ -86,7 +89,10 @@ export function registerRouteBuilding(RouterClass: typeof Router): void {
                 // Create enhanced request with params
                 const url = new URL(req.url)
                 const params: Record<string, string> = {}
-                matchPath(path, url.pathname, params)
+                const constraintsRecord = route.constraints && !Array.isArray(route.constraints)
+                  ? route.constraints as Record<string, string>
+                  : undefined
+                matchPath(path, url.pathname, params, constraintsRecord)
                 const enhancedReq = this.enhanceRequest(req, params)
 
                 // Run middleware

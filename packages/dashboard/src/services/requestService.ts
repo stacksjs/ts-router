@@ -94,10 +94,6 @@ export const requestService = {
 
       return response
     }
-    catch (error) {
-      // Rethrow the error
-      throw error
-    }
     finally {
       // Clear timeout
       clearTimeout(timeoutId)

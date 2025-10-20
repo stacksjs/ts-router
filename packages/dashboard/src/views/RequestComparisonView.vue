@@ -164,7 +164,7 @@ function formatJson(json: string | undefined) {
     const obj = JSON.parse(json)
     return JSON.stringify(obj, null, 2)
   }
-  catch (e) {
+  catch {
     return json
   }
 }
