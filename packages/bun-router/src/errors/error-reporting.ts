@@ -73,14 +73,15 @@ export class SentryReporter implements ErrorReporter {
   private async initializeSentry(): Promise<void> {
     try {
       // Dynamic import to avoid bundling if not used
-      const Sentry = await import('@sentry/node')
+      // @ts-expect-error - Optional peer dependency
+      const Sentry = await import('@sentry/node') as any
 
       Sentry.init({
         dsn: this.config.dsn,
         environment: this.config.environment || 'production',
         release: this.config.release,
         sampleRate: this.config.sampleRate || 1.0,
-        beforeSend: (event, hint) => {
+        beforeSend: (event: any, hint: any) => {
           const error = hint.originalException as RouterException
           if (error && this.config.beforeSend) {
             const filteredError = this.config.beforeSend(error, error.context)
@@ -273,7 +274,8 @@ export class BugsnagReporter implements ErrorReporter {
   private async initializeBugsnag(): Promise<void> {
     try {
       // Dynamic import to avoid bundling if not used
-      const Bugsnag = await import('@bugsnag/js')
+      // @ts-expect-error - Optional peer dependency
+      const Bugsnag = await import('@bugsnag/js') as any
 
       Bugsnag.start({
         apiKey: this.config.apiKey!,
@@ -281,7 +283,7 @@ export class BugsnagReporter implements ErrorReporter {
         releaseStage: this.config.environment || 'production',
         enabledReleaseStages: ['production', 'staging'],
         maxBreadcrumbs: this.config.breadcrumbs?.maxBreadcrumbs || 25,
-        onError: (event) => {
+        onError: (event: any) => {
           const error = event.originalError as RouterException
           if (error && this.config.beforeSend) {
             const filteredError = this.config.beforeSend(error, error.context)

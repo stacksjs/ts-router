@@ -471,7 +471,7 @@ export class PerformanceProfiler {
    */
   private setupGcObserver(): void {
     try {
-      this.gcObserver = new PerformanceObserver((list: PerformanceObserverEntryList) => {
+      this.gcObserver = new (PerformanceObserver as any)((list: PerformanceObserverEntryList) => {
         for (const entry of list.getEntries()) {
           if (entry.entryType === 'gc') {
             // Update GC metrics for active profiles

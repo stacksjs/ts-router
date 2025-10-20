@@ -25,5 +25,5 @@ export const chalk = {
   gray: (text: string) => `${colors.gray}${text}${colors.reset}`,
   bold: (text: string) => `${colors.bold}${text}${colors.reset}`,
   dim: (text: string) => `${colors.dim}${text}${colors.reset}`,
-  hex: () => (text: string): string => text, // Simple passthrough for hex colors
+  hex: (_color: string) => (text: string): string => text, // Simple passthrough for hex colors (color param ignored)
 }

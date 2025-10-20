@@ -1,12 +1,12 @@
 export {
   createSSEMiddleware,
-  type SSEConfig,
   SSEConnectionManager,
-  type SSEEvent,
   SSEHandler,
   sseManager,
   SSEUtils,
 } from './sse-handler'
+
+export type { SSEConfig, SSEEvent } from '../types'
 
 export {
   type BaseStreamConfig,

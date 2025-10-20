@@ -721,6 +721,10 @@ export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip'
    */
   context?: Record<string, any>
   /**
+   * Validated data from validation middleware
+   */
+  validated?: Record<string, any>
+  /**
    * Model binding data
    */
   models?: Record<string, any>

@@ -205,7 +205,7 @@ export class BunOptimizer {
   private configureGarbageCollection(): void {
     // Setup GC monitoring
     if (typeof PerformanceObserver !== 'undefined') {
-      this.gcObserver = new PerformanceObserver((list: PerformanceObserverEntryList) => {
+      this.gcObserver = new (PerformanceObserver as any)((list: PerformanceObserverEntryList) => {
         for (const entry of list.getEntries()) {
           if (entry.entryType === 'gc') {
             this.metrics.gc.collections++
@@ -284,7 +284,7 @@ export class BunOptimizer {
 
     // Setup performance observer
     if (typeof PerformanceObserver !== 'undefined') {
-      this.performanceObserver = new PerformanceObserver((list: PerformanceObserverEntryList) => {
+      this.performanceObserver = new (PerformanceObserver as any)((list: PerformanceObserverEntryList) => {
         for (const entry of list.getEntries()) {
           if (entry.entryType === 'measure') {
             // Track custom performance measures

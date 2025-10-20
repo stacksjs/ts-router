@@ -235,9 +235,9 @@ export class StreamHandler {
    */
   static csv<T extends Record<string, any>>(
     data: T[] | AsyncIterable<T>,
-    config: BaseStreamConfig & { headers?: string[] } = {},
+    config: BaseStreamConfig & { csvHeaders?: string[] } = {},
   ): StreamResponse {
-    const { headers: csvHeaders, ...streamConfig } = config
+    const { csvHeaders, ...streamConfig } = config
 
     const stream = new ReadableStream({
       async start(controller) {
