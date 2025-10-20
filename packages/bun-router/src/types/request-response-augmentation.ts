@@ -72,7 +72,7 @@ export interface EnhancedRequest<
   TBody = unknown,
   TContext = object,
   TAugmentations = object,
-> extends TypedRequest<TPath, TQuery, TBody, TContext> {
+> extends Omit<TypedRequest<TPath, TQuery, TBody, TContext>, 'cache'> {
   // Core request properties
   params: ExtractTypedParams<TPath>
   query: ExtractQueryParams<TQuery>
@@ -112,7 +112,8 @@ export interface EnhancedRequest<
     ? TAugmentations['rateLimit']
     : never
 
-  cache?: TAugmentations extends { cache: any }
+  // Use middlewareCache to avoid conflict with Request.cache
+  middlewareCache?: TAugmentations extends { cache: any }
     ? TAugmentations['cache']
     : never
 
@@ -486,38 +487,4 @@ export interface AugmentationRegistry {
   }
 }
 
-// Export all augmentation types
-export type {
-  AccumulateContext,
-  ApplyMiddleware,
-  ApplyMiddlewareSequence,
-  AugmentationBuilder,
-  AugmentationCompatible,
-  AugmentationMetadata,
-  AugmentationRegistry,
-  AugmentedRoute,
-  AugmentedRouteBuilder,
-  AugmentedRouteHandler,
-  AugmentRequestThroughChain,
-  AuthAugmentation,
-  AuthzAugmentation,
-  CacheAugmentation,
-  CombineAugmentations,
-  ConditionalAugmentation,
-  CORSAugmentation,
-  EnhancedRequest,
-  EnhancedResponse,
-  ExtractMiddlewareAugmentation,
-  FileUploadAugmentation,
-  HasAuthMiddleware,
-  HasRateLimitMiddleware,
-  HasValidationMiddleware,
-  LoggingAugmentation,
-  RateLimitAugmentation,
-  RequestAugmentation,
-  ResponseAugmentation,
-  RuntimeAugmentation,
-  SessionAugmentation,
-  ValidateAugmentation,
-  ValidationAugmentation,
-}
+// Export all augmentation types - removing duplicates to avoid conflicts
