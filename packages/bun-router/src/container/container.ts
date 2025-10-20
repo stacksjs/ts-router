@@ -17,18 +17,21 @@ declare global {
 // Container binding types
 export type BindingScope = 'singleton' | 'transient' | 'scoped' | 'request'
 
+// Token can be a string, symbol, function, or constructor
+export type Token = string | symbol | ((...args: any[]) => any) | (new (...args: any[]) => any)
+
 export interface BindingMetadata {
   scope: BindingScope
   tags?: string[]
   when?: (context: ResolutionContext) => boolean
   factory?: (...args: any[]) => any
-  dependencies?: (string | symbol | ((...args: any[]) => any))[]
+  dependencies?: Token[]
   lazy?: boolean
   decorators?: ((...args: any[]) => any)[]
 }
 
 export interface Binding<T = any> {
-  token: string | symbol | ((...args: any[]) => any)
+  token: Token
   implementation?: new (...args: any[]) => T
   instance?: T
   factory?: (...args: any[]) => T
@@ -38,12 +41,12 @@ export interface Binding<T = any> {
 
 export interface ResolutionContext {
   container: Container
-  token: string | symbol | ((...args: any[]) => any)
+  token: Token
   parent?: ResolutionContext
   environment?: string
   requestId?: string
   depth: number
-  resolving: Set<string | symbol | ((...args: any[]) => any)>
+  resolving: Set<Token>
 }
 
 export interface ContainerOptions {
@@ -69,7 +72,7 @@ export interface InjectableMetadata {
 }
 
 export interface InjectMetadata {
-  token: string | symbol | ((...args: any[]) => any)
+  token: Token
   optional?: boolean
   tags?: string[]
   when?: (context: ResolutionContext) => boolean
@@ -79,10 +82,10 @@ export interface InjectMetadata {
  * Main IoC Container implementation
  */
 export class Container {
-  private bindings = new Map<string | symbol | ((...args: any[]) => any), Binding>()
-  private instances = new Map<string | symbol | ((...args: any[]) => any), any>()
-  private scopedInstances = new Map<string, Map<string | symbol | ((...args: any[]) => any), any>>()
-  private interceptors = new Map<string | symbol | ((...args: any[]) => any), ((...args: any[]) => any)[]>()
+  private bindings = new Map<Token, Binding>()
+  private instances = new Map<Token, any>()
+  private scopedInstances = new Map<string, Map<Token, any>>()
+  private interceptors = new Map<Token, ((...args: any[]) => any)[]>()
   private parent?: Container
   private children = new Set<Container>()
   private options: Required<ContainerOptions>
@@ -101,7 +104,7 @@ export class Container {
   /**
    * Bind a token to an implementation
    */
-  bind<T>(token: string | symbol | ((...args: any[]) => any)): BindingBuilder<T> {
+  bind<T>(token: Token): BindingBuilder<T> {
     return new BindingBuilder<T>(this, token)
   }
 
@@ -117,7 +120,7 @@ export class Container {
    * Bind a singleton
    */
   singleton<T>(
-    token: string | symbol | ((...args: any[]) => any),
+    token: Token,
     implementation: new (...args: any[]) => T,
   ): Container {
     return this.bind<T>(token).to(implementation).inSingletonScope().build()
@@ -127,7 +130,7 @@ export class Container {
    * Bind a transient
    */
   transient<T>(
-    token: string | symbol | ((...args: any[]) => any),
+    token: Token,
     implementation: new (...args: any[]) => T,
   ): Container {
     return this.bind<T>(token).to(implementation).inTransientScope().build()
@@ -136,7 +139,7 @@ export class Container {
   /**
    * Bind a value
    */
-  value<T>(token: string | symbol | ((...args: any[]) => any), value: T): Container {
+  value<T>(token: Token, value: T): Container {
     return this.bind<T>(token).toValue(value).build()
   }
 
@@ -144,7 +147,7 @@ export class Container {
    * Bind a factory
    */
   factory<T>(
-    token: string | symbol | ((...args: any[]) => any),
+    token: Token,
     factory: (...args: any[]) => T,
   ): Container {
     return this.bind<T>(token).toFactory(factory).build()
@@ -153,7 +156,7 @@ export class Container {
   /**
    * Resolve a dependency
    */
-  resolve<T>(token: string | symbol | ((...args: any[]) => any), context?: Partial<ResolutionContext>): T {
+  resolve<T>(token: Token, context?: Partial<ResolutionContext>): T {
     const resolutionContext: ResolutionContext = {
       container: this,
       token,
@@ -170,7 +173,7 @@ export class Container {
   /**
    * Resolve all instances of a token (useful for arrays of services)
    */
-  resolveAll<T>(token: string | symbol | ((...args: any[]) => any)): T[] {
+  resolveAll<T>(token: Token): T[] {
     const bindings = Array.from(this.bindings.values()).filter(
       binding => binding.token === token || this.hasTag(binding, token as string),
     )
@@ -201,7 +204,7 @@ export class Container {
   /**
    * Add interceptor for a service
    */
-  addInterceptor<T>(token: string | symbol | ((...args: any[]) => any), interceptor: (service: T) => T): void {
+  addInterceptor<T>(token: Token, interceptor: (service: T) => T): void {
     const key = this.tokenToString(token)
     if (!this.interceptors.has(key)) {
       this.interceptors.set(key, [])
@@ -227,14 +230,14 @@ export class Container {
   /**
    * Check if a token is bound
    */
-  isBound(token: string | symbol | ((...args: any[]) => any)): boolean {
+  isBound(token: Token): boolean {
     return this.bindings.has(token) || (this.parent?.isBound(token) ?? false)
   }
 
   /**
    * Unbind a token
    */
-  unbind(token: string | symbol | ((...args: any[]) => any)): this {
+  unbind(token: Token): this {
     this.bindings.delete(token)
     this.instances.delete(token)
     return this
@@ -293,7 +296,7 @@ export class Container {
   /**
    * Internal resolution logic
    */
-  private resolveInternal<T>(token: string | symbol | ((...args: any[]) => any), context: ResolutionContext): T {
+  private resolveInternal<T>(token: Token, context: ResolutionContext): T {
     // Check for circular dependencies
     if (context.resolving.has(token)) {
       throw new Error(`Circular dependency detected: ${this.tokenToString(token)}`)
@@ -537,7 +540,7 @@ export class Container {
   /**
    * Convert token to string for error messages
    */
-  private tokenToString(token: string | symbol | ((...args: any[]) => any)): string {
+  private tokenToString(token: Token): string {
     if (typeof token === 'string')
       return token
     if (typeof token === 'symbol')
@@ -561,7 +564,7 @@ export class Container {
 export class BindingBuilder<T> {
   private binding: Partial<Binding<T>>
 
-  constructor(private container: Container, token: string | symbol | ((...args: any[]) => any)) {
+  constructor(private container: Container, token: Token) {
     this.binding = {
       token,
       metadata: {

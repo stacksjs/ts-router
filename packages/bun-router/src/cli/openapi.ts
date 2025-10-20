@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import process from 'node:process'
-import chalk from 'chalk'
+import { chalk } from './colors'
 
 /**
  * Options for the openapi command

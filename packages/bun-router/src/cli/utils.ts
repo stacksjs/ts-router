@@ -1,5 +1,5 @@
 import process from 'node:process'
-import chalk from 'chalk'
+import { chalk } from './colors'
 
 /**
  * Formats console output with consistent styling
@@ -284,8 +284,8 @@ export async function testRoutes(options: {
     // Display results
     console.log(`\n📊 Test Results:`)
     console.log(`  Total: ${results.total}`)
-    console.log(`  Passed: ${chalk.green(results.passed)}`)
-    console.log(`  Failed: ${chalk.red(results.failed)}`)
+    console.log(`  Passed: ${chalk.green(String(results.passed))}`)
+    console.log(`  Failed: ${chalk.red(String(results.failed))}`)
 
     if (results.errors.length > 0) {
       console.log(`\n❌ Failures:`)

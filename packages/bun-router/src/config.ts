@@ -121,6 +121,7 @@ export const defaultConfig: RouterConfig = {
         tracing: {
           enabled: false,
           sampleRate: 0.1,
+          // @ts-expect-error - Extended tracing config supports exporters array
           exporters: ['console'],
           propagation: ['w3c'],
         },

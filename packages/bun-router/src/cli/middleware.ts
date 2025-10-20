@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
-import chalk from 'chalk'
+import { chalk } from './colors'
 import { middleware } from '../../src/middleware'
 
 /**
