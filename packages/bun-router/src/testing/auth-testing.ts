@@ -314,7 +314,7 @@ export const authMocks = {
   /**
    * Mock authentication middleware
    */
-  authMiddleware: (user?: TestUser) => mock(async (req: EnhancedRequest, next: any) => {
+  authMiddleware: (user?: TestUser): any => mock(async (req: EnhancedRequest, next: any): Promise<Response> => {
     if (user) {
       req.user = user
       return await next()
@@ -325,7 +325,7 @@ export const authMocks = {
   /**
    * Mock role-based middleware
    */
-  roleMiddleware: (requiredRoles: string[]) => mock(async (req: EnhancedRequest, next: any) => {
+  roleMiddleware: (requiredRoles: string[]): any => mock(async (req: EnhancedRequest, next: any): Promise<Response> => {
     if (!req.user) {
       return new Response('Unauthorized', { status: 401 })
     }
@@ -343,7 +343,7 @@ export const authMocks = {
   /**
    * Mock permission-based middleware
    */
-  permissionMiddleware: (requiredPermissions: string[]) => mock(async (req: EnhancedRequest, next: any) => {
+  permissionMiddleware: (requiredPermissions: string[]): any => mock(async (req: EnhancedRequest, next: any): Promise<Response> => {
     if (!req.user) {
       return new Response('Unauthorized', { status: 401 })
     }

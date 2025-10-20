@@ -242,7 +242,7 @@ export const fileUploadMocks = {
     maxSize?: number
     allowedTypes?: string[]
     maxFiles?: number
-  } = {}) => mock(async (req: EnhancedRequest, next: any) => {
+  } = {}): any => mock(async (req: EnhancedRequest, next: any): Promise<Response> => {
     const files = req.files || []
     const { maxSize = 5 * 1024 * 1024, allowedTypes = [], maxFiles = 10 } = options
 
@@ -279,7 +279,7 @@ export const fileUploadMocks = {
     maxSize?: number
     maxWidth?: number
     maxHeight?: number
-  } = {}) => mock(async (req: EnhancedRequest, next: any) => {
+  } = {}): any => mock(async (req: EnhancedRequest, next: any): Promise<Response> => {
     const files = req.files || []
     const { maxSize = 2 * 1024 * 1024 } = options
 
@@ -303,19 +303,19 @@ export const fileUploadMocks = {
     store: mock(async (file: UploadedFile, path?: string): Promise<string> => {
       const storagePath = path || `/uploads/${Date.now()}-${file.filename}`
       return storagePath
-    }),
+    }) as (file: UploadedFile, path?: string) => Promise<string>,
 
     delete: mock(async (_path: string): Promise<void> => {
       // Mock file deletion
-    }),
+    }) as (path: string) => Promise<void>,
 
     exists: mock(async (path: string): Promise<boolean> => {
       return !path.includes('not-found')
-    }),
+    }) as (path: string) => Promise<boolean>,
 
     getUrl: mock((path: string): string => {
       return `https://example.com/storage${path}`
-    }),
+    }) as (path: string) => string,
   },
 
   /**
@@ -328,7 +328,7 @@ export const fileUploadMocks = {
         return { clean: false, threat: 'Potentially malicious executable' }
       }
       return { clean: true }
-    }),
+    }) as (file: UploadedFile) => Promise<{ clean: boolean, threat?: string }>,
   },
 }
 

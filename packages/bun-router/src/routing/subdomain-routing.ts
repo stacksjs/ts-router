@@ -161,8 +161,8 @@ export class DomainGroup {
   /**
    * Get all routes in this domain group
    */
-  getRoutes() {
-    return [...this.routes]
+  getRoutes(): Array<{ method: string, path: string, handler: RouteHandler, middleware: MiddlewareHandler[] }> {
+    return [...this.routes] as Array<{ method: string, path: string, handler: RouteHandler, middleware: MiddlewareHandler[] }>
   }
 
   /**

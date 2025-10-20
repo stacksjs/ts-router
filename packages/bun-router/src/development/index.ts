@@ -115,15 +115,16 @@ export class DevelopmentTools {
     listRoutes: typeof RouteInspectionHelpers.listRoutes
     analyzeRoutes: typeof RouteInspectionHelpers.analyzeRoutes
     exportRoutes: typeof RouteInspectionHelpers.exportRoutes
-    getDebugSession: (requestId: string) => ReturnType<typeof this.debugger.getDebugSession>
+    getDebugSession: (requestId: string) => import('./route-debugger').RouteDebugInfo | undefined
     clearSessions: () => void
   } {
+    const debuggerInstance = this.debugger
     return {
       listRoutes: RouteInspectionHelpers.listRoutes,
       analyzeRoutes: RouteInspectionHelpers.analyzeRoutes,
       exportRoutes: RouteInspectionHelpers.exportRoutes,
-      getDebugSession: (requestId: string): ReturnType<typeof this.debugger.getDebugSession> => this.debugger.getDebugSession(requestId),
-      clearSessions: (): void => this.debugger.clearSessions(),
+      getDebugSession: (requestId: string): import('./route-debugger').RouteDebugInfo | undefined => debuggerInstance.getDebugSession(requestId),
+      clearSessions: (): void => debuggerInstance.clearSessions(),
     }
   }
 
@@ -131,18 +132,19 @@ export class DevelopmentTools {
    * Get route listing and analysis
    */
   routes(): {
-    list: (filter?: any) => ReturnType<typeof this.inspector.getRoutes>
-    analyze: () => ReturnType<typeof this.inspector.analyzeRoutes>
-    export: (format?: 'json' | 'csv' | 'markdown' | 'openapi') => ReturnType<typeof this.inspector.exportRoutes>
-    groups: () => ReturnType<typeof this.inspector.getGroups>
-    find: (method: string, path: string) => ReturnType<typeof this.inspector.findMatchingRoutes>
+    list: (filter?: any) => import('./route-inspector').RouteMetadata[]
+    analyze: () => import('./route-inspector').RouteAnalysis
+    export: (format?: 'json' | 'csv' | 'markdown' | 'openapi') => string
+    groups: () => import('./route-inspector').RouteGroup[]
+    find: (method: string, path: string) => import('./route-inspector').RouteMetadata[]
   } {
+    const inspectorInstance = this.inspector
     return {
-      list: (filter?: any): ReturnType<typeof this.inspector.getRoutes> => this.inspector.getRoutes(filter),
-      analyze: (): ReturnType<typeof this.inspector.analyzeRoutes> => this.inspector.analyzeRoutes(),
-      export: (format?: 'json' | 'csv' | 'markdown' | 'openapi'): ReturnType<typeof this.inspector.exportRoutes> => this.inspector.exportRoutes(format),
-      groups: (): ReturnType<typeof this.inspector.getGroups> => this.inspector.getGroups(),
-      find: (method: string, path: string): ReturnType<typeof this.inspector.findMatchingRoutes> => this.inspector.findMatchingRoutes(method, path),
+      list: (filter?: any): import('./route-inspector').RouteMetadata[] => inspectorInstance.getRoutes(filter),
+      analyze: (): import('./route-inspector').RouteAnalysis => inspectorInstance.analyzeRoutes(),
+      export: (format?: 'json' | 'csv' | 'markdown' | 'openapi'): string => inspectorInstance.exportRoutes(format),
+      groups: (): import('./route-inspector').RouteGroup[] => inspectorInstance.getGroups(),
+      find: (method: string, path: string): import('./route-inspector').RouteMetadata[] => inspectorInstance.findMatchingRoutes(method, path),
     }
   }
 
@@ -150,16 +152,17 @@ export class DevelopmentTools {
    * Get performance profiling information
    */
   profile(): {
-    getMetrics: () => ReturnType<typeof this.profiler.getMetrics>
-    getProfiles: (filter?: any) => ReturnType<typeof this.profiler.getProfiles>
-    generateReport: () => ReturnType<typeof this.profiler.generateReport>
+    getMetrics: () => import('./performance-profiler').PerformanceMetrics
+    getProfiles: (filter?: any) => import('./performance-profiler').RouteProfile[]
+    generateReport: () => string
     clear: () => void
   } {
+    const profilerInstance = this.profiler
     return {
-      getMetrics: (): ReturnType<typeof this.profiler.getMetrics> => this.profiler.getMetrics(),
-      getProfiles: (filter?: any): ReturnType<typeof this.profiler.getProfiles> => this.profiler.getProfiles(filter),
-      generateReport: (): ReturnType<typeof this.profiler.generateReport> => this.profiler.generateReport(),
-      clear: (): void => this.profiler.clear(),
+      getMetrics: (): import('./performance-profiler').PerformanceMetrics => profilerInstance.getMetrics(),
+      getProfiles: (filter?: any): import('./performance-profiler').RouteProfile[] => profilerInstance.getProfiles(filter),
+      generateReport: (): string => profilerInstance.generateReport(),
+      clear: (): void => profilerInstance.clear(),
     }
   }
 
@@ -167,18 +170,19 @@ export class DevelopmentTools {
    * Get TypeScript utilities
    */
   typescript(): {
-    generateTypes: () => ReturnType<typeof this.tsUtils.generateRouteTypes>
-    generateSchemas: () => ReturnType<typeof this.tsUtils.generateValidationSchemas>
-    generateOpenAPI: () => ReturnType<typeof this.tsUtils.generateOpenAPISchema>
-    generateRouteBuilder: () => ReturnType<typeof this.tsUtils.generateRouteBuilder>
-    validateRequest: (req: EnhancedRequest, routeKey: string) => ReturnType<typeof this.tsUtils.validateRequest>
+    generateTypes: () => string
+    generateSchemas: () => Record<string, import('./typescript-utilities').ValidationSchema>
+    generateOpenAPI: () => any
+    generateRouteBuilder: () => string
+    validateRequest: (req: EnhancedRequest, routeKey: string) => { valid: boolean, errors: string[], warnings: string[] }
   } {
+    const tsUtilsInstance = this.tsUtils
     return {
-      generateTypes: (): ReturnType<typeof this.tsUtils.generateRouteTypes> => this.tsUtils.generateRouteTypes(),
-      generateSchemas: (): ReturnType<typeof this.tsUtils.generateValidationSchemas> => this.tsUtils.generateValidationSchemas(),
-      generateOpenAPI: (): ReturnType<typeof this.tsUtils.generateOpenAPISchema> => this.tsUtils.generateOpenAPISchema(),
-      generateRouteBuilder: (): ReturnType<typeof this.tsUtils.generateRouteBuilder> => this.tsUtils.generateRouteBuilder(),
-      validateRequest: (req: EnhancedRequest, routeKey: string): ReturnType<typeof this.tsUtils.validateRequest> => this.tsUtils.validateRequest(req, routeKey),
+      generateTypes: (): string => tsUtilsInstance.generateRouteTypes(),
+      generateSchemas: (): Record<string, import('./typescript-utilities').ValidationSchema> => tsUtilsInstance.generateValidationSchemas(),
+      generateOpenAPI: (): any => tsUtilsInstance.generateOpenAPISchema(),
+      generateRouteBuilder: (): string => tsUtilsInstance.generateRouteBuilder(),
+      validateRequest: (req: EnhancedRequest, routeKey: string): { valid: boolean, errors: string[], warnings: string[] } => tsUtilsInstance.validateRequest(req, routeKey),
     }
   }
 
@@ -320,7 +324,7 @@ export class DevelopmentRouter {
   /**
    * Get all registered routes
    */
-  getRoutes(): ReturnType<ReturnType<typeof this.devTools.routes>['list']> {
+  getRoutes(): import('./route-inspector').RouteMetadata[] {
     return this.devTools.routes().list()
   }
 

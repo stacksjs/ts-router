@@ -4,6 +4,109 @@ import { mock } from 'bun:test'
 import { createMockRequest } from './test-request'
 
 /**
+ * Generic mock model base class for type annotations
+ */
+export class GenericMockModel {
+  public id: any
+  public attributes: Record<string, any>
+
+  constructor(data: Record<string, any> = {}) {
+    this.id = data.id
+    this.attributes = data
+  }
+
+  static modelName: string = 'GenericMockModel'
+
+  static async find(_id: any): Promise<GenericMockModel | null> {
+    return null
+  }
+
+  static async findOrFail(_id: any): Promise<GenericMockModel> {
+    throw new Error('Not implemented')
+  }
+
+  static async where(_conditions: Record<string, any>): Promise<GenericMockModel[]> {
+    return []
+  }
+
+  static async create(_data: Record<string, any>): Promise<GenericMockModel> {
+    throw new Error('Not implemented')
+  }
+
+  async save(): Promise<GenericMockModel> {
+    return this
+  }
+
+  async delete(): Promise<void> {
+    // Mock deletion
+  }
+
+  toJSON(): Record<string, any> {
+    return { id: this.id, ...this.attributes }
+  }
+}
+
+/**
+ * Mock User class for type annotations
+ */
+export class MockUserClass {
+  public id: number
+  public email: string
+  public name: string
+
+  constructor(data: { id: number, email?: string, name?: string } = { id: 1 }) {
+    this.id = data.id
+    this.email = data.email || 'test@example.com'
+    this.name = data.name || 'Test User'
+  }
+
+  static async find(_id: any): Promise<MockUserClass | null> {
+    return null
+  }
+
+  static async findOrFail(_id: any): Promise<MockUserClass> {
+    throw new Error('Not implemented')
+  }
+
+  toJSON(): Record<string, any> {
+    return { id: this.id, email: this.email, name: this.name }
+  }
+}
+
+/**
+ * Mock Post class for type annotations
+ */
+export class MockPostClass {
+  public id: number
+  public title: string
+  public content: string
+  public userId: number
+
+  constructor(data: { id: number, title?: string, content?: string, userId?: number } = { id: 1 }) {
+    this.id = data.id
+    this.title = data.title || 'Test Post'
+    this.content = data.content || 'Test content'
+    this.userId = data.userId || 1
+  }
+
+  static async find(_id: any): Promise<MockPostClass | null> {
+    return null
+  }
+
+  static async findOrFail(_id: any): Promise<MockPostClass> {
+    throw new Error('Not implemented')
+  }
+
+  async belongsTo(_userId: number): Promise<boolean> {
+    return false
+  }
+
+  toJSON(): Record<string, any> {
+    return { id: this.id, title: this.title, content: this.content, userId: this.userId }
+  }
+}
+
+/**
  * Model binding testing utilities
  */
 export class ModelBindingTester {
@@ -109,7 +212,7 @@ export const modelMocks = {
   /**
    * Create a mock model class
    */
-  createModel: (name: string, attributes: Record<string, any> = {}) => {
+  createModel: (name: string, attributes: Record<string, any> = {}): typeof GenericMockModel => {
     return class MockModel {
       public id: any
       public attributes: Record<string, any>
@@ -119,7 +222,7 @@ export const modelMocks = {
         this.attributes = { ...attributes, ...data }
       }
 
-      static modelName = name
+      static modelName: string = name
 
       static async find(id: any): Promise<MockModel | null> {
         if (id === 'not-found')
@@ -153,13 +256,13 @@ export const modelMocks = {
       toJSON(): Record<string, any> {
         return { id: this.id, ...this.attributes }
       }
-    }
+    } as typeof GenericMockModel
   },
 
   /**
    * Create a User model mock
    */
-  User: class MockUser {
+  User: (class MockUser {
     public id: number
     public email: string
     public name: string
@@ -186,12 +289,12 @@ export const modelMocks = {
     toJSON(): Record<string, any> {
       return { id: this.id, email: this.email, name: this.name }
     }
-  },
+  }) as typeof MockUserClass,
 
   /**
    * Create a Post model mock
    */
-  Post: class MockPost {
+  Post: (class MockPost {
     public id: number
     public title: string
     public content: string
@@ -224,7 +327,7 @@ export const modelMocks = {
     toJSON(): Record<string, any> {
       return { id: this.id, title: this.title, content: this.content, userId: this.userId }
     }
-  },
+  }) as typeof MockPostClass,
 }
 
 /**
@@ -234,7 +337,7 @@ export const constraintHelpers = {
   /**
    * Create a belongsTo constraint
    */
-  belongsTo: (userIdField: string = 'userId') => mock(async (model: any, request: EnhancedRequest) => {
+  belongsTo: (userIdField: string = 'userId'): any => mock(async (model: any, request: EnhancedRequest): Promise<boolean> => {
     if (!request.user)
       return false
     return model[userIdField] === request.user.id
@@ -243,7 +346,7 @@ export const constraintHelpers = {
   /**
    * Create a belongsToUser constraint
    */
-  belongsToUser: () => mock(async (model: any, request: EnhancedRequest) => {
+  belongsToUser: (): any => mock(async (model: any, request: EnhancedRequest): Promise<boolean> => {
     if (!request.user)
       return false
     return model.userId === request.user.id
@@ -252,21 +355,21 @@ export const constraintHelpers = {
   /**
    * Create a published constraint
    */
-  published: () => mock(async (model: any) => {
+  published: (): any => mock(async (model: any): Promise<boolean> => {
     return model.published === true || model.status === 'published'
   }),
 
   /**
    * Create a visible constraint
    */
-  visible: () => mock(async (model: any) => {
+  visible: (): any => mock(async (model: any): Promise<boolean> => {
     return model.visible !== false && model.hidden !== true
   }),
 
   /**
    * Create a custom constraint
    */
-  custom: (constraintFn: (model: any, request: EnhancedRequest) => Promise<boolean>) =>
+  custom: (constraintFn: (model: any, request: EnhancedRequest) => Promise<boolean>): any =>
     mock(constraintFn),
 
   /**

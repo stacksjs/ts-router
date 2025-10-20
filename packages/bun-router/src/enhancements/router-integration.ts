@@ -238,8 +238,8 @@ export const RouteHelpers = {
     path: string,
     handler: RouteHandler,
     rules?: ValidationRules,
-  ) => {
-    const builder = new EnhancedRouteBuilder(method, path, async (req) => {
+  ): EnhancedRouteBuilder => {
+    const builder = new EnhancedRouteBuilder(method, path, async (req): Promise<Response> => {
       // Ensure request expects JSON
       if (!req.expectsJson()) {
         return EnhancedResponse.callMacro('error', 'API endpoint requires JSON Accept header', undefined, 406)
@@ -271,7 +271,7 @@ export const RouteHelpers = {
       store?: ValidationRules
       update?: ValidationRules
     },
-  ) => {
+  ): EnhancedRouteBuilder[] => {
     const routes: EnhancedRouteBuilder[] = []
 
     if (handlers.index) {
