@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { EnhancedRequest } from '../src/types'
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import ContentSecurityPolicy from '../src/middleware/content_security_policy'

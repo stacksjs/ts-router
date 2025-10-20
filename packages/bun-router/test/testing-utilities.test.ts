@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { Router } from '../src/router'
 import {

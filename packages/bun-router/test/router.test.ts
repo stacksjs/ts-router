@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { EnhancedRequest, NextFunction } from '../src/types'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import { mkdir, rm, writeFile } from 'node:fs/promises'

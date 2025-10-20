@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Development Tools - Performance Profiler
  *

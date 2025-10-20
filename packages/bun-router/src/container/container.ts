@@ -17,8 +17,9 @@ declare global {
 // Container binding types
 export type BindingScope = 'singleton' | 'transient' | 'scoped' | 'request'
 
-// Token can be a string, symbol, function, or constructor
-export type Token = string | symbol | ((...args: any[]) => any) | (new (...args: any[]) => any)
+// Token can be a string, symbol, function, constructor, or generic Function
+// eslint-disable-next-line ts/ban-types
+export type Token = string | symbol | ((...args: any[]) => any) | (new (...args: any[]) => any) | Function
 
 export interface BindingMetadata {
   scope: BindingScope
@@ -265,7 +266,7 @@ export class Container {
   /**
    * Get all bindings
    */
-  getBindings(): Map<string | symbol | ((...args: any[]) => any), Binding> {
+  getBindings(): Map<Token, Binding> {
     return new Map(this.bindings)
   }
 
@@ -361,7 +362,7 @@ export class Container {
   /**
    * Create instance from binding
    */
-  private createInstance<T>(binding: Binding<T>, context: ResolutionContext): T {
+  protected createInstance<T>(binding: Binding<T>, context: ResolutionContext): T {
     let instance: T
 
     // Check for existing singleton
@@ -451,7 +452,7 @@ export class Container {
   /**
    * Get constructor dependencies using reflection
    */
-  private getConstructorDependencies(constructor: ((...args: any[]) => any)): (string | symbol | ((...args: any[]) => any))[] {
+  private getConstructorDependencies(constructor: ((...args: any[]) => any)): Token[] {
     // Check for explicit metadata
     const injectMetadata = Reflect.getMetadata?.(INJECT_METADATA_KEY, constructor) as InjectMetadata[]
     if (injectMetadata) {
@@ -459,7 +460,7 @@ export class Container {
     }
 
     // Try to get parameter types from TypeScript metadata
-    const paramTypes = Reflect.getMetadata?.('design:paramtypes', constructor) as ((...args: any[]) => any)[]
+    const paramTypes = Reflect.getMetadata?.('design:paramtypes', constructor) as Token[]
     if (paramTypes) {
       return paramTypes
     }
@@ -489,7 +490,7 @@ export class Container {
    * Resolve array of dependencies
    */
   private resolveDependencies(
-    dependencies: (string | symbol | ((...args: any[]) => any))[],
+    dependencies: Token[],
     context: ResolutionContext,
   ): any[] {
     return dependencies.map(dep => this.resolveInternal(dep, context))

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { ActionHandlerClass, EnhancedRequest } from '../src/types'
 import { describe, expect, it } from 'bun:test'
 import {

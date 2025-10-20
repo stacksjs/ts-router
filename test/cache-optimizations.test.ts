@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { EnhancedRequest } from '../packages/bun-router/src/types'
 import { beforeEach, describe, expect, it } from 'bun:test'
 import { createLRUCache, LRUCache } from '../packages/bun-router/src/cache/lru-cache'

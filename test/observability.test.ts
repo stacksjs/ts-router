@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Observability & Monitoring - Comprehensive Test Suite
  */

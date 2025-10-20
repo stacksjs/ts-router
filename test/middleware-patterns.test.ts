@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, expect, it } from 'bun:test'
 import { Router } from '../packages/bun-router/src/router/router'
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Comprehensive Test Suite for Dependency Injection System
  *

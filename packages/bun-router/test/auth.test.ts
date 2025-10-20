@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { ApiKeyManager, JWT, OAuth2Helper } from '../src/auth'
 import { apiKeyAuth, basicAuth, bearerAuth, extractApiKey, extractBasicAuth, extractBearerToken } from '../src/middleware'

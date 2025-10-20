@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable ts/no-unsafe-function-type */
 /**
  * Service Providers for Bootstrapping

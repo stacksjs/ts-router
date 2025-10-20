@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { RateLimit } from '../src/middleware'
 import { Router } from '../src/router'

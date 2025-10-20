@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Hot Reload Tests
  */

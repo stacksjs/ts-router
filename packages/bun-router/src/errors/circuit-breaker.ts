@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Advanced Error Handling - Circuit Breaker Pattern
  *

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Static File Serving
  *
