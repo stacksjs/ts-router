@@ -4,6 +4,19 @@ import { config } from '../src/config'
 import { Cors, JsonBody, RequestId, Session } from '../src/middleware'
 import { Router } from '../src/router'
 
+// Test interface for mocked cookies
+interface MockCookies {
+  get: ReturnType<typeof jest.fn>
+  set: ReturnType<typeof jest.fn>
+  delete: ReturnType<typeof jest.fn>
+  getAll: ReturnType<typeof jest.fn>
+}
+
+// Test request type with mocked cookies
+interface TestRequest extends EnhancedRequest {
+  cookies: MockCookies
+}
+
 describe('Middleware', () => {
   let _router: Router
   let nextMock: NextFunction
@@ -172,7 +185,7 @@ describe('Middleware', () => {
     it('should initialize a new session', async () => {
       const sessionMiddleware = new Session()
 
-      const req = new Request('https://example.com/') as EnhancedRequest
+      const req = new Request('https://example.com/') as TestRequest
       req.params = {}
       req.cookies = {
         get: jest.fn().mockReturnValue(undefined),

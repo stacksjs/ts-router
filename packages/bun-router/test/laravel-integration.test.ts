@@ -5,7 +5,7 @@ import { Router } from '../src/router/index'
 
 describe('Laravel-style API Integration Tests', () => {
   let router: Router
-  let server: Server
+  let server: Server<any>
 
   // Mock data
   const users = [
@@ -302,7 +302,7 @@ describe('Laravel-style API Integration Tests', () => {
       expect(streamResponse.status).toBe(200)
       expect(streamResponse.headers.get('Content-Type')).toBe('application/json')
 
-      const streamData = await streamResponse.json()
+      const streamData = await streamResponse.json() as { posts: unknown[] }
       expect(streamData.posts).toHaveLength(3)
 
       // Test individual post streaming

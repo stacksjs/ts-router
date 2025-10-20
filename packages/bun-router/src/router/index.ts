@@ -113,8 +113,40 @@ declare module './router' {
       getCacheStats: () => any
     }
 
+    // Optimized route matching methods
+    matchRoute: (path: string, method: string, domain?: string) => { route: Route, params: Record<string, string> } | undefined
+    clearRouteCache: () => void
+    getCacheStats: () => any
+    getRouteStats: () => any
+    warmRouteCache: (commonPaths: Array<{ path: string, method: string }>) => void
+    getRoutesByMethod: () => any
+    getRouteConflicts: () => any
+    rebuildRouteCompiler: () => void
+    optimizeRoutes: (usageStats?: Record<string, number>) => void
+    addRouteToCompiler: (route: Route) => void
+    initializeRouteCompiler: () => void
+
     // Health check method
     health: () => Promise<Router>
+
+    // View rendering methods
+    renderView: (view: string, data?: Record<string, any>, options?: { layout?: string }) => Promise<string>
+    view: (path: string, view: string, data?: Record<string, any>, options?: { layout?: string, status?: number, headers?: Record<string, string> }) => Promise<Router>
+
+    // Route constraint methods
+    where: (param: string, pattern: string | RegExp) => Router
+    whereNumber: (param: string) => Router
+    whereAlpha: (param: string) => Router
+    whereAlphaNumeric: (param: string) => Router
+    whereUuid: (param: string) => Router
+    whereIn: (param: string, values: string[]) => Router
+
+    // Domain routing
+    domain: (domain: string, callback: () => Promise<void> | void) => Promise<Router>
+
+    // HTTP methods
+    options: (path: string, handler: ActionHandler, type?: 'api' | 'web', name?: string) => Promise<Router>
+    match: (methods: string[], path: string, handler: ActionHandler, type?: 'api' | 'web', name?: string) => Promise<Router>
 
     // Redirect and utility methods
     onError: (handler: (error: Error) => Response | Promise<Response>) => Router
