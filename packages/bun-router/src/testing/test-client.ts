@@ -289,22 +289,22 @@ export const testClient = {
   /**
    * Create a test client for a router
    */
-  for: (router: Router, config?: TestClientConfig) => createTestClient(router, config),
+  for: (router: Router, config?: TestClientConfig): TestClient => createTestClient(router, config),
 
   /**
    * Create a test client with specific configuration
    */
-  withConfig: (config: TestClientConfig) => (router: Router) => createTestClient(router, config),
+  withConfig: (config: TestClientConfig): (router: Router) => TestClient => (router: Router): TestClient => createTestClient(router, config),
 
   /**
    * Create a test client with authentication
    */
-  withAuth: (token: string, type: 'Bearer' | 'Basic' = 'Bearer') => (router: Router) =>
+  withAuth: (token: string, type: 'Bearer' | 'Basic' = 'Bearer'): (router: Router) => TestClient => (router: Router): TestClient =>
     createTestClient(router).auth(token, type),
 
   /**
    * Create a test client with custom headers
    */
-  withHeaders: (headers: Record<string, string>) => (router: Router) =>
+  withHeaders: (headers: Record<string, string>): (router: Router) => TestClient => (router: Router): TestClient =>
     createTestClient(router).withHeaders(headers),
 }

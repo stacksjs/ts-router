@@ -495,8 +495,8 @@ export const HotReloadHelpers = {
     }
 
     return {
-      server: server,
-      hotReload: hotReload,
+      server: server as ReturnType<typeof Bun.serve>,
+      hotReload: hotReload as HotReloadManager,
       stop: (): void => {
         hotReload.stop()
         server.stop()

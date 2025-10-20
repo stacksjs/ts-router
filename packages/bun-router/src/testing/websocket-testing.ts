@@ -254,15 +254,15 @@ export const wsHandlerMocks = {
   /**
    * Mock WebSocket open handler
    */
-  onOpen: () => mock(async (_ws: ServerWebSocket<any>) => {
+  onOpen: (): any => mock(async (_ws: ServerWebSocket<any>): Promise<void> => {
     // Mock open handler
   }),
 
   /**
    * Mock WebSocket message handler
    */
-  onMessage: (response?: string | ArrayBuffer | Uint8Array) =>
-    mock(async (ws: ServerWebSocket<any>, _message: string | Uint8Array | ArrayBuffer) => {
+  onMessage: (response?: string | ArrayBuffer | Uint8Array): any =>
+    mock(async (ws: ServerWebSocket<any>, _message: string | Uint8Array | ArrayBuffer): Promise<void> => {
       if (response) {
         ws.send(response)
       }
@@ -271,29 +271,29 @@ export const wsHandlerMocks = {
   /**
    * Mock WebSocket close handler
    */
-  onClose: () => mock(async (_ws: ServerWebSocket<any>, _code: number, _reason: string) => {
+  onClose: (): any => mock(async (_ws: ServerWebSocket<any>, _code: number, _reason: string): Promise<void> => {
     // Mock close handler
   }),
 
   /**
    * Mock WebSocket error handler
    */
-  onError: () => mock(async (_ws: ServerWebSocket<any>, _error: Error) => {
+  onError: (): any => mock(async (_ws: ServerWebSocket<any>, _error: Error): Promise<void> => {
     // Mock error handler
   }),
 
   /**
    * Mock echo handler
    */
-  echo: () => mock(async (ws: ServerWebSocket<any>, message: string | Uint8Array | ArrayBuffer) => {
+  echo: (): any => mock(async (ws: ServerWebSocket<any>, message: string | Uint8Array | ArrayBuffer): Promise<void> => {
     ws.send(message)
   }),
 
   /**
    * Mock broadcast handler
    */
-  broadcast: (clients: ServerWebSocket<any>[]) =>
-    mock(async (ws: ServerWebSocket<any>, message: string | Uint8Array | ArrayBuffer) => {
+  broadcast: (clients: ServerWebSocket<any>[]): any =>
+    mock(async (ws: ServerWebSocket<any>, message: string | Uint8Array | ArrayBuffer): Promise<void> => {
       clients.forEach((client) => {
         if (client !== ws && client.readyState === 1) {
           client.send(message)
@@ -304,8 +304,8 @@ export const wsHandlerMocks = {
   /**
    * Mock chat room handler
    */
-  chatRoom: (room: string) =>
-    mock(async (ws: ServerWebSocket<any>, message: string | Uint8Array | ArrayBuffer) => {
+  chatRoom: (room: string): any =>
+    mock(async (ws: ServerWebSocket<any>, message: string | Uint8Array | ArrayBuffer): Promise<void> => {
       ws.publish(room, message)
     }),
 }

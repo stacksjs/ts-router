@@ -375,8 +375,8 @@ export const constraintHelpers = {
   /**
    * Combine multiple constraints with AND logic
    */
-  combine: (...constraints: Array<(model: any, request: EnhancedRequest) => Promise<boolean>>) =>
-    mock(async (model: any, request: EnhancedRequest) => {
+  combine: (...constraints: Array<(model: any, request: EnhancedRequest) => Promise<boolean>>): any =>
+    mock(async (model: any, request: EnhancedRequest): Promise<boolean> => {
       for (const constraint of constraints) {
         if (!(await constraint(model, request))) {
           return false
@@ -490,7 +490,7 @@ export const routeModelHelpers = {
   /**
    * Create a route handler that expects model binding
    */
-  createHandler: (expectedModels: string[]) => mock(async (request: EnhancedRequest) => {
+  createHandler: (expectedModels: string[]): any => mock(async (request: EnhancedRequest): Promise<Response> => {
     const context = request.context || {}
 
     for (const modelKey of expectedModels) {
@@ -514,7 +514,7 @@ export const routeModelHelpers = {
    */
   testBindingMiddleware: (
     bindings: Record<string, any>,
-  ) => mock(async (request: EnhancedRequest, next: any) => {
+  ): any => mock(async (request: EnhancedRequest, next: any): Promise<Response> => {
     request.context = request.context || {}
 
     for (const [key, resolver] of Object.entries(bindings)) {

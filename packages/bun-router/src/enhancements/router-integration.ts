@@ -6,14 +6,14 @@
 
 import type { EnhancedRequest, MiddlewareHandler, NextFunction, RouteHandler } from '../types'
 import type { ValidationRules, ValidatorConfig } from '../validation/validator'
-import { EnhancedRequestWithMacros } from '../request/macros'
-import { EnhancedResponse } from '../response/macros'
+import { RequestWithMacros } from '../request/macros'
+import { ResponseWithMacros } from '../response/macros'
 import { createValidationMiddleware } from '../validation/validator'
 
 /**
- * Enhanced route builder with validation support
+ * Route builder with validation support
  */
-export class EnhancedRouteBuilder {
+export class RouteBuilder {
   private validationRules?: ValidationRules
   private validatorConfig?: ValidatorConfig
 
@@ -46,7 +46,7 @@ export class EnhancedRouteBuilder {
     // Add request macro middleware
     middleware.push(async (req: EnhancedRequest, next: NextFunction) => {
       // Apply request macros
-      EnhancedRequestWithMacros.applyMacros(req)
+      RequestWithMacros.applyMacros(req)
       const result = await next()
       return result || new Response('Not Found', { status: 404 })
     })
@@ -61,9 +61,9 @@ export class EnhancedRouteBuilder {
 }
 
 /**
- * Router extension for enhanced functionality
+ * Fluent router for enhanced routing functionality
  */
-export class EnhancedRouter {
+export class FluentRouter {
   private routes: Array<{
     method: string
     path: string
@@ -72,44 +72,44 @@ export class EnhancedRouter {
   }> = []
 
   /**
-   * Create enhanced GET route
+   * Create GET route
    */
-  get(path: string, handler: RouteHandler): EnhancedRouteBuilder {
-    return new EnhancedRouteBuilder('GET', path, handler)
+  get(path: string, handler: RouteHandler): RouteBuilder {
+    return new RouteBuilder('GET', path, handler)
   }
 
   /**
-   * Create enhanced POST route
+   * Create POST route
    */
-  post(path: string, handler: RouteHandler): EnhancedRouteBuilder {
-    return new EnhancedRouteBuilder('POST', path, handler)
+  post(path: string, handler: RouteHandler): RouteBuilder {
+    return new RouteBuilder('POST', path, handler)
   }
 
   /**
-   * Create enhanced PUT route
+   * Create PUT route
    */
-  put(path: string, handler: RouteHandler): EnhancedRouteBuilder {
-    return new EnhancedRouteBuilder('PUT', path, handler)
+  put(path: string, handler: RouteHandler): RouteBuilder {
+    return new RouteBuilder('PUT', path, handler)
   }
 
   /**
-   * Create enhanced PATCH route
+   * Create PATCH route
    */
-  patch(path: string, handler: RouteHandler): EnhancedRouteBuilder {
-    return new EnhancedRouteBuilder('PATCH', path, handler)
+  patch(path: string, handler: RouteHandler): RouteBuilder {
+    return new RouteBuilder('PATCH', path, handler)
   }
 
   /**
-   * Create enhanced DELETE route
+   * Create DELETE route
    */
-  delete(path: string, handler: RouteHandler): EnhancedRouteBuilder {
-    return new EnhancedRouteBuilder('DELETE', path, handler)
+  delete(path: string, handler: RouteHandler): RouteBuilder {
+    return new RouteBuilder('DELETE', path, handler)
   }
 
   /**
    * Register a built route
    */
-  register(routeBuilder: EnhancedRouteBuilder): void {
+  register(routeBuilder: RouteBuilder): void {
     const route = routeBuilder.build()
     this.routes.push(route)
   }
@@ -133,7 +133,7 @@ export class EnhancedRouter {
 export function createEnhancementMiddleware() {
   return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
     // Apply request macros
-    EnhancedRequestWithMacros.applyMacros(req)
+    RequestWithMacros.applyMacros(req)
 
     // Add start time for age calculation
     ;(req as any).startTime = Date.now()
@@ -225,8 +225,8 @@ export const RouteHelpers = {
     handler: RouteHandler,
     rules: ValidationRules,
     config?: ValidatorConfig,
-  ): EnhancedRouteBuilder => {
-    const builder = new EnhancedRouteBuilder(method, path, handler)
+  ): RouteBuilder => {
+    const builder = new RouteBuilder(method, path, handler)
     return builder.validate(rules, config)
   },
 
@@ -238,11 +238,11 @@ export const RouteHelpers = {
     path: string,
     handler: RouteHandler,
     rules?: ValidationRules,
-  ): EnhancedRouteBuilder => {
-    const builder = new EnhancedRouteBuilder(method, path, async (req): Promise<Response> => {
+  ): RouteBuilder => {
+    const builder = new RouteBuilder(method, path, async (req): Promise<Response> => {
       // Ensure request expects JSON
       if (!req.expectsJson()) {
-        return EnhancedResponse.callMacro('error', 'API endpoint requires JSON Accept header', undefined, 406)
+        return ResponseWithMacros.callMacro('error', 'API endpoint requires JSON Accept header', undefined, 406)
       }
 
       return await handler(req)
@@ -271,19 +271,19 @@ export const RouteHelpers = {
       store?: ValidationRules
       update?: ValidationRules
     },
-  ): EnhancedRouteBuilder[] => {
-    const routes: EnhancedRouteBuilder[] = []
+  ): RouteBuilder[] => {
+    const routes: RouteBuilder[] = []
 
     if (handlers.index) {
-      routes.push(new EnhancedRouteBuilder('GET', basePath, handlers.index))
+      routes.push(new RouteBuilder('GET', basePath, handlers.index))
     }
 
     if (handlers.show) {
-      routes.push(new EnhancedRouteBuilder('GET', `${basePath}/{id}`, handlers.show))
+      routes.push(new RouteBuilder('GET', `${basePath}/{id}`, handlers.show))
     }
 
     if (handlers.store) {
-      const builder = new EnhancedRouteBuilder('POST', basePath, handlers.store)
+      const builder = new RouteBuilder('POST', basePath, handlers.store)
       if (validation?.store) {
         builder.validate(validation.store)
       }
@@ -291,7 +291,7 @@ export const RouteHelpers = {
     }
 
     if (handlers.update) {
-      const builder = new EnhancedRouteBuilder('PUT', `${basePath}/{id}`, handlers.update)
+      const builder = new RouteBuilder('PUT', `${basePath}/{id}`, handlers.update)
       if (validation?.update) {
         builder.validate(validation.update)
       }
@@ -299,7 +299,7 @@ export const RouteHelpers = {
     }
 
     if (handlers.destroy) {
-      routes.push(new EnhancedRouteBuilder('DELETE', `${basePath}/{id}`, handlers.destroy))
+      routes.push(new RouteBuilder('DELETE', `${basePath}/{id}`, handlers.destroy))
     }
 
     return routes
@@ -307,10 +307,17 @@ export const RouteHelpers = {
 }
 
 /**
- * Enhanced router factory
+ * Fluent router factory
  */
-export function createEnhancedRouter(): EnhancedRouter {
-  return new EnhancedRouter()
+export function createFluentRouter(): FluentRouter {
+  return new FluentRouter()
+}
+
+/**
+ * @deprecated Use createFluentRouter instead
+ */
+export function createEnhancedRouter(): FluentRouter {
+  return new FluentRouter()
 }
 
 /**
@@ -377,7 +384,7 @@ export const EnhancementPresets = {
   /**
    * API preset with JSON validation and response macros
    */
-  api: () => [
+  api: (): Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> => [
     createEnhancementMiddleware(),
     async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       try {
@@ -397,7 +404,7 @@ export const EnhancementPresets = {
       catch (error) {
         console.error(error)
         // Return JSON error response
-        return EnhancedResponse.callMacro('error', 'Internal server error', undefined, 500)
+        return ResponseWithMacros.callMacro('error', 'Internal server error', undefined, 500)
       }
     },
   ],
@@ -405,7 +412,7 @@ export const EnhancementPresets = {
   /**
    * Web preset with request enhancements and CSRF protection
    */
-  web: () => [
+  web: (): Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> => [
     createEnhancementMiddleware(),
     async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       // Add web-specific enhancements
@@ -418,8 +425,8 @@ export const EnhancementPresets = {
   /**
    * Validation preset with comprehensive validation
    */
-  validation: (rules: ValidationRules, config?: ValidatorConfig) => [
+  validation: (rules: ValidationRules, config?: ValidatorConfig): Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> => [
     createEnhancementMiddleware(),
-    createValidationMiddleware(rules, config),
+    createValidationMiddleware(rules, config) as (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>,
   ],
 }
