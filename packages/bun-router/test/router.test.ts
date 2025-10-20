@@ -350,7 +350,7 @@ describe('Router', () => {
   describe('Cookies', () => {
     it('should parse request cookies', async () => {
       await router.get('/cookies', (req) => {
-        const value = req.cookies.get('test-cookie')
+        const value = req.cookies?.['test-cookie']
         return new Response(`Cookie: ${value}`)
       })
 
@@ -364,7 +364,8 @@ describe('Router', () => {
 
     it('should set response cookies', async () => {
       await router.get('/set-cookie', (req) => {
-        req.cookies.set('new-cookie', 'new-value', {
+        // @ts-expect-error - Testing legacy cookie API
+        req.cookies?.set('new-cookie', 'new-value', {
           httpOnly: true,
           maxAge: 3600,
         })
@@ -382,7 +383,8 @@ describe('Router', () => {
 
     it('should delete cookies', async () => {
       await router.get('/delete-cookie', (req) => {
-        req.cookies.delete('to-delete')
+        // @ts-expect-error - Testing legacy cookie API
+        req.cookies?.delete('to-delete')
         return new Response('Cookie deleted')
       })
 

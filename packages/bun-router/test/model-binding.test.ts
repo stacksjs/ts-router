@@ -2,9 +2,14 @@ import type { Server } from 'bun'
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { Router } from '../src/router/index'
 
+// Test types for JSON responses
+type UserData = { id: string, name: string, email: string, slug: string }
+type PostData = { id: string, title: string, slug: string, userId: string }
+type UserPostResponse = { user: UserData, post: PostData }
+
 describe('Laravel-style Model Binding APIs', () => {
   let router: Router
-  let server: Server
+  let server: Server<any>
 
   // Mock data
   const users = [
@@ -55,7 +60,7 @@ describe('Laravel-style Model Binding APIs', () => {
       const response = await fetch(`http://localhost:${port}/users/1`)
       expect(response.status).toBe(200)
 
-      const data = await response.json()
+      const data = await response.json() as UserData
       expect(data).toEqual({ id: '1', name: 'John Doe', email: 'john@example.com', slug: 'john-doe' })
     })
 
@@ -110,7 +115,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       const response = await fetch(`http://localhost:${port}/users/999`)
       expect(response.status).toBe(404)
-      const data = await response.json()
+      const data = await response.json() as { error: string }
       expect(data.error).toBe('Custom user not found message')
     })
 
@@ -166,7 +171,7 @@ describe('Laravel-style Model Binding APIs', () => {
       const response = await fetch(`http://localhost:${port}/users/1/posts/1`)
       expect(response.status).toBe(200)
 
-      const data = await response.json()
+      const data = await response.json() as UserPostResponse
       expect(data.user.id).toBe('1')
       expect(data.post.id).toBe('1')
       expect(data.user.name).toBe('John Doe')
@@ -211,7 +216,7 @@ describe('Laravel-style Model Binding APIs', () => {
       const response = await fetch(`http://localhost:${port}/items/123`)
       expect(response.status).toBe(200)
 
-      const data = await response.json()
+      const data = await response.json() as { params: Record<string, string> }
       expect(data.params).toEqual({ item: '123' })
     })
   })
@@ -253,7 +258,7 @@ describe('Laravel-style Model Binding APIs', () => {
       const response = await fetch(`http://localhost:${port}/users/999`)
       expect(response.status).toBe(404)
 
-      const data = await response.json()
+      const data = await response.json() as { error: string, message: string }
       expect(data.error).toBe('Custom 404')
       expect(data.message).toBe('The requested resource was not found')
     })
@@ -290,7 +295,7 @@ describe('Laravel-style Model Binding APIs', () => {
       const response = await fetch(`http://localhost:${port}/users/1/posts/1`)
       expect(response.status).toBe(200)
 
-      const data = await response.json()
+      const data = await response.json() as UserPostResponse
       expect(data.user.id).toBe('1')
       expect(data.post.id).toBe('1')
     })
@@ -354,7 +359,7 @@ describe('Laravel-style Model Binding APIs', () => {
       const response = await fetch(`http://localhost:${port}/users/john-doe`)
       expect(response.status).toBe(200)
 
-      const data = await response.json()
+      const data = await response.json() as UserData
       expect(data.name).toBe('John Doe')
       expect(data.slug).toBe('john-doe')
     })
@@ -442,7 +447,7 @@ describe('Laravel-style Model Binding APIs', () => {
       const response = await fetch(`http://localhost:${port}/users/1`)
       expect(response.status).toBe(200)
 
-      const data = await response.json()
+      const data = await response.json() as { user: UserData, auth: { authenticated: boolean } }
       expect(data.user.id).toBe('1')
       expect(data.auth.authenticated).toBe(true)
     })
@@ -495,7 +500,7 @@ describe('Laravel-style Model Binding APIs', () => {
       const response = await fetch(`http://localhost:${port}/users/1/categories/tech`)
       expect(response.status).toBe(200)
 
-      const data = await response.json()
+      const data = await response.json() as { user: UserData, category?: unknown }
       expect(data.user.id).toBe('1') // User should be resolved
       expect(data.category).toBeUndefined() // Category should not be resolved
     })

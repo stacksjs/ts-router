@@ -118,7 +118,7 @@ describe('Router Performance Optimizations', () => {
 
       // Create a route that accesses cookies
       await router.get('/use-cookies', (req) => {
-        const cookieValue = req.cookies.get('test-cookie')
+        const cookieValue = req.cookies?.['test-cookie']
         return new Response(`Cookie Value: ${cookieValue}`)
       })
 

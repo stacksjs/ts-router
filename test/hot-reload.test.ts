@@ -26,8 +26,8 @@ describe('Hot Reload', () => {
     mkdirSync(tempDir, { recursive: true })
 
     // Clear global state
-    globalThis.__HOT_RELOAD_STATE__ = undefined
-    globalThis.__HOT_RELOAD_PRESERVE__ = undefined
+    globalThis.__HOT_RELOAD_STATE__ = {} as any
+    globalThis.__HOT_RELOAD_PRESERVE__ = {}
   })
 
   afterEach(() => {
@@ -96,7 +96,7 @@ describe('Hot Reload', () => {
       })
 
       hotReload.preserveState('testKey', 'testValue')
-      expect(hotReload.restoreState('testKey')).toBe('testValue')
+      expect(hotReload.restoreState('testKey') as string).toBe('testValue')
 
       hotReload.clearState('testKey')
       expect(hotReload.restoreState('testKey')).toBeUndefined()
@@ -353,6 +353,7 @@ describe('Hot Reload', () => {
 
     it('should apply hot method decorator', () => {
       class TestClass {
+        // @ts-expect-error - Testing decorator API
         @HotReloadDecorators.hotMethod
         testMethod() {
           return 'method result'
@@ -365,6 +366,7 @@ describe('Hot Reload', () => {
 
     it('should handle method errors', () => {
       class TestClass {
+        // @ts-expect-error - Testing decorator API
         @HotReloadDecorators.hotMethod
         errorMethod() {
           throw new Error('Method error')
@@ -449,7 +451,7 @@ describe('Hot Reload', () => {
       await new Promise(resolve => setTimeout(resolve, 200))
 
       expect(onReload).toHaveBeenCalled()
-      const callArgs = onReload.mock.calls[0]?.[0]
+      const callArgs = (onReload.mock.calls as any[])[0]?.[0]
       expect((callArgs as any)?.length).toBeGreaterThan(0)
     })
 

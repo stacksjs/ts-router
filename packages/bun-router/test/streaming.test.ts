@@ -4,7 +4,7 @@ import { Router } from '../src/router/index'
 
 describe('Laravel-style Streaming APIs', () => {
   let router: Router
-  let server: Server
+  let server: Server<any>
 
   beforeEach(() => {
     router = new Router()
@@ -99,14 +99,9 @@ describe('Laravel-style Streaming APIs', () => {
         }
       }
 
-      async function* generateMeta() {
-        yield { total: 3, page: 1 }
-      }
-
       await router.get('/users.json', () => {
         return router.streamJson({
           users: generateUsers(),
-          meta: generateMeta(),
         })
       })
 

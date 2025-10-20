@@ -81,7 +81,7 @@ describe('Dependency Injection System', () => {
         }
       }
 
-      const service = container.resolve(TestService)
+      const service = container.resolve(TestService) as TestService
       expect(service).toBeInstanceOf(TestService)
       expect(service.getValue()).toBe('test')
     })
@@ -96,6 +96,7 @@ describe('Dependency Injection System', () => {
 
       @Injectable()
       class UserService {
+        // @ts-expect-error - Testing decorator API
         constructor(@Inject('DatabaseService') private db: DatabaseService) {}
 
         getStatus() {
@@ -106,7 +107,7 @@ describe('Dependency Injection System', () => {
       // Register DatabaseService first to avoid circular dependency detection
       container.singleton('DatabaseService', DatabaseService)
 
-      const userService = container.resolve(UserService)
+      const userService = container.resolve(UserService) as UserService
       expect(userService.getStatus()).toBe('connected')
     })
   })
@@ -164,8 +165,8 @@ describe('Dependency Injection System', () => {
       container.forDevelopment('service').to(DevService).build()
       container.forProduction('service').to(ProdService).build()
 
-      const devService = container.resolve('service', { environment: 'development' })
-      const prodService = container.resolve('service', { environment: 'production' })
+      const devService = container.resolve('service', { environment: 'development' }) as DevService
+      const prodService = container.resolve('service', { environment: 'production' }) as ProdService
 
       expect(devService.getType()).toBe('dev')
       expect(prodService.getType()).toBe('prod')

@@ -1,4 +1,4 @@
-import type { ActionHandler, MiddlewareHandler } from '../types'
+import type { ActionHandler, MiddlewareHandler, Route } from '../types'
 import { Dependencies, globalMiddlewarePipeline, MiddlewareFactory, MiddlewarePipeline, SkipConditions } from '../middleware/pipeline'
 import { registerFileStreaming } from './file-streaming'
 import { FluentRouteBuilder, FluentRouter, RouteFactory, router, RouterUtils } from './fluent-routing'
@@ -134,7 +134,7 @@ declare module './router' {
     view: (path: string, view: string, data?: Record<string, any>, options?: { layout?: string, status?: number, headers?: Record<string, string> }) => Promise<Router>
 
     // Route constraint methods
-    where: (param: string, pattern: string | RegExp) => Router
+    where: ((param: string, pattern: string | RegExp) => Router) & ((constraints: Record<string, string | RegExp>) => Router)
     whereNumber: (param: string) => Router
     whereAlpha: (param: string) => Router
     whereAlphaNumeric: (param: string) => Router
@@ -147,6 +147,17 @@ declare module './router' {
     // HTTP methods
     options: (path: string, handler: ActionHandler, type?: 'api' | 'web', name?: string) => Promise<Router>
     match: (methods: string[], path: string, handler: ActionHandler, type?: 'api' | 'web', name?: string) => Promise<Router>
+
+    // RESTful resource routing
+    resource: (name: string, handlers: {
+      index?: ActionHandler
+      show?: ActionHandler
+      store?: ActionHandler
+      update?: ActionHandler
+      destroy?: ActionHandler
+      create?: ActionHandler
+      edit?: ActionHandler
+    }) => Promise<Router>
 
     // Redirect and utility methods
     onError: (handler: (error: Error) => Response | Promise<Response>) => Router

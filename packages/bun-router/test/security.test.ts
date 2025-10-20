@@ -26,11 +26,16 @@ function createMockRequest(options: {
     formData: async () => new FormData(),
     text: async () => JSON.stringify(options.body || {}),
     clone: () => createMockRequest(options),
-  } as EnhancedRequest
+  } as unknown as EnhancedRequest
 }
 
 // Mock next function
 const mockNext = async () => new Response('OK', { status: 200 })
+
+// Type for validation error responses
+type ValidationErrorResponse = {
+  errors: Array<{ field: string, message: string }>
+}
 
 describe('Helmet Middleware', () => {
   let helmet: Helmet
@@ -254,7 +259,7 @@ describe('Input Validation Middleware', () => {
     const response = await inputValidation.handle(req, mockNext)
     expect(response.status).toBe(400)
 
-    const body = await response.json()
+    const body = await response.json() as ValidationErrorResponse
     expect(body.errors).toHaveLength(2)
     expect(body.errors[0].field).toBe('id')
     expect(body.errors[1].field).toBe('name')
@@ -275,7 +280,7 @@ describe('Input Validation Middleware', () => {
     const response = await inputValidation.handle(req, mockNext)
     expect(response.status).toBe(400)
 
-    const body = await response.json()
+    const body = await response.json() as ValidationErrorResponse
     expect(body.errors).toHaveLength(3)
   })
 
@@ -378,8 +383,9 @@ describe('Security Suite', () => {
     const req = createMockRequest({})
     const response = await middleware(req, mockNext)
 
-    expect(response.status).toBe(200)
-    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
+    expect(response!.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
 
   it('should create standard security preset', async () => {
@@ -387,7 +393,8 @@ describe('Security Suite', () => {
     const req = createMockRequest({})
     const response = await middleware(req, mockNext)
 
-    expect(response.status).toBe(200)
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
   })
 
   it('should create high security preset', async () => {
@@ -395,8 +402,9 @@ describe('Security Suite', () => {
     const req = createMockRequest({})
     const response = await middleware(req, mockNext)
 
-    expect(response.status).toBe(200)
-    expect(response.headers.get('Content-Security-Policy')).toBeDefined()
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
+    expect(response!.headers.get('Content-Security-Policy')).toBeDefined()
   })
 
   it('should create API security preset', async () => {
@@ -404,7 +412,8 @@ describe('Security Suite', () => {
     const req = createMockRequest({})
     const response = await middleware(req, mockNext)
 
-    expect(response.status).toBe(200)
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
   })
 
   it('should create development security preset', async () => {
@@ -412,7 +421,8 @@ describe('Security Suite', () => {
     const req = createMockRequest({})
     const response = await middleware(req, mockNext)
 
-    expect(response.status).toBe(200)
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
   })
 
   it('should allow custom security suite configuration', async () => {
@@ -427,8 +437,9 @@ describe('Security Suite', () => {
     const req = createMockRequest({})
     const response = await middleware(req, mockNext)
 
-    expect(response.status).toBe(200)
-    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
+    expect(response!.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
 
   it('should respect middleware order', async () => {
@@ -441,7 +452,8 @@ describe('Security Suite', () => {
     const req = createMockRequest({})
     const response = await middleware(req, mockNext)
 
-    expect(response.status).toBe(200)
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
   })
 })
 
@@ -455,7 +467,8 @@ describe('Security Integration', () => {
     })
 
     const sqlResponse = await middleware(sqlReq, mockNext)
-    expect(sqlResponse.status).toBe(400)
+    expect(sqlResponse).not.toBeNull()
+    expect(sqlResponse!.status).toBe(400)
 
     // XSS attempt
     const xssReq = createMockRequest({
@@ -463,7 +476,8 @@ describe('Security Integration', () => {
     })
 
     const xssResponse = await middleware(xssReq, mockNext)
-    expect(xssResponse.status).toBe(400)
+    expect(xssResponse).not.toBeNull()
+    expect(xssResponse!.status).toBe(400)
 
     // Path traversal attempt
     const pathReq = createMockRequest({
@@ -471,7 +485,8 @@ describe('Security Integration', () => {
     })
 
     const pathResponse = await middleware(pathReq, mockNext)
-    expect(pathResponse.status).toBe(400)
+    expect(pathResponse).not.toBeNull()
+    expect(pathResponse!.status).toBe(400)
   })
 
   it('should allow legitimate requests through all security layers', async () => {
@@ -487,11 +502,12 @@ describe('Security Integration', () => {
     })
 
     const response = await middleware(req, mockNext)
-    expect(response.status).toBe(200)
+    expect(response).not.toBeNull()
+    expect(response!.status).toBe(200)
 
     // Check that security headers are present
-    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
-    expect(response.headers.get('X-Frame-Options')).toBe('DENY')
-    expect(response.headers.get('Strict-Transport-Security')).toBeDefined()
+    expect(response!.headers.get('X-Content-Type-Options')).toBe('nosniff')
+    expect(response!.headers.get('X-Frame-Options')).toBe('DENY')
+    expect(response!.headers.get('Strict-Transport-Security')).toBeDefined()
   })
 })

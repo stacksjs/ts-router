@@ -24,7 +24,7 @@ function createMockRequest(method: string = 'GET', url: string = 'http://localho
     query: {},
     body: null,
     route: { pattern: '/test', id: 'test_route' },
-  }) as EnhancedRequest
+  }) as unknown as EnhancedRequest
 }
 
 // Mock handler
@@ -281,7 +281,7 @@ describe('Performance Profiler', () => {
     expect(profile?.phases.handlerExecution).toHaveLength(1)
   })
 
-  test('should record timing operations', () => {
+  test('should record timing operations', async () => {
     const req = createMockRequest()
     const profileId = profiler.startProfiling(req, '/test')
 
@@ -314,7 +314,7 @@ describe('Performance Profiler', () => {
     expect(profile?.warnings).toContain('Slow query detected: 150.20ms')
   })
 
-  test('should filter profiles', () => {
+  test('should filter profiles', async () => {
     const req1 = createMockRequest('GET', 'http://localhost/fast')
     const req2 = createMockRequest('POST', 'http://localhost/slow')
 
@@ -339,7 +339,7 @@ describe('Performance Profiler', () => {
     expect(slowProfiles.length).toBeGreaterThanOrEqual(0) // May vary based on timing
   })
 
-  test('should generate performance metrics', () => {
+  test('should generate performance metrics', async () => {
     const req = createMockRequest()
     const profileId = profiler.startProfiling(req, '/test')
 
@@ -610,6 +610,7 @@ describe('Development Router', () => {
   })
 
   test('should list routes', () => {
+    // @ts-expect-error - Testing internal API
     const routes = devRouter.routes()
     expect(routes).toBeInstanceOf(Array)
   })

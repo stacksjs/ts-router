@@ -13,7 +13,7 @@ interface MockCookies {
 }
 
 // Test request type with mocked cookies
-interface TestRequest extends EnhancedRequest {
+type TestRequest = Omit<EnhancedRequest, 'cookies'> & {
   cookies: MockCookies
 }
 
@@ -194,7 +194,7 @@ describe('Middleware', () => {
         getAll: jest.fn().mockReturnValue({}),
       }
 
-      await sessionMiddleware.handle(req, nextMock)
+      await sessionMiddleware.handle(req as unknown as EnhancedRequest, nextMock)
 
       // Should create a new session
       expect(req.session).toBeDefined()
@@ -305,6 +305,7 @@ describe('Route-specific middleware', () => {
     // Create a route with fluid middleware API
     const r = await router.get('/fluid', () => new Response('Fluid middleware'))
     // Add middleware using the fluid API
+    // @ts-expect-error - Testing fluid API that may not be fully typed
     r.middleware(firstMiddleware, secondMiddleware)
 
     // Small delay to ensure the middleware is applied asynchronously

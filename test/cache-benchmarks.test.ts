@@ -331,7 +331,7 @@ describe('Cache Performance Benchmarks', () => {
         executionCount++
         // Simulate expensive operation
         await new Promise(resolve => setTimeout(resolve, 10))
-        return { result: 'computed', executionId: executionCount }
+        return new Response(JSON.stringify({ result: 'computed', executionId: executionCount }))
       }
 
       const memoizedMiddleware = memoizer.memoize(expensiveMiddleware)
@@ -438,7 +438,7 @@ describe('Cache Performance Benchmarks', () => {
     it('should demonstrate invalidation performance', async () => {
       // Create many cached entries
       const middleware = async (_req: EnhancedRequest, _next: any) => {
-        return { url: _req.url, timestamp: Date.now() }
+        return new Response(JSON.stringify({ url: _req.url, timestamp: Date.now() }))
       }
 
       const memoizedMiddleware = memoizer.memoize(middleware, { name: 'invalidation-test' })
@@ -489,7 +489,7 @@ describe('Cache Performance Benchmarks', () => {
       // Create expensive middleware
       const expensiveMiddleware = async (_req: EnhancedRequest, _next: any) => {
         await new Promise(resolve => setTimeout(resolve, 2))
-        return { processed: true, url: _req.url }
+        return new Response(JSON.stringify({ processed: true, url: _req.url }))
       }
 
       const memoizedMiddleware = memoizer.memoize(expensiveMiddleware)

@@ -258,8 +258,8 @@ describe('IoC Container', () => {
       const child = parent.createChild()
       child.value('child-only', { value: 'child' })
 
-      expect(child.resolve('shared')).toEqual({ value: 'shared' })
-      expect(child.resolve('child-only')).toEqual({ value: 'child' })
+      expect(child.resolve('shared') as { value: string }).toEqual({ value: 'shared' })
+      expect(child.resolve('child-only') as { value: string }).toEqual({ value: 'child' })
       expect(() => parent.resolve('child-only')).toThrow()
     })
 
