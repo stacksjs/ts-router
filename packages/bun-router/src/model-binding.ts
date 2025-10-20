@@ -139,7 +139,7 @@ export class BunQueryBuilderModel<T extends Model = Model> {
 /**
  * Parse multiple route parameters from path
  */
-export function parseRouteParameters(path: string): Array<{ name: string, key?: string }> {
+export function parseRouteParameters(path: string): { name: string, key?: string }[] {
   return extractModelParameters(path)
 }
 
@@ -158,7 +158,7 @@ export function parseRouteParameter(param: string): { name: string, key?: string
 /**
  * Extract model parameters from route path
  */
-export function extractModelParameters(path: string): Array<{ name: string, key?: string }> {
+export function extractModelParameters(path: string): { name: string, key?: string }[] {
   const paramMatches = path.match(/\{[^}]+\}/g) || []
   return paramMatches.map(parseRouteParameter)
 }
@@ -283,7 +283,7 @@ export async function resolveModel<T extends Model>(
  * Route model binding middleware factory for bun-query-builder models
  */
 export function createModelBindingMiddleware(
-  modelParameters: Array<{ name: string, key?: string }>,
+  modelParameters: { name: string, key?: string }[],
   modelWrappers: Record<string, BunQueryBuilderModel>,
 ): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
   return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {

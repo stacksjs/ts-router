@@ -16,6 +16,55 @@ export interface WarmupRoute {
   warmupData?: any // Pre-computed data for the route
 }
 
+export interface AnalyticsRoute {
+  path: string
+  method: string
+  frequency: number
+}
+
+export interface RecentRoute {
+  path: string
+  method: string
+  timestamp: number
+}
+
+export interface PrecomputeRoute {
+  path: string
+  method: string
+  computeFunction: () => Promise<any>
+  cacheKey?: string
+  ttl?: number
+}
+
+export interface UserSegment {
+  segment: string
+  commonRoutes: string[]
+  priority: number
+}
+
+export interface TimeRange {
+  start: number
+  end: number
+}
+
+export interface TimeBasedPattern {
+  timeRange: TimeRange
+  routes: string[]
+  priority: number
+}
+
+export interface GeographicPattern {
+  region: string
+  routes: string[]
+  priority: number
+}
+
+export interface IntelligentWarmupPatterns {
+  userSegments?: UserSegment[]
+  timeBasedPatterns?: TimeBasedPattern[]
+  geographicPatterns?: GeographicPattern[]
+}
+
 export interface WarmupConfig {
   enabled: boolean
   maxConcurrency: number // Maximum concurrent warmup requests
@@ -135,8 +184,8 @@ export class RouteCacheWarmer {
    * Warm specific route patterns based on analytics
    */
   async warmFromAnalytics(analytics: {
-    topRoutes: Array<{ path: string, method: string, frequency: number }>
-    recentRoutes: Array<{ path: string, method: string, timestamp: number }>
+    topRoutes: AnalyticsRoute[]
+    recentRoutes: RecentRoute[]
   }): Promise<void> {
     const analyticsRoutes: WarmupRoute[] = []
 
@@ -170,15 +219,7 @@ export class RouteCacheWarmer {
   /**
    * Pre-compute and cache expensive route operations
    */
-  async precomputeRoutes(
-    routes: Array<{
-      path: string
-      method: string
-      computeFunction: () => Promise<any>
-      cacheKey?: string
-      ttl?: number
-    }>,
-  ): Promise<number> {
+  async precomputeRoutes(routes: PrecomputeRoute[]): Promise<number> {
     let precomputedCount = 0
 
     for (const route of routes) {
@@ -208,23 +249,7 @@ export class RouteCacheWarmer {
   /**
    * Warm cache based on route patterns and user behavior
    */
-  async intelligentWarmup(patterns: {
-    userSegments?: Array<{
-      segment: string
-      commonRoutes: string[]
-      priority: number
-    }>
-    timeBasedPatterns?: Array<{
-      timeRange: { start: number, end: number } // Hours in 24h format
-      routes: string[]
-      priority: number
-    }>
-    geographicPatterns?: Array<{
-      region: string
-      routes: string[]
-      priority: number
-    }>
-  }): Promise<void> {
+  async intelligentWarmup(patterns: IntelligentWarmupPatterns): Promise<void> {
     const currentHour = new Date().getHours()
     const intelligentRoutes: WarmupRoute[] = []
 
@@ -346,7 +371,7 @@ export class RouteCacheWarmer {
         // Cache the response if streaming cache is available
         if (this.streamingCache && response.ok) {
           const cacheKey = `${route.method}:${route.path}`
-          await this.streamingCache.cacheResponse(cacheKey, response.clone(), {
+          await this.streamingCache.cacheResponse(cacheKey, response.clone() as Response, {
             forceCache: true,
             generateETag: true,
           })

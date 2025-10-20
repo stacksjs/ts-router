@@ -9,6 +9,7 @@ import { registerOptimizedRouteMatching } from './optimized-route-matching'
 import { registerRouteBuilding } from './route-building'
 import { registerRouteMatching } from './route-matching'
 import { Router } from './router'
+import type { ActionHandler, MiddlewareHandler } from '../types'
 import { registerServerHandling } from './server'
 import { registerViewRendering } from './view-rendering'
 import { registerWebSocketHandling } from './websocket'
@@ -114,6 +115,15 @@ declare module './router' {
 
     // Health check method
     health: () => Promise<Router>
+
+    // Redirect and utility methods
+    onError: (handler: (error: Error) => Response | Promise<Response>) => Router
+    redirect: (url: string, status?: 301 | 302 | 303 | 307 | 308) => Response
+    permanentRedirect: (url: string) => Response
+    fallback: (handler: ActionHandler) => Router
+    redirectRoute: (from: string, to: string, status?: 301 | 302 | 303 | 307 | 308) => Promise<Router>
+    route: (name: string, params?: Record<string, string>) => string
+    any: (path: string, handler: ActionHandler, type?: 'api' | 'web', name?: string, middleware?: (string | MiddlewareHandler)[]) => Promise<Router>
   }
 }
 export { Dependencies, FluentRouteBuilder, FluentRouter, globalMiddlewarePipeline, MiddlewareFactory, MiddlewarePipeline, RouteFactory, router, RouterUtils, SkipConditions }

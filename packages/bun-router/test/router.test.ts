@@ -276,7 +276,7 @@ describe('Router', () => {
 
   describe('Named Routes', () => {
     it('should register and resolve named routes', async () => {
-      await router.get('/users/{id}', () => new Response('User'), 'web', 'users.show')
+      await router.get('/users/{id}', () => new Response('User'), undefined, 'users.show')
 
       const path = router.route('users.show', { id: '123' })
       expect(path).toBe('/users/123')

@@ -184,23 +184,23 @@ export class Router {
    * HTTP methods - implemented by router extensions
    * These methods are overridden by registerHttpMethods()
    */
-  async get(_path: string, _handler: RouteHandler): Promise<Router> {
+  async get(_path: string, _handler: RouteHandler, _type?: 'api' | 'web', _name?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async post(_path: string, _handler: RouteHandler): Promise<Router> {
+  async post(_path: string, _handler: RouteHandler, _type?: 'api' | 'web', _name?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async put(_path: string, _handler: RouteHandler): Promise<Router> {
+  async put(_path: string, _handler: RouteHandler, _type?: 'api' | 'web', _name?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async patch(_path: string, _handler: RouteHandler): Promise<Router> {
+  async patch(_path: string, _handler: RouteHandler, _type?: 'api' | 'web', _name?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async delete(_path: string, _handler: RouteHandler): Promise<Router> {
+  async delete(_path: string, _handler: RouteHandler, _type?: 'api' | 'web', _name?: string, _middleware?: (string | MiddlewareHandler)[]): Promise<Router> {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
@@ -219,6 +219,7 @@ export class Router {
   group(_options: { prefix?: string, middleware?: (string | MiddlewareHandler)[] }, _callback: () => void): Router {
     throw new Error('Route group methods not implemented - use router extensions')
   }
+
 }
 
 /**

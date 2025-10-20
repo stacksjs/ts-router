@@ -385,7 +385,9 @@ describe('Observability & Monitoring', () => {
 
       // Mock fetch for testing
       const originalFetch = globalThis.fetch
-      globalThis.fetch = mock(async () => new Response('OK', { status: 200 }))
+      const mockedFetch = mock(async () => new Response('OK', { status: 200 })) as unknown as typeof fetch
+      ;(mockedFetch as any).preconnect = () => {}
+      globalThis.fetch = mockedFetch
 
       manager.addDependency(
         DependencyChecks.httpService('api-service', 'http://api.example.com/health'),
@@ -418,7 +420,7 @@ describe('Observability & Monitoring', () => {
       expect(response.status).toBe(200)
       expect(response.headers.get('content-type')).toBe('application/json')
 
-      const body = await response.json()
+      const body = await response.json() as any
       expect(body.status).toBeDefined()
       expect(body.timestamp).toBeDefined()
       expect(body.uptime).toBeDefined()
@@ -466,7 +468,7 @@ describe('Observability & Monitoring', () => {
       const childContext = manager.createChildContext(parentContext.correlationId, 'child-service')
 
       expect(childContext.parentId).toBe(parentContext.correlationId)
-      expect(childContext.traceId).toBe(parentContext.traceId)
+      expect(childContext.traceId).toBe(parentContext.traceId!)
       expect(childContext.metadata.serviceName).toBe('child-service')
     })
 
@@ -495,11 +497,13 @@ describe('Observability & Monitoring', () => {
 
       // Mock fetch
       const originalFetch = globalThis.fetch
-      globalThis.fetch = mock(async (url, options) => {
+      const mockedFetch = mock(async (url, options) => {
         const headers = new Headers(options?.headers)
         expect(headers.get('x-correlation-id')).toBe(context.correlationId)
         return new Response('OK')
-      })
+      }) as unknown as typeof fetch
+      ;(mockedFetch as any).preconnect = () => {}
+      globalThis.fetch = mockedFetch
 
       const httpClient = manager.createHttpClient(context.correlationId)
       await httpClient.fetch('http://api.example.com/test')

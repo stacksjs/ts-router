@@ -399,11 +399,11 @@ export interface SecurityConfig {
     commandInjection?: boolean
     ldapInjection?: boolean
     xxe?: boolean
-    customPatterns?: Array<{
+    customPatterns?: {
       name: string
       pattern: RegExp
       action: 'block' | 'log' | 'sanitize'
-    }>
+    }[]
   }
   requestFiltering?: {
     enabled?: boolean

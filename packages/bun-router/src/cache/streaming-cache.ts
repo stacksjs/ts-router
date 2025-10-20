@@ -95,7 +95,7 @@ export class StreamingCache {
         this.options.compressionEnabled
         && originalSize >= this.options.compressionThreshold
       ) {
-        finalBody = await this.compressData(bodyArray)
+        finalBody = await this.compressData(bodyArray) as Uint8Array<ArrayBuffer>
         compressed = true
       }
 
@@ -373,8 +373,8 @@ export class StreamingCache {
     try {
       // Use Bun's built-in compression if available
       if (typeof Bun !== 'undefined' && Bun.gzipSync) {
-        const compressed = Bun.gzipSync(data)
-        return new Uint8Array(compressed.buffer.slice(compressed.byteOffset, compressed.byteOffset + compressed.byteLength))
+        const compressed = Bun.gzipSync(new Uint8Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer))
+        return new Uint8Array(compressed.buffer.slice(compressed.byteOffset, compressed.byteOffset + compressed.byteLength) as ArrayBuffer) as Uint8Array<ArrayBuffer>
       }
 
       // Fallback to CompressionStream API
@@ -418,8 +418,8 @@ export class StreamingCache {
     try {
       // Use Bun's built-in decompression if available
       if (typeof Bun !== 'undefined' && Bun.gunzipSync) {
-        const decompressed = Bun.gunzipSync(data)
-        return new Uint8Array(decompressed.buffer.slice(decompressed.byteOffset, decompressed.byteOffset + decompressed.byteLength))
+        const decompressed = Bun.gunzipSync(new Uint8Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer))
+        return new Uint8Array(decompressed.buffer.slice(decompressed.byteOffset, decompressed.byteOffset + decompressed.byteLength) as ArrayBuffer) as Uint8Array<ArrayBuffer>
       }
 
       // Fallback to DecompressionStream API

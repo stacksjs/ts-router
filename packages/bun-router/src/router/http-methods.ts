@@ -303,6 +303,16 @@ export function registerHttpMethods(RouterClass: typeof Router): void {
       writable: true,
       configurable: true,
     },
+
+    // Register an error handler
+    onError: {
+      value(handler: (error: Error) => Response | Promise<Response>): Router {
+        this.errorHandler = handler
+        return this
+      },
+      writable: true,
+      configurable: true,
+    },
   })
 }
 
