@@ -219,7 +219,6 @@ export class Router {
   group(_options: { prefix?: string, middleware?: (string | MiddlewareHandler)[] }, _callback: () => void): Router {
     throw new Error('Route group methods not implemented - use router extensions')
   }
-
 }
 
 /**

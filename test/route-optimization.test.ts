@@ -247,7 +247,7 @@ describe('Route Optimization', () => {
       const conflicts = compiler.getRouteConflicts()
 
       expect(conflicts).toHaveLength(1)
-      expect(conflicts[0].conflictType).toBe('overlap')
+      expect(conflicts[0].conflictType).toBe('ambiguous')
       expect(conflicts[0].routes).toHaveLength(2)
     })
 

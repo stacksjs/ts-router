@@ -96,7 +96,7 @@ describe('Dependency Injection System', () => {
 
       @Injectable()
       class UserService {
-        constructor(@Inject(DatabaseService) private db: DatabaseService) {}
+        constructor(@Inject('DatabaseService') private db: DatabaseService) {}
 
         getStatus() {
           return this.db.connect()
@@ -104,7 +104,7 @@ describe('Dependency Injection System', () => {
       }
 
       // Register DatabaseService first to avoid circular dependency detection
-      container.singleton(DatabaseService, DatabaseService)
+      container.singleton('DatabaseService', DatabaseService)
 
       const userService = container.resolve(UserService)
       expect(userService.getStatus()).toBe('connected')

@@ -67,7 +67,7 @@
     "dev:docs": "bun --bun vitepress dev docs",
     "build:docs": "bun --bun vitepress build docs",
     "preview:docs": "bun --bun vitepress preview docs",
-    "typecheck": "bun --bun tsc --noEmit"
+    "typecheck": "bunx --bun tsc --noEmit"
   },
   "dependencies": {
     "@stacksjs/clapp": "^0.2.0",
