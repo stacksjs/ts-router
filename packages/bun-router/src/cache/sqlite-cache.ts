@@ -725,44 +725,57 @@ export const SQLiteCacheHelpers = {
   /**
    * Create session cache
    */
-  createSessionCache: (cache: SQLiteCache) => ({
-    get: (sessionId: string) => cache.get(`session:${sessionId}`),
-    set: (sessionId: string, data: any, ttl = 3600) => cache.set(`session:${sessionId}`, data, ttl),
-    delete: (sessionId: string) => cache.delete(`session:${sessionId}`),
-    touch: (sessionId: string, ttl = 3600) => cache.expire(`session:${sessionId}`, ttl),
+  createSessionCache: (cache: SQLiteCache): {
+    get: (sessionId: string) => any
+    set: (sessionId: string, data: any, ttl?: number) => void
+    delete: (sessionId: string) => boolean
+    touch: (sessionId: string, ttl?: number) => boolean
+  } => ({
+    get: (sessionId: string): any => cache.get(`session:${sessionId}`),
+    set: (sessionId: string, data: any, ttl = 3600): void => { cache.set(`session:${sessionId}`, data, ttl) },
+    delete: (sessionId: string): boolean => cache.delete(`session:${sessionId}`),
+    touch: (sessionId: string, ttl = 3600): boolean => cache.expire(`session:${sessionId}`, ttl),
   }),
 
   /**
    * Create rate limiting cache
    */
-  createRateLimitCache: (cache: SQLiteCache) => ({
-    increment: (key: string, window = 60) => {
+  createRateLimitCache: (cache: SQLiteCache): {
+    increment: (key: string, window?: number) => number
+    get: (key: string) => number
+    reset: (key: string) => boolean
+  } => ({
+    increment: (key: string, window = 60): number => {
       const current = cache.get<number>(`rate:${key}`) || 0
       const newValue = current + 1
       cache.set(`rate:${key}`, newValue, window)
       return newValue
     },
 
-    get: (key: string) => cache.get<number>(`rate:${key}`) || 0,
+    get: (key: string): number => cache.get<number>(`rate:${key}`) || 0,
 
-    reset: (key: string) => cache.delete(`rate:${key}`),
+    reset: (key: string): boolean => cache.delete(`rate:${key}`),
   }),
 
   /**
    * Create query result cache
    */
-  createQueryCache: (cache: SQLiteCache) => ({
-    get: (query: string, params: any[]) => {
+  createQueryCache: (cache: SQLiteCache): {
+    get: (query: string, params: any[]) => any
+    set: (query: string, params: any[], result: any, ttl?: number) => void
+    invalidate: (pattern: string) => void
+  } => ({
+    get: (query: string, params: any[]): any => {
       const key = `query:${Bun.hash(query + JSON.stringify(params))}`
       return cache.get(key)
     },
 
-    set: (query: string, params: any[], result: any, ttl = 300) => {
+    set: (query: string, params: any[], result: any, ttl = 300): void => {
       const key = `query:${Bun.hash(query + JSON.stringify(params))}`
-      return cache.set(key, result, ttl)
+      cache.set(key, result, ttl)
     },
 
-    invalidate: (pattern: string) => {
+    invalidate: (pattern: string): void => {
       const keys = cache.keys(`query:*${pattern}*`)
       keys.forEach(key => cache.delete(key))
     },

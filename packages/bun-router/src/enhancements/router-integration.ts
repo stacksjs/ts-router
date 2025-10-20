@@ -117,7 +117,12 @@ export class EnhancedRouter {
   /**
    * Get all registered routes
    */
-  getRoutes() {
+  getRoutes(): Array<{
+    method: string
+    path: string
+    handler: RouteHandler
+    middleware?: MiddlewareHandler[]
+  }> {
     return this.routes
   }
 }
@@ -220,7 +225,7 @@ export const RouteHelpers = {
     handler: RouteHandler,
     rules: ValidationRules,
     config?: ValidatorConfig,
-  ) => {
+  ): EnhancedRouteBuilder => {
     const builder = new EnhancedRouteBuilder(method, path, handler)
     return builder.validate(rules, config)
   },

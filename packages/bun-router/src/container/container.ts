@@ -60,10 +60,10 @@ export interface ContainerOptions {
 }
 
 // Dependency injection decorators
-export const INJECTABLE_METADATA_KEY = Symbol('injectable')
-export const INJECT_METADATA_KEY = Symbol('inject')
-export const OPTIONAL_METADATA_KEY = Symbol('optional')
-export const TAGGED_METADATA_KEY = Symbol('tagged')
+export const INJECTABLE_METADATA_KEY: unique symbol = Symbol('injectable')
+export const INJECT_METADATA_KEY: unique symbol = Symbol('inject')
+export const OPTIONAL_METADATA_KEY: unique symbol = Symbol('optional')
+export const TAGGED_METADATA_KEY: unique symbol = Symbol('tagged')
 
 // Decorator metadata
 export interface InjectableMetadata {

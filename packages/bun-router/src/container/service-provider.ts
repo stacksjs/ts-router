@@ -6,7 +6,7 @@
  * and bootstrapping application components with dependency injection
  */
 
-import type { Container, ResolutionContext } from './container'
+import type { BindingBuilder, Container, ResolutionContext } from './container'
 
 // Service provider interfaces
 export interface ServiceProvider {
@@ -30,7 +30,7 @@ export interface ServiceProvider {
    */
   readonly name: string
   readonly version?: string
-  readonly dependencies?: string[]
+  readonly dependencies?: readonly string[]
   readonly environment?: string[]
   readonly priority?: number
 }
@@ -70,7 +70,7 @@ export interface ServiceProviderManager {
 export abstract class BaseServiceProvider implements ServiceProvider {
   abstract readonly name: string
   readonly version?: string
-  readonly dependencies?: string[]
+  readonly dependencies?: readonly string[]
   readonly environment?: string[]
   readonly priority: number = 0
 
@@ -134,9 +134,9 @@ export abstract class BaseServiceProvider implements ServiceProvider {
   protected when(
     container: Container,
     condition: (context: ResolutionContext) => boolean,
-  ) {
+  ): { bind: <T>(token: string | symbol | Function) => BindingBuilder<T> } {
     return {
-      bind: <T>(token: string | symbol | Function) => {
+      bind: <T>(token: string | symbol | Function): BindingBuilder<T> => {
         return container.bind<T>(token).when(condition)
       },
     }
@@ -145,7 +145,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
   /**
    * Helper method for environment-specific binding
    */
-  protected forEnvironment(container: Container, ...environments: string[]) {
+  protected forEnvironment(container: Container, ...environments: string[]): { bind: <T>(token: string | symbol | Function) => BindingBuilder<T> } {
     return this.when(container, context =>
       environments.includes(context.environment || 'development'))
   }
@@ -411,7 +411,7 @@ export class LoggingServiceProvider extends BaseServiceProvider {
  */
 export class DatabaseServiceProvider extends BaseServiceProvider {
   readonly name = 'database'
-  readonly dependencies = ['config', 'logging']
+  readonly dependencies = ['config', 'logging'] as const
 
   register(container: Container): void {
     // Register database connection
@@ -440,7 +440,7 @@ export class DatabaseServiceProvider extends BaseServiceProvider {
  */
 export class CacheServiceProvider extends BaseServiceProvider {
   readonly name = 'cache'
-  readonly dependencies = ['config']
+  readonly dependencies = ['config'] as const
 
   register(container: Container): void {
     // Register cache manager
@@ -464,7 +464,7 @@ export class CacheServiceProvider extends BaseServiceProvider {
  */
 export class AuthServiceProvider extends BaseServiceProvider {
   readonly name = 'auth'
-  readonly dependencies = ['config', 'database']
+  readonly dependencies = ['config', 'database'] as const
 
   register(container: Container): void {
     // Register auth services

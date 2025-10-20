@@ -495,9 +495,9 @@ export const HotReloadHelpers = {
     }
 
     return {
-      server,
-      hotReload,
-      stop: () => {
+      server: server,
+      hotReload: hotReload,
+      stop: (): void => {
         hotReload.stop()
         server.stop()
       },

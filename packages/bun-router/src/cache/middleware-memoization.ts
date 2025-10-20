@@ -468,15 +468,15 @@ export function Memoize(options: {
   memoizer: MiddlewareMemoizer
   keyGenerator?: (...args: any[]) => string
   ttl?: number
-} = { memoizer: new MiddlewareMemoizer({ maxSize: 100 }) }) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+} = { memoizer: new MiddlewareMemoizer({ maxSize: 100 }) }): MethodDecorator {
+  return function (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor): PropertyDescriptor {
     const originalMethod = descriptor.value
 
     descriptor.value = function (...args: any[]) {
       const memoizedMethod = options.memoizer.memoizeFunction(
         originalMethod.bind(this),
         {
-          name: `${target.constructor.name}.${propertyKey}`,
+          name: `${target.constructor.name}.${String(propertyKey)}`,
           keyGenerator: options.keyGenerator,
           ttl: options.ttl,
         },

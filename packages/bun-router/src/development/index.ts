@@ -65,7 +65,7 @@ export class DevelopmentTools {
   /**
    * Create development middleware stack
    */
-  createMiddleware() {
+  createMiddleware(): Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> {
     const middleware: Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> = []
 
     // Add debugging middleware
@@ -111,51 +111,74 @@ export class DevelopmentTools {
   /**
    * Get route debugging information
    */
-  debug() {
+  debug(): {
+    listRoutes: typeof RouteInspectionHelpers.listRoutes
+    analyzeRoutes: typeof RouteInspectionHelpers.analyzeRoutes
+    exportRoutes: typeof RouteInspectionHelpers.exportRoutes
+    getDebugSession: (requestId: string) => ReturnType<typeof this.debugger.getDebugSession>
+    clearSessions: () => void
+  } {
     return {
       listRoutes: RouteInspectionHelpers.listRoutes,
       analyzeRoutes: RouteInspectionHelpers.analyzeRoutes,
       exportRoutes: RouteInspectionHelpers.exportRoutes,
-      getDebugSession: (requestId: string) => this.debugger.getDebugSession(requestId),
-      clearSessions: () => this.debugger.clearSessions(),
+      getDebugSession: (requestId: string): ReturnType<typeof this.debugger.getDebugSession> => this.debugger.getDebugSession(requestId),
+      clearSessions: (): void => this.debugger.clearSessions(),
     }
   }
 
   /**
    * Get route listing and analysis
    */
-  routes() {
+  routes(): {
+    list: (filter?: any) => ReturnType<typeof this.inspector.getRoutes>
+    analyze: () => ReturnType<typeof this.inspector.analyzeRoutes>
+    export: (format?: 'json' | 'csv' | 'markdown' | 'openapi') => ReturnType<typeof this.inspector.exportRoutes>
+    groups: () => ReturnType<typeof this.inspector.getGroups>
+    find: (method: string, path: string) => ReturnType<typeof this.inspector.findMatchingRoutes>
+  } {
     return {
-      list: (filter?: any) => this.inspector.getRoutes(filter),
-      analyze: () => this.inspector.analyzeRoutes(),
-      export: (format?: 'json' | 'csv' | 'markdown' | 'openapi') => this.inspector.exportRoutes(format),
-      groups: () => this.inspector.getGroups(),
-      find: (method: string, path: string) => this.inspector.findMatchingRoutes(method, path),
+      list: (filter?: any): ReturnType<typeof this.inspector.getRoutes> => this.inspector.getRoutes(filter),
+      analyze: (): ReturnType<typeof this.inspector.analyzeRoutes> => this.inspector.analyzeRoutes(),
+      export: (format?: 'json' | 'csv' | 'markdown' | 'openapi'): ReturnType<typeof this.inspector.exportRoutes> => this.inspector.exportRoutes(format),
+      groups: (): ReturnType<typeof this.inspector.getGroups> => this.inspector.getGroups(),
+      find: (method: string, path: string): ReturnType<typeof this.inspector.findMatchingRoutes> => this.inspector.findMatchingRoutes(method, path),
     }
   }
 
   /**
    * Get performance profiling information
    */
-  profile() {
+  profile(): {
+    getMetrics: () => ReturnType<typeof this.profiler.getMetrics>
+    getProfiles: (filter?: any) => ReturnType<typeof this.profiler.getProfiles>
+    generateReport: () => ReturnType<typeof this.profiler.generateReport>
+    clear: () => void
+  } {
     return {
-      getMetrics: () => this.profiler.getMetrics(),
-      getProfiles: (filter?: any) => this.profiler.getProfiles(filter),
-      generateReport: () => this.profiler.generateReport(),
-      clear: () => this.profiler.clear(),
+      getMetrics: (): ReturnType<typeof this.profiler.getMetrics> => this.profiler.getMetrics(),
+      getProfiles: (filter?: any): ReturnType<typeof this.profiler.getProfiles> => this.profiler.getProfiles(filter),
+      generateReport: (): ReturnType<typeof this.profiler.generateReport> => this.profiler.generateReport(),
+      clear: (): void => this.profiler.clear(),
     }
   }
 
   /**
    * Get TypeScript utilities
    */
-  typescript() {
+  typescript(): {
+    generateTypes: () => ReturnType<typeof this.tsUtils.generateRouteTypes>
+    generateSchemas: () => ReturnType<typeof this.tsUtils.generateValidationSchemas>
+    generateOpenAPI: () => ReturnType<typeof this.tsUtils.generateOpenAPISchema>
+    generateRouteBuilder: () => ReturnType<typeof this.tsUtils.generateRouteBuilder>
+    validateRequest: (req: EnhancedRequest, routeKey: string) => ReturnType<typeof this.tsUtils.validateRequest>
+  } {
     return {
-      generateTypes: () => this.tsUtils.generateRouteTypes(),
-      generateSchemas: () => this.tsUtils.generateValidationSchemas(),
-      generateOpenAPI: () => this.tsUtils.generateOpenAPISchema(),
-      generateRouteBuilder: () => this.tsUtils.generateRouteBuilder(),
-      validateRequest: (req: EnhancedRequest, routeKey: string) => this.tsUtils.validateRequest(req, routeKey),
+      generateTypes: (): ReturnType<typeof this.tsUtils.generateRouteTypes> => this.tsUtils.generateRouteTypes(),
+      generateSchemas: (): ReturnType<typeof this.tsUtils.generateValidationSchemas> => this.tsUtils.generateValidationSchemas(),
+      generateOpenAPI: (): ReturnType<typeof this.tsUtils.generateOpenAPISchema> => this.tsUtils.generateOpenAPISchema(),
+      generateRouteBuilder: (): ReturnType<typeof this.tsUtils.generateRouteBuilder> => this.tsUtils.generateRouteBuilder(),
+      validateRequest: (req: EnhancedRequest, routeKey: string): ReturnType<typeof this.tsUtils.validateRequest> => this.tsUtils.validateRequest(req, routeKey),
     }
   }
 
@@ -256,25 +279,33 @@ export class DevelopmentRouter {
   /**
    * Enable debugging for next route
    */
-  debug() {
+  debug(): {
+    get: (pattern: string, handler: (...args: any[]) => any) => any
+    post: (pattern: string, handler: (...args: any[]) => any) => any
+    put: (pattern: string, handler: (...args: any[]) => any) => any
+    patch: (pattern: string, handler: (...args: any[]) => any) => any
+    delete: (pattern: string, handler: (...args: any[]) => any) => any
+  } {
     return {
-      get: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('GET', pattern, handler, { debug: true }),
-      post: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('POST', pattern, handler, { debug: true }),
-      put: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('PUT', pattern, handler, { debug: true }),
-      patch: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('PATCH', pattern, handler, { debug: true }),
-      delete: (pattern: string, handler: (...args: any[]) => any) => this.registerRoute('DELETE', pattern, handler, { debug: true }),
+      get: (pattern: string, handler: (...args: any[]) => any): any => this.registerRoute('GET', pattern, handler, { debug: true }),
+      post: (pattern: string, handler: (...args: any[]) => any): any => this.registerRoute('POST', pattern, handler, { debug: true }),
+      put: (pattern: string, handler: (...args: any[]) => any): any => this.registerRoute('PUT', pattern, handler, { debug: true }),
+      patch: (pattern: string, handler: (...args: any[]) => any): any => this.registerRoute('PATCH', pattern, handler, { debug: true }),
+      delete: (pattern: string, handler: (...args: any[]) => any): any => this.registerRoute('DELETE', pattern, handler, { debug: true }),
     }
   }
 
   /**
    * Enable profiling for route group
    */
-  profile() {
+  profile(): {
+    group: (callback: () => void) => void
+  } {
     return {
-      group: (callback: () => void) => {
+      group: (callback: () => void): void => {
         // Enable profiling for routes registered in callback
         const originalRegister = this.registerRoute.bind(this)
-        this.registerRoute = (method: string, pattern: string, handler: (...args: any[]) => any, options: any = {}) => {
+        this.registerRoute = (method: string, pattern: string, handler: (...args: any[]) => any, options: any = {}): any => {
           return originalRegister(method, pattern, handler, { ...options, profile: true })
         }
 
@@ -289,7 +320,7 @@ export class DevelopmentRouter {
   /**
    * Get all registered routes
    */
-  getRoutes() {
+  getRoutes(): ReturnType<ReturnType<typeof this.devTools.routes>['list']> {
     return this.devTools.routes().list()
   }
 
