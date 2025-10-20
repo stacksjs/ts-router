@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Server } from 'bun'
 import type { EnhancedRequest } from '../src/types'
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { EnhancedRequest, NextFunction } from '../src/types'
 import { beforeEach, describe, expect, it, jest } from 'bun:test'
 import { config } from '../src/config'

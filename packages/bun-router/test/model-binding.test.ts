@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Server } from 'bun'
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { Router } from '../src/router/index'

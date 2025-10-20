@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { rm } from 'node:fs/promises'
 import { fileCache, hybridCache, memoryCache, ResponseCache, responseCache } from '../packages/bun-router/src/middleware/response_cache'

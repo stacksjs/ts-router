@@ -18,7 +18,7 @@ declare global {
 export type BindingScope = 'singleton' | 'transient' | 'scoped' | 'request'
 
 // Token can be a string, symbol, function, constructor, or generic Function
-// eslint-disable-next-line ts/ban-types
+// eslint-disable-next-line ts/no-unsafe-function-type
 export type Token = string | symbol | ((...args: any[]) => any) | (new (...args: any[]) => any) | Function
 
 export interface BindingMetadata {
@@ -452,7 +452,7 @@ export class Container {
   /**
    * Get constructor dependencies using reflection
    */
-  private getConstructorDependencies(constructor: ((...args: any[]) => any)): Token[] {
+  private getConstructorDependencies(constructor: ((...args: any[]) => any) | (new (...args: any[]) => any)): Token[] {
     // Check for explicit metadata
     const injectMetadata = Reflect.getMetadata?.(INJECT_METADATA_KEY, constructor) as InjectMetadata[]
     if (injectMetadata) {
@@ -472,7 +472,7 @@ export class Container {
   /**
    * Parse constructor dependencies from function string
    */
-  private parseConstructorDependencies(constructor: ((...args: any[]) => any)): string[] {
+  private parseConstructorDependencies(constructor: ((...args: any[]) => any) | (new (...args: any[]) => any)): string[] {
     const constructorString = constructor.toString()
     const match = constructorString.match(/constructor\s*\(([^)]*)\)/)
 
@@ -522,7 +522,7 @@ export class Container {
   /**
    * Apply decorators to instance
    */
-  private applyDecorators(instance: any, constructor: ((...args: any[]) => any)): void {
+  private applyDecorators(instance: any, constructor: ((...args: any[]) => any) | (new (...args: any[]) => any)): void {
     const decorators = Reflect.getMetadata?.('decorators', constructor) as ((...args: any[]) => any)[]
     if (decorators) {
       for (const decorator of decorators) {

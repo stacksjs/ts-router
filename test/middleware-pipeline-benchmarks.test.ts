@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { EnhancedRequest, MiddlewareHandler } from '../packages/bun-router/src/types'
 import { beforeEach, describe, expect, it } from 'bun:test'
 import {

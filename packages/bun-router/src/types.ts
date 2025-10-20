@@ -1,4 +1,5 @@
 import type { Server, ServerWebSocket } from 'bun'
+import type { Router } from './router/router'
 
 export interface Contact {
   name?: string
@@ -744,9 +745,9 @@ export interface EnhancedRequest extends Request {
    */
   ip?: string
   /**
-   * User agent string
+   * User agent string (function to match RequestMacroMethods)
    */
-  userAgent?: string
+  userAgent: (() => string)
   /**
    * Cookies parsed from the request
    */
@@ -970,7 +971,7 @@ export type Compressor =
   | '128KB'
   | '256KB'
 
-export interface ServerOptions extends Partial<Omit<Server, 'websocket'>> {
+export interface ServerOptions extends Partial<Omit<Server<any>, 'websocket'>> {
   websocket?: WebSocketConfig
 }
 
@@ -1447,7 +1448,7 @@ export interface StreamWriter<T = any> {
   close: () => void
 }
 
-export interface BufferedStreamWriter<T = any> extends StreamWriter<T> {
+export interface BufferedStreamWriterGeneric<T = any> extends StreamWriter<T> {
   flush: () => void | Promise<void>
   cork: () => void
   uncork: () => void

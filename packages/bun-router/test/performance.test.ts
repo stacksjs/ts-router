@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { EnhancedRequest, NextFunction } from '../src/types'
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { Router } from '../src/router'

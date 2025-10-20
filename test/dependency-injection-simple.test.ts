@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Simplified Dependency Injection Test Suite
  *

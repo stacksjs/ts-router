@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { EnhancedRequest, NextFunction } from '../packages/bun-router/src/types'
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { existsSync, mkdirSync, rmSync } from 'node:fs'

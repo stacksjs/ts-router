@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { MiddlewareMemoizer } from '../packages/bun-router/src/cache/middleware-memoization'
 import type { RouteCacheWarmer } from '../packages/bun-router/src/cache/route-cache-warmer'
 import type { StreamingCache } from '../packages/bun-router/src/cache/streaming-cache'

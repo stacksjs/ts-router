@@ -185,10 +185,10 @@ export default class RateLimit implements Middleware {
       if (!result.allowed) {
         return this.options.handler
           ? await this.options.handler(req, {
-            remaining: result.remaining,
-            limit: result.limit,
-            resetTime: result.resetTime,
-          })
+              remaining: result.remaining,
+              limit: result.limit,
+              resetTime: result.resetTime,
+            })
           : this.defaultHandler(req, result)
       }
 

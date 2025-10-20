@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Hot Reload Development
  *
@@ -40,7 +39,7 @@ declare global {
  */
 export class HotReloadManager {
   private config: Required<HotReloadConfig>
-  private state: HotReloadState
+  private state: HotReloadState = { changes: {}, moduleCache: new Map() }
   private debounceTimer?: Timer
   private isReloading = false
 
@@ -132,8 +131,8 @@ export class HotReloadManager {
           console.log(`👀 Watching: ${resolvedPath}`)
         }
       }
-      catch {
-        this.config.onError(error as Error)
+      catch (err) {
+        this.config.onError(err as Error)
       }
     }
   }
@@ -385,8 +384,8 @@ export const HotReloadUtils = {
           // Notify change callbacks
           changeCallbacks.forEach(callback => callback(currentConfig))
         }
-        catch {
-          console.error('Failed to reload config:', error)
+        catch (err) {
+          console.error('Failed to reload config:', err)
         }
       }
       return currentConfig
@@ -536,20 +535,18 @@ export const HotReloadDecorators = {
   /**
    * Method decorator for hot-reloadable methods
    */
-  hotMethod: (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
+  hotMethod: (target: any, propertyKey: string, descriptor: PropertyDescriptor): void => {
     const originalMethod = descriptor.value
 
     descriptor.value = function (...args: any[]) {
       try {
         return originalMethod.apply(this, args)
       }
-      catch (error) {
-        console.error(`Hot method error in ${propertyKey}:`, error)
-        throw error
+      catch (err) {
+        console.error(`Hot method error in ${propertyKey}:`, err)
+        throw err
       }
     }
-
-    return descriptor
   },
 }
 

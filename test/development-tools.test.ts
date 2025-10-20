@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Development Tools Test Suite
  *
