@@ -154,8 +154,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
 /**
  * Deferred service provider base class
  */
-// eslint-disable-next-line ts/no-unsafe-declaration-merging
-export abstract class DeferredServiceProvider extends BaseServiceProvider implements DeferredServiceProvider {
+export abstract class BaseDeferredServiceProvider extends BaseServiceProvider implements DeferredServiceProvider {
   abstract provides(): (string | symbol | Function)[]
 
   isDeferred(): boolean {
@@ -484,14 +483,14 @@ export class ValidationServiceProvider extends BaseServiceProvider {
   register(container: Container): void {
     // Register validation services
     container.singleton('validator', Validator)
-    container.factory('validationPipe', () => new ValidationPipe())
+    container.factory('validationPipe', (validator: Validator) => new ValidationPipe(validator))
   }
 }
 
 /**
  * Event service provider (deferred)
  */
-export class EventServiceProvider extends DeferredServiceProvider {
+export class EventServiceProvider extends BaseDeferredServiceProvider {
   readonly name = 'events'
 
   provides(): (string | symbol | Function)[] {

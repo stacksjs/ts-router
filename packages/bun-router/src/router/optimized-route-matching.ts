@@ -228,7 +228,7 @@ export function registerOptimizedRouteMatching(RouterClass: typeof Router): void
         }
 
         // Re-add domain-specific routes
-        for (const domainRoutes of Object.values(this.domains)) {
+        for (const domainRoutes of Object.values(this.domains) as Route[][]) {
           for (const route of domainRoutes) {
             this.routeCompiler.addRoute(route)
           }

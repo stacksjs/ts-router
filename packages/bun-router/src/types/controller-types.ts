@@ -366,7 +366,7 @@ export interface ControllerPerformanceMetrics {
   lastCalled: Date
 }
 
-export interface PerformanceTrackingController<T extends BaseController> extends T {
+export type PerformanceTrackingController<T extends BaseController> = T & {
   getPerformanceMetrics: () => ControllerPerformanceMetrics[]
   resetMetrics: () => void
 }

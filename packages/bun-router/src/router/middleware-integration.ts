@@ -152,7 +152,7 @@ export class MiddlewareFactory {
     }
 
     if (skipConditions.length > 0) {
-      this.pipeline.registerSkipConditions('auth', skipConditions)
+      this.pipeline.registerSkipConditions(middleware, skipConditions)
     }
 
     return middleware
@@ -167,7 +167,7 @@ export class MiddlewareFactory {
     skipPaths?: string[]
   }): MiddlewareHandler {
     // Register cache dependency for rate limiting
-    this.pipeline.registerDependency(Dependencies.cache({
+    this.pipeline.registerDependency('cache', Dependencies.cache({
       type: 'memory',
       ttl: Math.ceil(options.windowMs / 1000),
     }))
@@ -208,7 +208,7 @@ export class MiddlewareFactory {
 
     // Register skip conditions
     if (options.skipPaths) {
-      this.pipeline.registerSkipConditions('rateLimit', [
+      this.pipeline.registerSkipConditions(middleware, [
         SkipConditions.skipForPaths(options.skipPaths),
       ])
     }
@@ -225,7 +225,7 @@ export class MiddlewareFactory {
     includeBody?: boolean
   } = {}): MiddlewareHandler {
     // Register logger dependency
-    this.pipeline.registerDependency(Dependencies.logger(options.level || 'info'))
+    this.pipeline.registerDependency('logger', Dependencies.logger(options.level || 'info'))
 
     const middleware: MiddlewareHandler = async (req, next) => {
       const logger = req.context?.logger
@@ -262,7 +262,7 @@ export class MiddlewareFactory {
 
     // Register skip conditions
     if (options.skipPaths) {
-      this.pipeline.registerSkipConditions('logging', [
+      this.pipeline.registerSkipConditions(middleware, [
         SkipConditions.skipForPaths(options.skipPaths),
       ])
     }
@@ -380,7 +380,7 @@ export function setupMiddlewareStack(router: any, options: {
   }
 
   // Add logging middleware
-  if (options.logging !== false) {
+  if (options.logging !== undefined) {
     middleware.push(factory.createLoggingMiddleware(options.logging))
   }
 

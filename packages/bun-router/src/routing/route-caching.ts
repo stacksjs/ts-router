@@ -258,7 +258,7 @@ export function createRouteCacheMiddleware(config: RouteCacheConfig) {
 
         // Create cached response
         const cachedResponse: CachedResponse = {
-          response: responseClone,
+          response: responseClone as Response,
           headers,
           status: response.status,
           body: new Uint8Array(body),

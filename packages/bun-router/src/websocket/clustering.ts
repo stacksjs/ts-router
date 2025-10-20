@@ -120,7 +120,7 @@ export class WebSocketCluster {
               connectedAt: Date.now(),
               rooms: new Set<string>(),
               metadata: {},
-            },
+            } as any,
           })
 
           if (!success) {

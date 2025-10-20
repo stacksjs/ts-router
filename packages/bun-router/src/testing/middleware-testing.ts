@@ -37,7 +37,7 @@ export class MiddlewareTester {
    * Set up a custom next function
    */
   withNext(nextFn: NextFunction): MiddlewareTester {
-    this.context.next = mock(nextFn)
+    this.context.next = mock(nextFn as () => Promise<Response | null>)
     return this
   }
 

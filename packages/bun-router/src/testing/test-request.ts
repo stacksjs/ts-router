@@ -37,7 +37,7 @@ export class TestRequestBuilder {
       context: options.context || {},
       requestId: `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       ip: '127.0.0.1',
-      userAgent: 'BunRouter-TestClient/1.0',
+      userAgent: () => 'BunRouter-TestClient/1.0',
       cookies: options.cookies || {},
       startTime: Date.now(),
       traceId: `trace-${Date.now()}`,
@@ -198,7 +198,7 @@ export class TestRequestBuilder {
    * Set user agent
    */
   userAgent(userAgent: string): TestRequestBuilder {
-    this.request.userAgent = userAgent
+    this.request.userAgent = () => userAgent
     this.request.headers?.set('User-Agent', userAgent)
     return this
   }

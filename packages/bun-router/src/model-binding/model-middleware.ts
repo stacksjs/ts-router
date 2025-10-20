@@ -203,7 +203,7 @@ export const ModelBindingUtils = {
         return modelRegistry.createErrorResponse(modelName, result, req.params || {})
       }
 
-      let model = result.model
+      let model: T = result.model as T
 
       // Apply custom validation
       if (options.validator && !(await options.validator(model))) {
@@ -212,7 +212,7 @@ export const ModelBindingUtils = {
 
       // Apply custom transformation
       if (options.transformer) {
-        model = await options.transformer(model) as T
+        model = await options.transformer(model)
       }
 
       // Attach to request

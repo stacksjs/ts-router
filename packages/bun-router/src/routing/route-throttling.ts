@@ -1,4 +1,4 @@
-import type { EnhancedRequest, ThrottlePattern } from '../types'
+import type { EnhancedRequest, MiddlewareHandler, NextFunction, ThrottlePattern } from '../types'
 import { LRUCache } from '../cache/lru-cache'
 
 /**
@@ -200,12 +200,12 @@ export const rateLimitRegistry = new RateLimitRegistry()
 /**
  * Create rate limiting middleware
  */
-export function createRateLimitMiddleware(config: ThrottleConfig, name?: string) {
+export function createRateLimitMiddleware(config: ThrottleConfig, name?: string): MiddlewareHandler {
   const limiter = name
     ? rateLimitRegistry.getOrCreate(name, config)
     : new RateLimiter(config)
 
-  return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+  return async (req: EnhancedRequest, next: NextFunction): Promise<Response | null> => {
     const { allowed, info } = await limiter.checkLimit(req)
 
     if (!allowed) {
@@ -243,7 +243,7 @@ export function createRateLimitMiddleware(config: ThrottleConfig, name?: string)
     const response = await next()
 
     // Add rate limit headers to successful responses
-    if (config.headers !== false && response.status < 400) {
+    if (response && config.headers !== false && response.status < 400) {
       const headers = new Headers(response.headers)
       headers.set('X-RateLimit-Limit', info.limit.toString())
       headers.set('X-RateLimit-Remaining', info.remaining.toString())
@@ -347,7 +347,7 @@ export const ThrottleFactory = {
     windowMs: 15 * 60 * 1000,
     keyGenerator: (req) => {
       const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown'
-      const email = req.body?.email || req.query?.email || 'unknown'
+      const email = (req.jsonBody as any)?.email || (req.formBody as any)?.email || (req.query as any)?.email || 'unknown'
       return `auth:${ip}:${email}`
     },
     onLimitReached: (req, info) => new Response(
@@ -443,7 +443,7 @@ export const RateLimitUtils = {
    * Create throttle middleware from string (Laravel-style)
    */
   fromString: (throttleStr: string, name?: string) => {
-    const config = parseThrottleString(throttleStr)
+    const config = parseThrottleString(throttleStr as ThrottlePattern)
     return createRateLimitMiddleware(config, name)
   },
 

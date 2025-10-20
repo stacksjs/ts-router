@@ -66,13 +66,13 @@ export type AccumulateContext<
   : object
 
 // Enhanced request with middleware augmentations
-export interface EnhancedRequest<
+export type EnhancedRequest<
   TPath extends string = string,
   TQuery extends Record<string, any> = object,
   TBody = unknown,
   TContext = object,
   TAugmentations = object,
-> extends TypedRequest<TPath, TQuery, TBody, TContext> {
+> = TypedRequest<TPath, TQuery, TBody, TContext> & {
   // Core request properties
   params: ExtractTypedParams<TPath>
   query: ExtractQueryParams<TQuery>

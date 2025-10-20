@@ -25,7 +25,7 @@ export class SSEHandler {
       retryDelay: config.retryDelay ?? 3000,
       retryInterval: config.retryInterval ?? 3000,
       keepAlive: config.keepAlive ?? 30000,
-      compression: config.compression,
+      compression: config.compression ?? 'none',
       headers: config.headers ?? {},
     }
   }
@@ -389,10 +389,26 @@ export const SSEUtils = {
       const response = sse.createStream()
 
       // Call the handler in the background
-      handler(req, sse).catch((error) => {
-        console.error('SSE handler error:', error)
-        sse.close()
-      })
+      const result = handler(req)
+
+      // Consume the generator
+      ;(async () => {
+        try {
+          // Check if result is a function (SSEGenerator) or already an AsyncGenerator
+          const generator = typeof result === 'function' ? result() : result
+          for await (const event of generator) {
+            if (!sse.send(event)) {
+              break
+            }
+          }
+        }
+        catch (error) {
+          console.error('SSE handler error:', error)
+        }
+        finally {
+          sse.close()
+        }
+      })()
 
       return response
     }

@@ -7,6 +7,7 @@ import type {
   RouteGroup,
   RouteHandler,
   RouterConfig,
+  ThrottlePattern,
   WebSocketConfig,
 } from '../types'
 import { createRateLimitMiddleware, parseThrottleString } from '../routing/route-throttling'
@@ -88,13 +89,13 @@ export class Router {
     })
 
     // Throttle middleware with parameters
-    this.namedMiddleware.set('throttle', (params?: string) => {
-      const config = params ? parseThrottleString(params) : { maxRequests: 60, windowMs: 60000 }
+    this.namedMiddleware.set('throttle', (params?: string): MiddlewareHandler => {
+      const config = params ? parseThrottleString(params as ThrottlePattern) : { maxAttempts: 60, windowMs: 60000 }
       return createRateLimitMiddleware({
-        maxRequests: config.maxRequests,
+        maxAttempts: config.maxAttempts || 60,
         windowMs: config.windowMs,
         keyGenerator: (req: EnhancedRequest) => req.headers.get('x-forwarded-for') || 'anonymous',
-      } as any)
+      })
     })
 
     // CORS middleware

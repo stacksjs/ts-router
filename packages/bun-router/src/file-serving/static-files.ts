@@ -50,7 +50,6 @@ export class StaticFileServer {
 
   constructor(config: StaticFileConfig) {
     this.config = {
-      root: config.root,
       maxAge: config.maxAge ?? 86400, // 1 day
       immutable: config.immutable ?? false,
       etag: config.etag ?? true,
@@ -568,10 +567,10 @@ export const FileServingUtils = {
    */
   createFileWatcher: async (server: StaticFileServer, watchPath: string) => {
     const fs = await import('node:fs')
-    const watcher = fs.watch(watchPath, { recursive: true }, (eventType: string, filename: string) => {
+    const watcher = fs.watch(watchPath, { recursive: true }, (eventType: string, filename: string | null) => {
       if (eventType === 'change' || eventType === 'rename') {
         server.clearCache()
-        console.warn(`File changed: ${filename}, cache cleared`)
+        console.warn(`File changed: ${filename || 'unknown'}, cache cleared`)
       }
     })
 

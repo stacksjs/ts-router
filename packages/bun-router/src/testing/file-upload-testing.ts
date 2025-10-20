@@ -30,7 +30,7 @@ export class FileUploadTester {
       mimetype: testFile.mimetype || this.detectMimeType(testFile.filename),
       buffer: testFile.content instanceof ArrayBuffer
         ? testFile.content
-        : new TextEncoder().encode(testFile.content.toString()).buffer,
+        : new TextEncoder().encode(testFile.content.toString()).buffer as ArrayBuffer,
     }
 
     this.files.push(uploadedFile)
