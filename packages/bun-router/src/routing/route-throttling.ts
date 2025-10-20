@@ -2,9 +2,9 @@ import type { EnhancedRequest, ThrottlePattern } from '../types'
 import { LRUCache } from '../cache/lru-cache'
 
 /**
- * Rate limit configuration
+ * Throttle configuration for rate limiting
  */
-export interface RateLimitConfig {
+export interface ThrottleConfig {
   maxAttempts: number // Maximum attempts allowed
   windowMs: number // Time window in milliseconds
   keyGenerator?: (req: EnhancedRequest) => string // Custom key generator
@@ -40,9 +40,9 @@ interface RateLimitEntry {
  */
 export class RateLimiter {
   private cache: LRUCache<RateLimitEntry>
-  private config: RateLimitConfig
+  private config: ThrottleConfig
 
-  constructor(config: RateLimitConfig, cacheSize: number = 10000) {
+  constructor(config: ThrottleConfig, cacheSize: number = 10000) {
     this.config = config
     this.cache = new LRUCache<RateLimitEntry>({
       maxSize: cacheSize,
@@ -167,7 +167,7 @@ export class RateLimitRegistry {
   /**
    * Register a rate limiter
    */
-  register(name: string, config: RateLimitConfig): RateLimiter {
+  register(name: string, config: ThrottleConfig): RateLimiter {
     const limiter = new RateLimiter(config)
     this.limiters.set(name, limiter)
     return limiter
@@ -183,7 +183,7 @@ export class RateLimitRegistry {
   /**
    * Create or get rate limiter
    */
-  getOrCreate(name: string, config: RateLimitConfig): RateLimiter {
+  getOrCreate(name: string, config: ThrottleConfig): RateLimiter {
     const existing = this.limiters.get(name)
     if (existing) {
       return existing
@@ -200,7 +200,7 @@ export const rateLimitRegistry = new RateLimitRegistry()
 /**
  * Create rate limiting middleware
  */
-export function createRateLimitMiddleware(config: RateLimitConfig, name?: string) {
+export function createRateLimitMiddleware(config: ThrottleConfig, name?: string) {
   const limiter = name
     ? rateLimitRegistry.getOrCreate(name, config)
     : new RateLimiter(config)
@@ -267,7 +267,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig, name?: string
  *          '1000,1h' -> 1000 requests per 1 hour
  *          '60' -> 60 requests per 1 minute (default)
  */
-export function parseThrottleString(throttleStr: ThrottlePattern): RateLimitConfig {
+export function parseThrottleString(throttleStr: ThrottlePattern): ThrottleConfig {
   const parts = throttleStr.split(',')
   const maxAttempts = Number.parseInt(parts[0], 10)
 
@@ -333,7 +333,7 @@ export const ThrottleFactory = {
   /**
    * API rate limiting (60 requests per minute)
    */
-  api: (maxAttempts: number = 60, windowMinutes: number = 1): RateLimitConfig => ({
+  api: (maxAttempts: number = 60, windowMinutes: number = 1): ThrottleConfig => ({
     maxAttempts,
     windowMs: windowMinutes * 60 * 1000,
     headers: true,
@@ -342,7 +342,7 @@ export const ThrottleFactory = {
   /**
    * Authentication rate limiting (5 attempts per 15 minutes)
    */
-  auth: (): RateLimitConfig => ({
+  auth: (): ThrottleConfig => ({
     maxAttempts: 5,
     windowMs: 15 * 60 * 1000,
     keyGenerator: (req) => {
@@ -369,7 +369,7 @@ export const ThrottleFactory = {
   /**
    * Upload rate limiting (10 uploads per hour)
    */
-  upload: (): RateLimitConfig => ({
+  upload: (): ThrottleConfig => ({
     maxAttempts: 10,
     windowMs: 60 * 60 * 1000,
     keyGenerator: (req) => {
@@ -385,7 +385,7 @@ export const ThrottleFactory = {
   /**
    * Search rate limiting (100 searches per 10 minutes)
    */
-  search: (): RateLimitConfig => ({
+  search: (): ThrottleConfig => ({
     maxAttempts: 100,
     windowMs: 10 * 60 * 1000,
     skipIf: (req) => {
@@ -397,7 +397,7 @@ export const ThrottleFactory = {
   /**
    * Per-user rate limiting
    */
-  perUser: (maxAttempts: number, windowMinutes: number): RateLimitConfig => ({
+  perUser: (maxAttempts: number, windowMinutes: number): ThrottleConfig => ({
     maxAttempts,
     windowMs: windowMinutes * 60 * 1000,
     keyGenerator: (req) => {
@@ -413,7 +413,7 @@ export const ThrottleFactory = {
   /**
    * Per-IP rate limiting
    */
-  perIP: (maxAttempts: number, windowMinutes: number): RateLimitConfig => ({
+  perIP: (maxAttempts: number, windowMinutes: number): ThrottleConfig => ({
     maxAttempts,
     windowMs: windowMinutes * 60 * 1000,
     keyGenerator: (req) => {
@@ -428,7 +428,7 @@ export const ThrottleFactory = {
   /**
    * Global rate limiting (shared across all users)
    */
-  global: (maxAttempts: number, windowMinutes: number): RateLimitConfig => ({
+  global: (maxAttempts: number, windowMinutes: number): ThrottleConfig => ({
     maxAttempts,
     windowMs: windowMinutes * 60 * 1000,
     keyGenerator: () => 'global',
@@ -450,7 +450,7 @@ export const RateLimitUtils = {
   /**
    * Get rate limit info for a request without incrementing
    */
-  getInfo: async (req: EnhancedRequest, config: RateLimitConfig): Promise<RateLimitInfo> => {
+  getInfo: async (req: EnhancedRequest, config: ThrottleConfig): Promise<RateLimitInfo> => {
     const limiter = new RateLimiter(config)
     const { info } = await limiter.checkLimit(req)
     return info

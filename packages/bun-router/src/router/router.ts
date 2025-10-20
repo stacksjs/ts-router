@@ -37,7 +37,7 @@ export class Router {
   patterns: Map<string, string> = new Map()
   currentDomain: string | null = null
   domains: Record<string, Route[]> = {}
-  serverInstance: Server | null = null
+  serverInstance: Server<any> | null = null
   wsConfig: WebSocketConfig | null = null
   errorHandler: ((error: Error) => Response | Promise<Response>) | null = null
   templateCache: Map<string, string> = new Map<string, string>()
@@ -159,7 +159,7 @@ export class Router {
   /**
    * Get the server instance
    */
-  getServer(): Server | null {
+  getServer(): Server<any> | null {
     return this.serverInstance
   }
 
@@ -207,7 +207,7 @@ export class Router {
     throw new Error('HTTP methods not implemented - use router extensions')
   }
 
-  async serve(_options?: { port?: number, hostname?: string }): Promise<Server> {
+  async serve(_options?: { port?: number, hostname?: string }): Promise<Server<any>> {
     throw new Error('Server methods not implemented - use router extensions')
   }
 

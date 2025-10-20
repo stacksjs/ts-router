@@ -215,7 +215,7 @@ export class BunOptimizer {
       })
 
       try {
-        this.gcObserver.observe({ entryTypes: ['gc'] })
+        this.gcObserver?.observe({ entryTypes: ['gc'] })
       }
       catch (error) {
         console.error(error)
@@ -293,7 +293,7 @@ export class BunOptimizer {
       })
 
       try {
-        this.performanceObserver.observe({ entryTypes: ['measure', 'navigation'] as any })
+        this.performanceObserver?.observe({ entryTypes: ['measure', 'navigation'] as any })
       }
       catch (error) {
         console.error(error)

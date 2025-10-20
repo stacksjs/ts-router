@@ -1,6 +1,6 @@
 import type { BunQueryBuilderModel } from '../model-binding'
 import type { RouteCacheConfig } from '../routing/route-caching'
-import type { RateLimitConfig } from '../routing/route-throttling'
+import type { ThrottleConfig } from '../routing/route-throttling'
 import type { EnhancedRequest, MiddlewareHandler, NextFunction, RouteHandler, ThrottlePattern } from '../types'
 import { createModelBindingMiddleware } from '../model-binding'
 import { createRouteCacheMiddleware, RouteCacheFactory } from '../routing/route-caching'
@@ -13,7 +13,7 @@ import { DomainGroup, DomainMatcher, SubdomainRouter } from '../routing/subdomai
 export class FluentRouteBuilder {
   private middleware: MiddlewareHandler[] = []
   private cacheConfig?: RouteCacheConfig
-  private throttleConfig?: RateLimitConfig
+  private throttleConfig?: ThrottleConfig
   private routeName?: string
   private modelBindings: Record<string, BunQueryBuilderModel> = {}
 
@@ -50,13 +50,13 @@ export class FluentRouteBuilder {
   /**
    * Add route throttling with narrow type checking
    */
-  throttle(limit: ThrottlePattern | RateLimitConfig, _name?: string): this {
+  throttle(limit: ThrottlePattern | ThrottleConfig, _name?: string): this {
     if (typeof limit === 'string') {
       const parsed = parseThrottleString(limit)
       this.throttleConfig = {
         maxAttempts: parsed.maxAttempts ?? 60,
         windowMs: parsed.windowMs,
-        keyGenerator: req => req.headers.get('x-forwarded-for') || 'anonymous',
+        keyGenerator: (req: EnhancedRequest) => req.headers.get('x-forwarded-for') || 'anonymous',
       }
     }
     else {
@@ -269,7 +269,7 @@ export class FluentRouter {
       const handler = createRateLimitMiddleware({
         maxAttempts: parsed.maxAttempts,
         windowMs: parsed.windowMs,
-        keyGenerator: req => req.headers.get('x-forwarded-for') || 'anonymous',
+        keyGenerator: (req: EnhancedRequest) => req.headers.get('x-forwarded-for') || 'anonymous',
       })
 
       const adapted: MiddlewareHandler = async (req: EnhancedRequest, next: NextFunction) => {
@@ -443,7 +443,7 @@ export class FluentRouter {
   /**
    * Create a throttled route
    */
-  throttled(limit: ThrottlePattern | RateLimitConfig): {
+  throttled(limit: ThrottlePattern | ThrottleConfig): {
     get: (path: string, handler: RouteHandler) => FluentRouteBuilder
     post: (path: string, handler: RouteHandler) => FluentRouteBuilder
     put: (path: string, handler: RouteHandler) => FluentRouteBuilder

@@ -486,7 +486,7 @@ export class PerformanceProfiler {
         }
       })
 
-      this.gcObserver.observe({ entryTypes: ['gc'] })
+      this.gcObserver?.observe({ entryTypes: ['gc'] })
     }
     catch (err) {
       console.error('Failed to setup GC observer:', err)

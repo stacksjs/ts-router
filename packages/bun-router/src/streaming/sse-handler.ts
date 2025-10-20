@@ -23,6 +23,9 @@ export class SSEHandler {
       maxConnections: config.maxConnections ?? 1000,
       connectionTimeout: config.connectionTimeout ?? 300000,
       retryDelay: config.retryDelay ?? 3000,
+      retryInterval: config.retryInterval ?? 3000,
+      keepAlive: config.keepAlive ?? 30000,
+      compression: config.compression,
       headers: config.headers ?? {},
     }
   }
@@ -223,6 +226,7 @@ export class SSEHandler {
   private sendRetryDelay(): void {
     if (this.config.retryDelay > 0) {
       this.send({
+        data: '',
         retry: this.config.retryDelay,
       })
     }
@@ -360,7 +364,11 @@ export function createSSEMiddleware(config: SSEConfig = {}) {
     }
 
     // Add SSE helper to request
-    req.sse = new SSEHandler(config)
+    const handler = new SSEHandler(config)
+    req.sse = {
+      id: Math.random().toString(36).substring(7),
+      eventSource: handler,
+    }
 
     return next()
   }
