@@ -1,5 +1,5 @@
 import type { ActionHandler, RouteGroup } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { joinPaths } from '../utils'
 
 /**
@@ -173,7 +173,7 @@ export function registerGroupOrganization(RouterClass: typeof Router): void {
 
             if (typeof handler === 'string') {
               // If handler is a string, use it as a prefix for the action
-              routeHandler = `${handler}${route.action.charAt(0).toUpperCase() + route.action.slice(1)}Action`
+              routeHandler = `${handler}${route.action.charAt(0).toUpperCase() + route.action.slice(1)}Action` as any
             }
             else {
               // If handler is an object, get the action handler from it

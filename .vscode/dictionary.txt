@@ -4,6 +4,7 @@ biomejs
 booleanish
 bullmq
 bumpp
+bumpx
 bunfig
 bunx
 changelogen
@@ -20,10 +21,12 @@ deps
 destructurable
 dtsx
 entrypoints
+gitlint
 heroicons
 iconify
 laravel
 lockb
+logsmith
 openweb
 outdir
 pausable

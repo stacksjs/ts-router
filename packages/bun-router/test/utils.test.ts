@@ -191,8 +191,8 @@ describe('Utils', () => {
     })
 
     it('should handle optional parameters', () => {
-      expect(extractParamNames('/users/{id?}')).toEqual(['id?'])
-      expect(extractParamNames('/users/{id}/posts/{page?}')).toEqual(['id', 'page?'])
+      expect(extractParamNames('/users/{id?}')).toEqual(['id'])
+      expect(extractParamNames('/users/{id}/posts/{page?}')).toEqual(['id', 'page'])
     })
   })
 

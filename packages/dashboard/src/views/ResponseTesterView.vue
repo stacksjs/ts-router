@@ -24,6 +24,7 @@ const response = ref<{
 const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
 
 // Headers parsing
+// eslint-disable-next-line unused-imports/no-unused-vars
 const parsedHeaders = computed(() => {
   const result: Record<string, string> = {}
   if (!headers.value)
@@ -74,7 +75,7 @@ const fullUrl = computed(() => {
 
     return urlObj.toString()
   }
-  catch (e) {
+  catch {
     // If URL is invalid, just return it as is
     return url.value
   }
@@ -317,7 +318,7 @@ function shouldShowRequestBody(method: string): boolean {
               v-model="requestBody"
               rows="6"
               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono"
-              placeholder="{\n  \"key\": \"value\"\n}"
+              :placeholder="`{\n  &quot;key&quot;: &quot;value&quot;\n}`"
             />
           </div>
 

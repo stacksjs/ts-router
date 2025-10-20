@@ -1,5 +1,5 @@
 import type { EnhancedRequest, MiddlewareHandler, NextFunction, Route } from '../types'
-import type { Router } from './core'
+import type { Router } from './router'
 import { isRouteHandler } from '../utils'
 
 /**

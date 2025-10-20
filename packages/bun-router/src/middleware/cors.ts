@@ -7,7 +7,8 @@ export default class Cors {
 
     // If CORS is disabled, continue to next middleware
     if (!corsConfig.enabled) {
-      return next()
+      const response = await next()
+      return response || new Response('Not Found', { status: 404 })
     }
 
     // Handle preflight OPTIONS request
@@ -42,6 +43,9 @@ export default class Cors {
 
     // For non-OPTIONS requests, create a new response after handling the request
     const response = await next()
+    if (!response) {
+      return new Response('Not Found', { status: 404 })
+    }
     const newHeaders = new Headers(response.headers)
 
     // Set CORS headers

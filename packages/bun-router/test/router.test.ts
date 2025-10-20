@@ -2,7 +2,7 @@ import type { EnhancedRequest, NextFunction } from '../src/types'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { Router } from '../src/router'
+import { Router } from '../src/router/index'
 
 describe('Router', () => {
   let router: Router
@@ -171,9 +171,11 @@ describe('Router', () => {
         // Call next to get the original response
         const response = await next()
         // Get the original text
+        if (!response)
+          return new Response('Not Found', { status: 404 })
         const originalText = await response.clone().text()
-        // Create a new response with modified text
-        return new Response(`${originalText} with Middleware`, {
+        const modifiedText = `Modified: ${originalText}`
+        return new Response(modifiedText, {
           status: response.status,
           headers: response.headers,
         })
@@ -188,7 +190,7 @@ describe('Router', () => {
 
       // Assert
       expect(response.status).toBe(200)
-      expect(await response.text()).toBe('Test with Middleware')
+      expect(await response.text()).toBe('Modified: Test')
     })
 
     it('should apply group-specific middleware', async () => {
@@ -196,9 +198,11 @@ describe('Router', () => {
         // Get the original response
         const response = await next()
         // Get the original text
+        if (!response)
+          return new Response('Not Found', { status: 404 })
         const text = await response.clone().text()
-        // Create a new response with modified text
-        return new Response(`${text} with Group Middleware`, {
+        const modifiedText = `Global: ${text}`
+        return new Response(modifiedText, {
           status: response.status,
           headers: response.headers,
         })
@@ -215,7 +219,7 @@ describe('Router', () => {
       // Test API route (should be modified by middleware)
       const apiResponse = await router.handleRequest(new Request('http://localhost/api/test'))
       expect(apiResponse.status).toBe(200)
-      expect(await apiResponse.text()).toBe('API Test with Group Middleware')
+      expect(await apiResponse.text()).toBe('Global: API Test')
 
       // Test regular route (should not be modified)
       const regularResponse = await router.handleRequest(new Request('http://localhost/test'))
@@ -272,7 +276,7 @@ describe('Router', () => {
 
   describe('Named Routes', () => {
     it('should register and resolve named routes', async () => {
-      await router.get('/users/{id}', () => new Response('User'), 'web', 'users.show')
+      await router.get('/users/{id}', () => new Response('User'), undefined, 'users.show')
 
       const path = router.route('users.show', { id: '123' })
       expect(path).toBe('/users/123')
@@ -346,7 +350,7 @@ describe('Router', () => {
   describe('Cookies', () => {
     it('should parse request cookies', async () => {
       await router.get('/cookies', (req) => {
-        const value = req.cookies.get('test-cookie')
+        const value = req.cookies?.['test-cookie']
         return new Response(`Cookie: ${value}`)
       })
 
@@ -360,7 +364,8 @@ describe('Router', () => {
 
     it('should set response cookies', async () => {
       await router.get('/set-cookie', (req) => {
-        req.cookies.set('new-cookie', 'new-value', {
+        // @ts-expect-error - Testing legacy cookie API
+        req.cookies?.set('new-cookie', 'new-value', {
           httpOnly: true,
           maxAge: 3600,
         })
@@ -378,7 +383,8 @@ describe('Router', () => {
 
     it('should delete cookies', async () => {
       await router.get('/delete-cookie', (req) => {
-        req.cookies.delete('to-delete')
+        // @ts-expect-error - Testing legacy cookie API
+        req.cookies?.delete('to-delete')
         return new Response('Cookie deleted')
       })
 
@@ -517,10 +523,10 @@ describe('Router', () => {
       // This registers standard RESTful routes: index, show, store, update, destroy
       await router.resource('users', {
         index: () => new Response('List of users'),
-        show: req => new Response(`User ${req.params.id}`),
+        show: (req: any) => new Response(`User ${req.params.id}`),
         store: () => new Response('User created', { status: 201 }),
-        update: req => new Response(`User ${req.params.id} updated`),
-        destroy: req => new Response(`User ${req.params.id} deleted`),
+        update: (req: any) => new Response(`User ${req.params.id} updated`),
+        destroy: (req: any) => new Response(`User ${req.params.id} deleted`),
       })
 
       // Test index route (GET /users)

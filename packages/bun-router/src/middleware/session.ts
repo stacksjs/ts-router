@@ -12,15 +12,11 @@ export default class Session {
     req.session = {}
 
     // Get session ID from cookie if it exists
-    let sessionId = req.cookies?.get?.(sessionConfig?.name || 'session')
+    const sessionId = req.cookies?.[sessionConfig?.name || 'session'] || this.generateSessionId()
 
     // If there's a session ID, retrieve the session data
     if (sessionId && Session.sessions.has(sessionId)) {
       req.session = Session.sessions.get(sessionId)
-    }
-    else {
-      // Create a new session ID
-      sessionId = this.generateSessionId()
     }
 
     // Continue to next middleware
@@ -30,28 +26,34 @@ export default class Session {
     Session.sessions.set(sessionId, req.session)
 
     // Set session cookie
-    if (req.cookies && typeof req.cookies.set === 'function') {
-      const cookieOptions: any = {
-        maxAge: sessionConfig?.cookie?.maxAge || 86400000,
-        path: sessionConfig?.cookie?.path || '/',
-      }
-
-      if (sessionConfig?.cookie?.httpOnly) {
-        cookieOptions.httpOnly = true
-      }
-
-      if (sessionConfig?.cookie?.secure) {
-        cookieOptions.secure = true
-      }
-
-      if (sessionConfig?.cookie?.sameSite) {
-        cookieOptions.sameSite = sessionConfig.cookie.sameSite
-      }
-
-      req.cookies.set(sessionConfig?.name || 'session', sessionId, cookieOptions)
+    const cookieOptions: any = {
+      maxAge: sessionConfig?.cookie?.maxAge || 86400000,
+      path: sessionConfig?.cookie?.path || '/',
     }
 
-    return response
+    if (sessionConfig?.cookie?.httpOnly) {
+      cookieOptions.httpOnly = true
+    }
+
+    if (sessionConfig?.cookie?.secure) {
+      cookieOptions.secure = true
+    }
+
+    if (sessionConfig?.cookie?.sameSite) {
+      cookieOptions.sameSite = sessionConfig.cookie.sameSite
+    }
+
+    // Add cookie to response via _cookiesToSet array
+    if (!req._cookiesToSet) {
+      req._cookiesToSet = []
+    }
+    req._cookiesToSet.push({
+      name: sessionConfig?.name || 'session',
+      value: sessionId,
+      options: cookieOptions,
+    })
+
+    return response || new Response('Not Found', { status: 404 })
   }
 
   private parseCookies(req: Request): Record<string, string> {

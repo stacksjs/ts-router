@@ -201,7 +201,7 @@ export class JWT {
 
       return payload
     }
-    catch (error) {
+    catch {
       return null
     }
   }
@@ -224,7 +224,7 @@ export class JWT {
         payload: JSON.parse(base64UrlDecode(encodedPayload)),
       }
     }
-    catch (error) {
+    catch {
       return null
     }
   }
@@ -346,7 +346,7 @@ export class ApiKeyManager {
       case 'query':
         return new URL(req.url).searchParams.get(keyName || 'api_key') || null
       case 'cookie':
-        return req.cookies.get(keyName || 'api_key') || null
+        return req.cookies?.[keyName || 'api_key'] || null
       default:
         return null
     }
@@ -457,7 +457,11 @@ export class OAuth2Helper {
 /**
  * Authentication helpers namespace
  */
-const Auth = {
+const Auth: {
+  JWT: typeof JWT
+  ApiKeyManager: typeof ApiKeyManager
+  OAuth2Helper: typeof OAuth2Helper
+} = {
   JWT,
   ApiKeyManager,
   OAuth2Helper,

@@ -10,6 +10,10 @@ const config: ESLintConfig = stacks({
   typescript: true,
   jsonc: true,
   yaml: true,
+  rules: {
+    // Allow console.log in development and test files
+    'no-console': ['error', { allow: ['warn', 'error', 'log', 'info', 'debug'] }],
+  },
   ignores: [
     'fixtures/**',
     '**/examples',
