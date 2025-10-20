@@ -66,9 +66,9 @@ class RequestMacroRegistry {
 export const requestMacroRegistry = new RequestMacroRegistry()
 
 /**
- * Enhanced Request class with macro support
+ * Request class with macro support
  */
-export class EnhancedRequestWithMacros {
+export class RequestWithMacros {
   /**
    * Register a request macro
    */
@@ -96,6 +96,11 @@ export class EnhancedRequestWithMacros {
     return requestMacroRegistry.has(name)
   }
 }
+
+/**
+ * @deprecated Use RequestWithMacros instead
+ */
+export const EnhancedRequestWithMacros = RequestWithMacros
 
 /**
  * Built-in request macros
@@ -584,7 +589,7 @@ export const BuiltInRequestMacros = {
  */
 export function registerBuiltInRequestMacros(): void {
   Object.entries(BuiltInRequestMacros).forEach(([name, handler]) => {
-    EnhancedRequestWithMacros.macro(name, handler)
+    RequestWithMacros.macro(name, handler)
   })
 }
 
