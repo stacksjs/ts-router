@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import type { Collection, RequestItem } from '../store/collectionsStore'
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import CodeExporter from '../components/CodeExporter.vue'
 import { useCollectionsStore } from '../store/collectionsStore'
-
-const router = useRouter()
 const collectionsStore = useCollectionsStore()
 const newCollectionName = ref('')
 const newCollectionDescription = ref('')
@@ -86,6 +83,7 @@ function deleteSelectedCollection() {
   if (!selectedCollection.value)
     return
 
+  // eslint-disable-next-line no-alert
   const confirmed = confirm(`Are you sure you want to delete "${selectedCollection.value.name}" collection?`)
   if (!confirmed)
     return
@@ -182,6 +180,7 @@ function deleteRequest(requestId: string) {
   if (!selectedCollection.value)
     return
 
+  // eslint-disable-next-line no-alert
   const confirmed = confirm('Are you sure you want to delete this request?')
   if (!confirmed)
     return

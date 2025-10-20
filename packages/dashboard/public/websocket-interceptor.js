@@ -67,6 +67,7 @@ class WebSocketInterceptor {
   connectToDashboard() {
     try {
       const url = `${this.options.dashboardUrl.replace(/^http/, 'ws')}/websocket`
+      // eslint-disable-next-line new-cap
       this.dashboard = new this.originalWebSocket(url)
 
       this.dashboard.onopen = () => {
@@ -100,6 +101,7 @@ class WebSocketInterceptor {
 
     window.WebSocket = function WebSocket(url, protocols) {
       // Create the actual WebSocket
+      // eslint-disable-next-line new-cap
       const ws = new self.originalWebSocket(url, protocols)
       const connectionId = self.generateId()
 

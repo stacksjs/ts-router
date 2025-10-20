@@ -135,6 +135,7 @@ export default class FileSecurity {
   private sanitizeFilename(filename: string): string {
     // Remove or replace dangerous characters
     return filename
+      // eslint-disable-next-line no-control-regex
       .replace(/[<>:"/\\|?*\u0000-\u001F]/u, '_') // Replace dangerous chars with underscore
       .replace(/^\.+/, '') // Remove leading dots
       .replace(/\.+$/, '') // Remove trailing dots

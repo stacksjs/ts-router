@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { Router } from '../packages/bun-router/src/router/unified-router'
+import { Router } from '../packages/bun-router/src/router/router'
 
 describe('Advanced Middleware Patterns', () => {
   it('should support middleware groups', async () => {

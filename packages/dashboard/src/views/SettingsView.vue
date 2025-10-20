@@ -120,6 +120,7 @@ function createVariable() {
 }
 
 function deleteEnv(envId: string) {
+  // eslint-disable-next-line no-alert
   if (confirm('Are you sure you want to delete this environment?')) {
     environmentStore.deleteEnvironment(envId)
   }

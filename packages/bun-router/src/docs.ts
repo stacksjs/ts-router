@@ -61,6 +61,7 @@ async function loadActionDocs(handlerPath: string): Promise<Partial<RouteDoc>> {
 
     const doc = docComment[1]
 
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
     const description = doc.match(/@description\s+(.+?)(?=@|\n\s*\*\/|$)/s)?.[1].trim() || ''
     const params: { [key: string]: string } = {}
     const query: { [key: string]: string } = {}
@@ -89,6 +90,7 @@ async function loadActionDocs(handlerPath: string): Promise<Partial<RouteDoc>> {
     }
 
     // Parse @param with enhanced type support
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
     const paramMatches = doc.matchAll(/@param\s+\{([^}]+)\}\s+(\w+(?:\.\w+)?)\s+(.+?)(?=@|\n\s*\*\/|$)/gs)
     for (const match of paramMatches) {
       const [, type, name, desc] = match
@@ -105,6 +107,7 @@ async function loadActionDocs(handlerPath: string): Promise<Partial<RouteDoc>> {
     }
 
     // Parse @response with enhanced status code descriptions
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
     const responseMatches = doc.matchAll(/@response\s+\{(\d+)\}\s+(.+?)(?=@|\n\s*\*\/|$)/gs)
     for (const match of responseMatches) {
       const [, code, desc] = match
@@ -112,6 +115,7 @@ async function loadActionDocs(handlerPath: string): Promise<Partial<RouteDoc>> {
     }
 
     // Parse @example blocks
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
     const exampleMatches = doc.matchAll(/@example\s+(request|response)[\t\v\f\r \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]*\n\s*```(?:json)?\s*\n([\s\S]*?)\n\s*```/g)
     let currentExample: { request?: string, response?: string } = {}
 

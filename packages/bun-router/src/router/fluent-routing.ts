@@ -631,6 +631,7 @@ export class FluentRouter {
     }
 
     const url = new URL(request.url)
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
     const routePattern = route.path.replace(/\{([^:}]+):?([^}]*)\}/g, '([^/]+)')
     const regex = new RegExp(`^${routePattern}$`)
 

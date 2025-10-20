@@ -11,11 +11,8 @@ const config: ESLintConfig = stacks({
   jsonc: true,
   yaml: true,
   rules: {
-    'no-console': 'off',
-    // Disable regex strictness rules as requested
-    'no-control-regex': 'off',
-    'new-cap': 'off',
-    'regexp/no-super-linear-backtracking': 'off',
+    // Allow console.log in development and test files
+    'no-console': ['error', { allow: ['warn', 'error', 'log', 'info', 'debug'] }],
   },
   ignores: [
     'fixtures/**',

@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { HistoryItem } from '../store/historyStore'
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useHistoryStore } from '../store/historyStore'
-
-const router = useRouter()
 const historyStore = useHistoryStore()
 const searchQuery = ref('')
 const selectedItem = ref<HistoryItem | null>(null)
@@ -140,6 +137,7 @@ function clearSelection() {
 
 // Delete history item
 function deleteHistoryItem(id: string) {
+  // eslint-disable-next-line no-alert
   const confirmed = confirm('Are you sure you want to delete this request from history?')
   if (!confirmed)
     return
@@ -152,6 +150,7 @@ function deleteHistoryItem(id: string) {
 
 // Clear all history
 function clearAllHistory() {
+  // eslint-disable-next-line no-alert
   const confirmed = confirm('Are you sure you want to clear all request history?')
   if (!confirmed)
     return
