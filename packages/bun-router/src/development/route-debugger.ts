@@ -5,6 +5,7 @@
  */
 
 import type { EnhancedRequest } from '../types'
+import process from 'node:process'
 
 export interface RouteDebugConfig {
   enabled?: boolean
@@ -491,7 +492,7 @@ export const RouteDebugHelpers = {
   /**
    * Record route match attempt from request context
    */
-  recordMatch: (req: EnhancedRequest, pattern: string, method: string, matched: boolean, reason?: string, params?: Record<string, string>) => {
+  recordMatch: (req: EnhancedRequest, pattern: string, method: string, matched: boolean, reason?: string, params?: Record<string, string>): void => {
     const routeDebugger = (req as any).debugger as RouteDebugger
     const requestId = (req as any).debugRequestId as string
 
@@ -503,7 +504,7 @@ export const RouteDebugHelpers = {
   /**
    * Record final match from request context
    */
-  recordFinalMatch: (req: EnhancedRequest, pattern: string, handler: Function, middleware: Function[], params: Record<string, string>) => {
+  recordFinalMatch: (req: EnhancedRequest, pattern: string, handler: (...args: any[]) => any, middleware: ((...args: any[]) => any)[], params: Record<string, string>): void => {
     const routeDebugger = (req as any).debugger as RouteDebugger
     const requestId = (req as any).debugRequestId as string
 
@@ -515,7 +516,7 @@ export const RouteDebugHelpers = {
   /**
    * Record timing from request context
    */
-  recordTiming: (req: EnhancedRequest, phase: keyof RouteDebugInfo['timings'], duration: number) => {
+  recordTiming: (req: EnhancedRequest, phase: keyof RouteDebugInfo['timings'], duration: number): void => {
     const routeDebugger = (req as any).debugger as RouteDebugger
     const requestId = (req as any).debugRequestId as string
 

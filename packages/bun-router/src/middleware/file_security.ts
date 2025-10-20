@@ -135,7 +135,7 @@ export default class FileSecurity {
   private sanitizeFilename(filename: string): string {
     // Remove or replace dangerous characters
     return filename
-      .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_') // Replace dangerous chars with underscore
+      .replace(/[<>:"/\\|?*\u0000-\u001F]/u, '_') // Replace dangerous chars with underscore
       .replace(/^\.+/, '') // Remove leading dots
       .replace(/\.+$/, '') // Remove trailing dots
       .replace(/\s+/g, '_') // Replace spaces with underscores

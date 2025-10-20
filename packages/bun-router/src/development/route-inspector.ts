@@ -97,8 +97,8 @@ export class RouteInspector {
   registerRoute(
     method: string,
     pattern: string,
-    handler: Function,
-    middleware: Function[] = [],
+    handler: (...args: any[]) => any,
+    middleware: Array<(...args: any[]) => any> = [],
     options: Partial<RouteMetadata> = {},
   ): string {
     const id = this.generateRouteId(method, pattern)
@@ -154,7 +154,7 @@ export class RouteInspector {
 
     if (filter) {
       if (filter.method) {
-        routes = routes.filter(route => route.method === filter.method.toUpperCase())
+        routes = routes.filter(route => route.method === filter.method!.toUpperCase())
       }
 
       if (filter.pattern) {
@@ -209,7 +209,7 @@ export class RouteInspector {
   /**
    * Register route group
    */
-  registerGroup(name: string, prefix: string, middleware: Function[] = []): void {
+  registerGroup(name: string, prefix: string, middleware: Array<(...args: any[]) => any> = []): void {
     const group: RouteGroup = {
       name,
       prefix,
@@ -392,7 +392,7 @@ export class RouteInspector {
   /**
    * Extract function source code
    */
-  private getFunctionSource(fn: Function): string | undefined {
+  private getFunctionSource(fn: (...args: any[]) => any): string | undefined {
     try {
       const source = fn.toString()
       return source.length > 200 ? `${source.substring(0, 200)}...` : source
@@ -405,7 +405,7 @@ export class RouteInspector {
   /**
    * Extract function parameters
    */
-  private extractFunctionParameters(fn: Function): string[] {
+  private extractFunctionParameters(fn: (...args: any[]) => any): string[] {
     try {
       const source = fn.toString()
       const match = source.match(/\(([^)]*)\)/)
@@ -425,7 +425,7 @@ export class RouteInspector {
   /**
    * Check if function is async
    */
-  private isAsyncFunction(fn: Function): boolean {
+  private isAsyncFunction(fn: (...args: any[]) => any): boolean {
     return fn.constructor.name === 'AsyncFunction'
   }
 
@@ -435,9 +435,8 @@ export class RouteInspector {
   private extractRouteParameters(pattern: string): RouteMetadata['params'] {
     const params: RouteMetadata['params'] = []
     const paramRegex = /\{([^}]+)\}/g
-    let match
 
-    while ((match = paramRegex.exec(pattern)) !== null) {
+    for (const match of pattern.matchAll(paramRegex)) {
       const paramDef = match[1]
       const [name, constraint] = paramDef.split(':')
 
@@ -474,7 +473,7 @@ export class RouteInspector {
    */
   private getCallSiteInfo(): { file?: string, line?: number } {
     try {
-      const stack = new Error().stack
+      const stack = new Error('route-inspector callsite').stack
       if (!stack)
         return {}
 
@@ -663,7 +662,7 @@ export const RouteInspectionHelpers = {
   /**
    * List all routes in a formatted table
    */
-  listRoutes: (filter?: Parameters<RouteInspector['getRoutes']>[0]) => {
+  listRoutes: (filter?: Parameters<RouteInspector['getRoutes']>[0]): void => {
     const inspector = getRouteInspector()
     if (!inspector) {
       console.log('Route inspector not initialized')
@@ -699,7 +698,7 @@ export const RouteInspectionHelpers = {
   /**
    * Analyze routes and show recommendations
    */
-  analyzeRoutes: () => {
+  analyzeRoutes: (): void => {
     const inspector = getRouteInspector()
     if (!inspector) {
       console.log('Route inspector not initialized')
@@ -730,7 +729,7 @@ export const RouteInspectionHelpers = {
   /**
    * Export routes to file
    */
-  exportRoutes: (format: 'json' | 'csv' | 'markdown' | 'openapi' = 'json', filename?: string) => {
+  exportRoutes: (format: 'json' | 'csv' | 'markdown' | 'openapi' = 'json', filename?: string): void => {
     const inspector = getRouteInspector()
     if (!inspector) {
       console.log('Route inspector not initialized')

@@ -639,7 +639,7 @@ export const HealthEndpoints = {
   /**
    * Liveness probe endpoint
    */
-  live: async (req: EnhancedRequest): Promise<Response> => {
+  live: async (_req: EnhancedRequest): Promise<Response> => {
     // Simple liveness check - just return OK if the service is running
     return new Response('OK', { status: 200 })
   },
@@ -647,7 +647,7 @@ export const HealthEndpoints = {
   /**
    * Startup probe endpoint
    */
-  startup: async (req: EnhancedRequest): Promise<Response> => {
+  startup: async (_req: EnhancedRequest): Promise<Response> => {
     const manager = getHealthManager()
     if (!manager) {
       return new Response('Service not started', { status: 503 })

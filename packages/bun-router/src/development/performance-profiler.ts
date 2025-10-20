@@ -5,6 +5,7 @@
  */
 
 import type { EnhancedRequest } from '../types'
+import process from 'node:process'
 
 export interface ProfileConfig {
   enabled?: boolean

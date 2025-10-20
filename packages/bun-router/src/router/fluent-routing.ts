@@ -1,7 +1,7 @@
 import type { BunQueryBuilderModel } from '../model-binding'
 import type { RouteCacheConfig } from '../routing/route-caching'
 import type { RateLimitConfig } from '../routing/route-throttling'
-import type { EnhancedRequest, MiddlewareHandler, RouteHandler, ThrottlePattern } from '../types'
+import type { EnhancedRequest, MiddlewareHandler, NextFunction, RouteHandler, ThrottlePattern } from '../types'
 import { createModelBindingMiddleware } from '../model-binding'
 import { createRouteCacheMiddleware, RouteCacheFactory } from '../routing/route-caching'
 import { createRateLimitMiddleware, parseThrottleString, ThrottleFactory } from '../routing/route-throttling'
@@ -54,7 +54,7 @@ export class FluentRouteBuilder {
     if (typeof limit === 'string') {
       const parsed = parseThrottleString(limit)
       this.throttleConfig = {
-        maxAttempts: parsed.maxRequests ?? 60,
+        maxAttempts: parsed.maxAttempts ?? 60,
         windowMs: parsed.windowMs,
         keyGenerator: req => req.headers.get('x-forwarded-for') || 'anonymous',
       }
@@ -95,8 +95,9 @@ export class FluentRouteBuilder {
 
     // Add model binding middleware
     if (Object.keys(this.modelBindings).length > 0) {
-      const modelBindingMiddleware = createModelBindingMiddleware(this.modelBindings)
-      finalMiddleware.push(modelBindingMiddleware as MiddlewareHandler)
+      const parameters = Object.keys(this.modelBindings).map(name => ({ name }))
+      const modelBindingMiddleware = createModelBindingMiddleware(parameters as any, this.modelBindings as any)
+      finalMiddleware.push(modelBindingMiddleware as unknown as MiddlewareHandler)
     }
 
     // Add throttling middleware
@@ -264,17 +265,27 @@ export class FluentRouter {
   private setupDefaultMiddleware(): void {
     // Throttle middleware with parameters
     this.namedMiddleware.set('throttle', (params?: string) => {
-      const config = params ? parseThrottleString(params as ThrottlePattern) : { maxRequests: 60, windowMs: 60000 }
-      return createRateLimitMiddleware({
-        maxAttempts: config.maxRequests,
-        windowMs: config.windowMs,
+      const parsed = params ? parseThrottleString(params as ThrottlePattern) : { maxAttempts: 60, windowMs: 60000 }
+      const handler = createRateLimitMiddleware({
+        maxAttempts: parsed.maxAttempts,
+        windowMs: parsed.windowMs,
         keyGenerator: req => req.headers.get('x-forwarded-for') || 'anonymous',
-      }) as MiddlewareHandler
+      })
+
+      const adapted: MiddlewareHandler = async (req: EnhancedRequest, next: NextFunction) => {
+        const adaptedNext = async () => {
+          const res = await next()
+          return res ?? new Response(null)
+        }
+        return await handler(req, adaptedNext)
+      }
+
+      return adapted
     })
 
     // Auth middleware
     this.namedMiddleware.set('auth', () => {
-      return async (req: EnhancedRequest, next: () => Promise<Response | null>): Promise<Response | null> => {
+      return async (req: EnhancedRequest, next: any) => {
         const token = req.headers.get('Authorization')?.replace('Bearer ', '')
         if (!token) {
           return new Response('Unauthorized', { status: 401 })
@@ -287,7 +298,7 @@ export class FluentRouter {
 
     // CORS middleware
     this.namedMiddleware.set('cors', () => {
-      return async (req: EnhancedRequest, next: () => Promise<Response | null>): Promise<Response | null> => {
+      return async (_req: EnhancedRequest, next: any) => {
         const response = await next()
         if (response) {
           const headers = new Headers(response.headers)
@@ -682,7 +693,7 @@ export const RouteFactory = {
     const builder = new FluentRouteBuilder(method, path, handler)
 
     // Add auth middleware (would need to be implemented)
-    builder.addMiddleware(async (req: EnhancedRequest, next: () => Promise<Response | null>): Promise<Response | null> => {
+    builder.addMiddleware(async (req: EnhancedRequest, next: any) => {
       // Mock auth check
       if (!req.headers.get('Authorization')) {
         return new Response('Unauthorized', { status: 401 })
@@ -703,7 +714,7 @@ export const RouteFactory = {
     const builder = new FluentRouteBuilder('POST', path, handler)
 
     // Add file upload middleware (would need to be implemented)
-    builder.addMiddleware(async (req: EnhancedRequest, next: () => Promise<Response | null>): Promise<Response | null> => {
+    builder.addMiddleware(async (_req: EnhancedRequest, next: any) => {
       // Mock file upload handling
       return await next()
     })

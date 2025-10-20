@@ -388,7 +388,8 @@ export const EnhancementPresets = {
           headers,
         })
       }
-      catch (_error) {
+      catch (error) {
+        console.error(error)
         // Return JSON error response
         return EnhancedResponse.callMacro('error', 'Internal server error', undefined, 500)
       }

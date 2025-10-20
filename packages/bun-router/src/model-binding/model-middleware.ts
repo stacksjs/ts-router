@@ -127,10 +127,10 @@ export function withModelBinding<TPath extends string>(
   bindings: ModelBinding[],
 ) {
   return function (
-    target: any,
-    propertyKey: string,
+    _target: any,
+    _propertyKey: string,
     descriptor: PropertyDescriptor,
-  ) {
+  ): PropertyDescriptor {
     const originalMethod = descriptor.value
 
     descriptor.value = async function (
@@ -141,8 +141,6 @@ export function withModelBinding<TPath extends string>(
         failOnError: true,
         attachToRequest: true,
       })
-
-      const middlewareResult: Response | null = null
 
       const mockNext = () => {
         return Promise.resolve(new Response('OK'))

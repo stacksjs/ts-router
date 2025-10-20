@@ -383,9 +383,8 @@ export type MiddlewareWithConfig<T> = (config: T) => MiddlewareFunction
   private extractPathParameters(pattern: string): Array<{ name: string, type: string, optional: boolean }> {
     const params: Array<{ name: string, type: string, optional: boolean }> = []
     const paramRegex = /\{([^}]+)\}/g
-    let match
 
-    while ((match = paramRegex.exec(pattern)) !== null) {
+    for (const match of pattern.matchAll(paramRegex)) {
       const paramDef = match[1]
       const [name, constraint] = paramDef.split(':')
 
@@ -587,7 +586,7 @@ export type TypedRequest<T extends RoutePattern> = EnhancedRequest & {
   /**
    * Validate request parameters
    */
-  private validateParams(req: EnhancedRequest, expectedType: string): string[] {
+  private validateParams(_req: EnhancedRequest, _expectedType: string): string[] {
     // Simplified validation - in a real implementation, this would use a proper type checker
     return []
   }
@@ -595,7 +594,7 @@ export type TypedRequest<T extends RoutePattern> = EnhancedRequest & {
   /**
    * Validate query parameters
    */
-  private validateQuery(req: EnhancedRequest, expectedType: string): string[] {
+  private validateQuery(_req: EnhancedRequest, _expectedType: string): string[] {
     // Simplified validation
     return []
   }
@@ -603,7 +602,7 @@ export type TypedRequest<T extends RoutePattern> = EnhancedRequest & {
   /**
    * Validate request body
    */
-  private validateBody(req: EnhancedRequest, expectedType: string): string[] {
+  private validateBody(_req: EnhancedRequest, _expectedType: string): string[] {
     // Simplified validation
     return []
   }
@@ -669,7 +668,7 @@ export const TypeScriptHelpers = {
   /**
    * Validate request types
    */
-  validateRequest: (req: EnhancedRequest, routeKey: string) => {
+  validateRequest: (req: EnhancedRequest, routeKey: string): { valid: boolean, errors: string[], warnings: string[] } => {
     const tsUtils = getTypeScriptUtilities()
     if (!tsUtils) {
       return { valid: true, errors: [], warnings: ['TypeScript utilities not initialized'] }
