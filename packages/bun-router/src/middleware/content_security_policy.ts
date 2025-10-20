@@ -132,7 +132,7 @@ export default class ContentSecurityPolicy {
   }
 
   async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
-    const helmetConfig = config.server?.security?.helmet || {}
+    const helmetConfig = (config.server?.security?.helmet || {}) as any
 
     // If CSP is disabled, continue to next middleware
     if (helmetConfig.contentSecurityPolicy === false) {

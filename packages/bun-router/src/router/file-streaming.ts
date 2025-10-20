@@ -23,7 +23,7 @@ export function registerFileStreaming(RouterClass: typeof Router): void {
           chunkSize?: number
         },
       ): Promise<Response> {
-        return FileStreamHandler.streamFile(filePath, request, options)
+        return FileStreamHandler.streamFile(filePath, request, options as any)
       },
       writable: true,
       configurable: true,
@@ -349,35 +349,6 @@ export function registerFileStreaming(RouterClass: typeof Router): void {
           status: 200,
           headers: responseHeaders,
         })
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Transform stream utility
-     */
-    transformStream: {
-      value<T, U>(
-        transformFn: (chunk: T) => U | Promise<U>,
-        _options?: any,
-      ): TransformStream<T, U> {
-        return StreamUtils.transform(transformFn)
-      },
-      writable: true,
-      configurable: true,
-    },
-
-    /**
-     * Create stream response utility
-     */
-    streamResponse: {
-      value<T>(
-        data: T[] | AsyncIterable<T>,
-        options: DirectStreamConfig = {},
-      ): Response {
-        const streamResponse = StreamHandler.direct(data, options)
-        return streamResponse.toResponse()
       },
       writable: true,
       configurable: true,

@@ -192,7 +192,7 @@ export class BunOptimizer {
     // Optimize file system operations
     if (typeof Bun !== 'undefined' && Bun.file) {
       const originalFile = Bun.file
-      Bun.file = ((...args: any[]) => {
+      Bun.file = ((...args: Parameters<typeof originalFile>) => {
         this.metrics.bunSpecific.fileSystemCacheHits++
         return originalFile(...args)
       }) as typeof originalFile

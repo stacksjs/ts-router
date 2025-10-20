@@ -562,7 +562,7 @@ export default class PerformanceDashboard {
     }
   }
 
-  async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
+  async handle(req: EnhancedRequest, next: NextFunction): Promise<Response | null> {
     if (!this.options.enabled) {
       const response = await next()
       return response || new Response('Internal Server Error', { status: 500 })
@@ -653,7 +653,7 @@ export default class PerformanceDashboard {
 }
 
 // Factory function for easy use
-export function performanceDashboard(options: DashboardOptions = {}): (req: EnhancedRequest, next: NextFunction) => Promise<Response> {
+export function performanceDashboard(options: DashboardOptions = {}): (req: EnhancedRequest, next: NextFunction) => Promise<Response | null> {
   const instance = new PerformanceDashboard(options)
   return async (req: EnhancedRequest, next: NextFunction) => instance.handle(req, next)
 }

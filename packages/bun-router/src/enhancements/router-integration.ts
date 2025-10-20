@@ -316,10 +316,10 @@ export const MiddlewareHelpers = {
    * Compose multiple middleware into one
    */
   compose: (...middleware: MiddlewareHandler[]): MiddlewareHandler => {
-    return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+    return async (req: EnhancedRequest, next: NextFunction): Promise<Response | null> => {
       let index = 0
 
-      const dispatch = async (): Promise<Response> => {
+      const dispatch = async (): Promise<Response | null> => {
         if (index >= middleware.length) {
           return await next()
         }
@@ -339,7 +339,7 @@ export const MiddlewareHelpers = {
     condition: (req: EnhancedRequest) => boolean,
     middleware: MiddlewareHandler,
   ): MiddlewareHandler => {
-    return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+    return async (req: EnhancedRequest, next: NextFunction): Promise<Response | null> => {
       if (condition(req)) {
         return await middleware(req, next)
       }

@@ -4,7 +4,7 @@
  * Laravel-style validation with custom rules and error handling
  */
 
-import type { EnhancedRequest } from '../types'
+import type { EnhancedRequest, NextFunction } from '../types'
 import { ValidationException } from '../errors/exceptions'
 
 export interface ValidationRule {
@@ -451,7 +451,7 @@ export const globalValidator: Validator = new Validator()
 export function createValidationMiddleware(rules: ValidationRules, config?: ValidatorConfig) {
   const validator = new Validator(config)
 
-  return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+  return async (req: EnhancedRequest, next: NextFunction): Promise<Response | null> => {
     try {
       // Get data from request body, query, and params
       const data = {

@@ -687,7 +687,7 @@ export interface CookieOptions {
   sameSite?: 'strict' | 'lax' | 'none'
 }
 
-export interface EnhancedRequest extends Request {
+export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip' | 'cookies'> {
   /**
    * Route parameters extracted from the URL
    */
@@ -741,13 +741,9 @@ export interface EnhancedRequest extends Request {
    */
   requestId?: string
   /**
-   * IP address of the client
+   * IP address of the client (string property, not function from RequestMacroMethods)
    */
   ip?: string
-  /**
-   * User agent string (function to match RequestMacroMethods)
-   */
-  userAgent: (() => string)
   /**
    * Cookies parsed from the request
    */
@@ -1849,14 +1845,6 @@ export interface RequestMacroMethods {
   contentLength: () => number
   contentType: () => string | null
   isContentType: (type: string) => boolean
-}
-
-// Extend the existing EnhancedRequest interface
-declare module './types' {
-  interface EnhancedRequest extends Omit<RequestMacroMethods, 'ip'> {
-    validated?: Record<string, any>
-    ip?: string // Override to allow optional string property
-  }
 }
 
 /**

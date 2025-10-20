@@ -22,7 +22,7 @@ export default class SecuritySuite {
   private middlewares: MiddlewareHandler[] = []
 
   constructor(options: SecuritySuiteOptions = {}) {
-    const securityConfig = config.server?.security || {}
+    const securityConfig = (config.server?.security || {}) as any
 
     // Default order of security middleware execution
     const defaultOrder = [
@@ -103,11 +103,11 @@ export default class SecuritySuite {
     }
   }
 
-  async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
+  async handle(req: EnhancedRequest, next: NextFunction): Promise<Response | null> {
     // Execute all security middleware in sequence
     let currentIndex = 0
 
-    const executeNext = async (): Promise<Response> => {
+    const executeNext = async (): Promise<Response | null> => {
       if (currentIndex >= this.middlewares.length) {
         return await next()
       }
