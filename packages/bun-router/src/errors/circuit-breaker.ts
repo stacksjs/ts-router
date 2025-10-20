@@ -60,7 +60,7 @@ export class CircuitBreaker {
   private recentRequests: Array<{ timestamp: Date, success: boolean, responseTime: number }> = []
 
   constructor(config: CircuitBreakerConfig) {
-    this.config = {
+    const defaults = {
       failureThreshold: 5,
       recoveryTimeout: 60000,
       timeout: 30000,
@@ -69,6 +69,10 @@ export class CircuitBreaker {
       errorThresholdPercentage: 50,
       halfOpenMaxCalls: 3,
       resetTimeout: 60000,
+    }
+
+    this.config = {
+      ...defaults,
       ...config,
     }
 
@@ -485,7 +489,7 @@ export function circuitBreaker(config: CircuitBreakerConfig) {
   ) {
     const method = descriptor.value!
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (this: any, ...args: any[]) {
       return breaker.execute({
         execute: () => method.apply(this, args),
         context: {

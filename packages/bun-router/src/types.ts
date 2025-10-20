@@ -1409,6 +1409,10 @@ export interface DirectStreamConfig {
   compression?: StreamingCompression
   format?: StreamingFormat
   bufferSize?: number
+  delimiter?: string
+  contentType?: ContentType
+  enableCompression?: boolean
+  compressionType?: StreamingCompression
 }
 
 /**
@@ -1419,6 +1423,7 @@ export interface BufferedStreamConfig extends DirectStreamConfig {
   maxBuffer?: number
   flushInterval?: number
   autoFlush?: boolean
+  contentType?: ContentType
 }
 
 /**

@@ -1,6 +1,7 @@
 import type {
   EnhancedRequest,
   MiddlewareHandler,
+  NextFunction,
 } from '../types'
 import type { Router } from './router'
 import {
@@ -35,7 +36,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         if (typeof modelClass === 'string') {
           // Register string-based model class
           this.modelRegistry.register(key, {
-            resolver: async (params) => {
+            resolver: async (params: Record<string, string>) => {
               // For string-based registration, we'll just pass through
               // In a real Laravel app, this would resolve the model class
               console.warn(`Model class ${modelClass} not implemented`)
@@ -44,7 +45,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
             },
             errorHandling: callback
               ? {
-                  notFound: _params => callback(null) || new Response('Not Found', { status: 404 }),
+                  notFound: (_params: Record<string, string>) => callback(null) || new Response('Not Found', { status: 404 }),
                 }
               : undefined,
           })
@@ -52,7 +53,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         else {
           // Register function-based resolver
           this.modelRegistry.register(key, {
-            resolver: async (params) => {
+            resolver: async (params: Record<string, string>) => {
               const value = params[key]
               if (!value)
                 return null
@@ -60,7 +61,7 @@ export function registerModelBinding(RouterClass: typeof Router): void {
             },
             errorHandling: callback
               ? {
-                  notFound: _params => callback(null) || new Response('Not Found', { status: 404 }),
+                  notFound: (_params: Record<string, string>) => callback(null) || new Response('Not Found', { status: 404 }),
                 }
               : undefined,
           })
@@ -77,9 +78,11 @@ export function registerModelBinding(RouterClass: typeof Router): void {
      */
     implicitBinding: {
       value(this: Router): MiddlewareHandler {
-        return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
-          if (!req.params)
-            return next()
+        return async (req: EnhancedRequest, next: NextFunction): Promise<Response> => {
+          if (!req.params) {
+            const result = await next()
+            return result || new Response('Not Found', { status: 404 })
+          }
 
           // Resolve all parameters that might be models
           for (const [paramName, _paramValue] of Object.entries(req.params)) {
@@ -121,7 +124,8 @@ export function registerModelBinding(RouterClass: typeof Router): void {
             }
           }
 
-          return next()
+          const result = await next()
+          return result || new Response('Not Found', { status: 404 })
         }
       },
       writable: true,
@@ -136,9 +140,10 @@ export function registerModelBinding(RouterClass: typeof Router): void {
         this: Router,
         callback: (req: EnhancedRequest) => Response,
       ): MiddlewareHandler {
-        return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+        return async (req: EnhancedRequest, next: NextFunction): Promise<Response> => {
           try {
-            return await next()
+            const result = await next()
+            return result || callback(req)
           }
           catch (error) {
             console.error(error)
@@ -157,9 +162,11 @@ export function registerModelBinding(RouterClass: typeof Router): void {
      */
     scopedBindings: {
       value(this: Router, bindings: Record<string, string>): MiddlewareHandler {
-        return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
-          if (!req.params)
-            return next()
+        return async (req: EnhancedRequest, next: NextFunction): Promise<Response> => {
+          if (!req.params) {
+            const result = await next()
+            return result || new Response('Not Found', { status: 404 })
+          }
 
           // Apply scoped bindings
           for (const [childParam, parentParam] of Object.entries(bindings)) {
@@ -169,7 +176,8 @@ export function registerModelBinding(RouterClass: typeof Router): void {
             }
           }
 
-          return next()
+          const result = await next()
+          return result || new Response('Not Found', { status: 404 })
         }
       },
       writable: true,

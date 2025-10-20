@@ -1,3 +1,4 @@
+import type { BunFile } from 'bun'
 import type {
   BufferedStreamConfig,
   ContentType,

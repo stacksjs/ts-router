@@ -4,7 +4,7 @@
  * Integration layer for validation and macros with the router
  */
 
-import type { EnhancedRequest, MiddlewareHandler, RouteHandler } from '../types'
+import type { EnhancedRequest, MiddlewareHandler, NextFunction, RouteHandler } from '../types'
 import type { ValidationRules, ValidatorConfig } from '../validation/validator'
 import { EnhancedRequestWithMacros } from '../request/macros'
 import { EnhancedResponse } from '../response/macros'
@@ -44,10 +44,11 @@ export class EnhancedRouteBuilder {
     }
 
     // Add request macro middleware
-    middleware.push(async (req: EnhancedRequest, next) => {
+    middleware.push(async (req: EnhancedRequest, next: NextFunction) => {
       // Apply request macros
       EnhancedRequestWithMacros.applyMacros(req)
-      return await next()
+      const result = await next()
+      return result || new Response('Not Found', { status: 404 })
     })
 
     return {

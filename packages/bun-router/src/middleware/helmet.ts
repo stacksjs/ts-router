@@ -54,7 +54,7 @@ export default class Helmet {
   private options: HelmetOptions
 
   constructor(options: HelmetOptions = {}) {
-    const helmetConfig = config.server?.security?.helmet || {}
+    const helmetConfig = (config.server?.security?.helmet || {}) as any
 
     this.options = {
       contentSecurityPolicy: options.contentSecurityPolicy ?? helmetConfig.contentSecurityPolicy ?? {
@@ -103,7 +103,7 @@ export default class Helmet {
   }
 
   async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
-    const helmetConfig = config.server?.security?.helmet || {}
+    const helmetConfig = (config.server?.security?.helmet || {}) as any
 
     // If helmet is disabled, continue to next middleware
     if (helmetConfig.enabled === false) {

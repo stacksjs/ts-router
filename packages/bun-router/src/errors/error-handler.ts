@@ -80,8 +80,8 @@ export class AdvancedErrorHandler {
           route: req.params?.route || req.url,
           method: req.method,
           url: req.url,
-          userAgent: req.userAgent,
-          ip: req.ip,
+          userAgent: typeof req.userAgent === 'function' ? req.userAgent() : req.userAgent,
+          ip: typeof req.ip === 'function' ? req.ip() : req.ip,
           timestamp: new Date(),
         }
 
@@ -203,8 +203,8 @@ export class AdvancedErrorHandler {
       route: req.params?.route || req.url,
       method: req.method,
       url: req.url,
-      userAgent: req.userAgent,
-      ip: req.ip,
+      userAgent: typeof req.userAgent === 'function' ? req.userAgent() : req.userAgent,
+      ip: typeof req.ip === 'function' ? req.ip() : req.ip,
       timestamp: new Date(),
       metadata: req.context,
     }
@@ -346,8 +346,8 @@ export class AdvancedErrorHandler {
         method: req.method,
         url: req.url,
         headers: Object.fromEntries(req.headers.entries()),
-        userAgent: req.userAgent,
-        ip: req.ip,
+        userAgent: typeof req.userAgent === 'function' ? req.userAgent() : req.userAgent,
+        ip: typeof req.ip === 'function' ? req.ip() : req.ip,
         requestId: req.requestId,
         traceId: req.traceId,
       },

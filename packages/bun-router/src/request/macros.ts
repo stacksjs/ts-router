@@ -192,7 +192,7 @@ export const BuiltInRequestMacros = {
     if (forwardedFor) {
       return forwardedFor.split(',').map(ip => ip.trim())
     }
-    return [this.ip()]
+    return [BuiltInRequestMacros.ip.call(this)]
   },
 
   /**
@@ -436,14 +436,14 @@ export const BuiltInRequestMacros = {
    * Get file from upload
    */
   file(this: EnhancedRequest, name: string): any {
-    return this.files?.[name]
+    return this.files?.find(f => f.fieldName === name)
   },
 
   /**
    * Check if request has file upload
    */
   hasFile(this: EnhancedRequest, name: string): boolean {
-    return !!(this.files?.[name])
+    return !!this.files?.find(f => f.fieldName === name)
   },
 
   /**
@@ -499,7 +499,7 @@ export const BuiltInRequestMacros = {
       method: this.method,
       path: url.pathname,
       query: url.search,
-      ip: this.ip(),
+      ip: BuiltInRequestMacros.ip.call(this),
     }
 
     return btoa(JSON.stringify(data))
@@ -509,7 +509,7 @@ export const BuiltInRequestMacros = {
    * Get request signature for security
    */
   signature(this: EnhancedRequest, secret: string): string {
-    const data = `${this.method}${this.url}${this.ip()}${secret}`
+    const data = `${this.method}${this.url}${BuiltInRequestMacros.ip.call(this)}${secret}`
 
     // Simple hash function (in production, use crypto)
     let hash = 0
@@ -551,7 +551,7 @@ export const BuiltInRequestMacros = {
    * Check if request is from trusted proxy
    */
   isFromTrustedProxy(this: EnhancedRequest, trustedProxies: string[] = []): boolean {
-    const ip = this.ip()
+    const ip = BuiltInRequestMacros.ip.call(this)
     return trustedProxies.includes(ip)
   },
 

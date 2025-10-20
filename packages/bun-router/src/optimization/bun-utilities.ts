@@ -177,18 +177,25 @@ export class BunOptimizer {
   private enableNativeOptimizations(): void {
     // Optimize common native calls
     const originalFetch = globalThis.fetch
-    globalThis.fetch = (...args) => {
+    const wrappedFetch = ((...args: Parameters<typeof fetch>) => {
       this.metrics.bunSpecific.nativeCallsOptimized++
       return originalFetch(...args)
+    }) as typeof fetch
+
+    // Preserve preconnect property if it exists
+    if ('preconnect' in originalFetch) {
+      (wrappedFetch as any).preconnect = (originalFetch as any).preconnect
     }
+
+    globalThis.fetch = wrappedFetch
 
     // Optimize file system operations
     if (typeof Bun !== 'undefined' && Bun.file) {
       const originalFile = Bun.file
-      Bun.file = (...args) => {
+      Bun.file = ((...args: any[]) => {
         this.metrics.bunSpecific.fileSystemCacheHits++
         return originalFile(...args)
-      }
+      }) as typeof originalFile
     }
   }
 
@@ -198,7 +205,7 @@ export class BunOptimizer {
   private configureGarbageCollection(): void {
     // Setup GC monitoring
     if (typeof PerformanceObserver !== 'undefined') {
-      this.gcObserver = new PerformanceObserver((list) => {
+      this.gcObserver = new PerformanceObserver((list: PerformanceObserverEntryList) => {
         for (const entry of list.getEntries()) {
           if (entry.entryType === 'gc') {
             this.metrics.gc.collections++
@@ -277,7 +284,7 @@ export class BunOptimizer {
 
     // Setup performance observer
     if (typeof PerformanceObserver !== 'undefined') {
-      this.performanceObserver = new PerformanceObserver((list) => {
+      this.performanceObserver = new PerformanceObserver((list: PerformanceObserverEntryList) => {
         for (const entry of list.getEntries()) {
           if (entry.entryType === 'measure') {
             // Track custom performance measures
@@ -286,7 +293,7 @@ export class BunOptimizer {
       })
 
       try {
-        this.performanceObserver.observe({ entryTypes: ['measure', 'navigation'] })
+        this.performanceObserver.observe({ entryTypes: ['measure', 'navigation'] as any })
       }
       catch (error) {
         console.error(error)
@@ -456,7 +463,7 @@ export class BunOptimizer {
        */
       stringify: (value: any): string => {
         if (stringifyCache.has(value)) {
-          return stringifyCache.get(value)
+          return stringifyCache.get(value)!
         }
 
         const result = JSON.stringify(value)
