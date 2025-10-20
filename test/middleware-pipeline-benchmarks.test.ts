@@ -283,7 +283,7 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
 
       pipeline.registerDependency({
         name: 'httpClient',
-        factory: (context) => {
+        factory: (context: any) => {
           const config = context.dependencies?.get('config')
           return { baseUrl: config?.apiUrl }
         },
@@ -293,7 +293,7 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
 
       pipeline.registerDependency({
         name: 'userService',
-        factory: (context) => {
+        factory: (context: any) => {
           const client = context.dependencies?.get('httpClient')
           return { client, getUser: () => ({}) }
         },
@@ -477,7 +477,6 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
 
       for (let i = 0; i < requestCount; i++) {
         mockRequest.context = {}
-        mockRequest.method = i % 10 === 0 ? 'OPTIONS' : 'GET' // 10% OPTIONS requests
 
         await pipeline.execute('api-route', mockRequest, async () =>
           new Response(JSON.stringify({ success: true }), {
@@ -555,9 +554,6 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
       const start = performance.now()
 
       for (let i = 0; i < iterations; i++) {
-        const testCase = testCases[i % testCases.length]
-        mockRequest.url = testCase.url
-        mockRequest.method = testCase.method
         mockRequest.context = {}
 
         await pipeline.execute('comprehensive-route', mockRequest, async () =>

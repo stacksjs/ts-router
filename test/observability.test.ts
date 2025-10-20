@@ -5,6 +5,7 @@
 
 import type { EnhancedRequest } from '../packages/bun-router/src/types'
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
+import { createMockRequest as createTestMockRequest } from '../packages/bun-router/src/testing/test-request'
 import {
   // Correlation
   CorrelationManager,
@@ -44,36 +45,13 @@ import {
   Summary,
 } from '../packages/bun-router/src/observability'
 
-// Mock request helper
+// Mock request helper - using the proper test utility
 function createMockRequest(
   method = 'GET',
   url = 'http://localhost:3000/test',
   headers: Record<string, string> = {},
 ): EnhancedRequest {
-  const headersObj = new Headers(headers)
-  return {
-    method,
-    url,
-    headers: headersObj,
-    body: null,
-    bodyUsed: false,
-    cache: 'default',
-    credentials: 'same-origin',
-    destination: '',
-    integrity: '',
-    keepalive: false,
-    mode: 'cors',
-    redirect: 'follow',
-    referrer: '',
-    referrerPolicy: '',
-    signal: new AbortController().signal,
-    clone: () => createMockRequest(method, url, headers),
-    arrayBuffer: async () => new ArrayBuffer(0),
-    blob: async () => new Blob(),
-    formData: async () => new FormData(),
-    json: async () => ({}),
-    text: async () => '',
-  } as EnhancedRequest
+  return createTestMockRequest(method, url, { headers })
 }
 
 describe('Observability & Monitoring', () => {

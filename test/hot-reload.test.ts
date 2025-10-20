@@ -450,8 +450,8 @@ describe('Hot Reload', () => {
       await new Promise(resolve => setTimeout(resolve, 200))
 
       expect(onReload).toHaveBeenCalled()
-      const callArgs = onReload.mock.calls[0][0]
-      expect(callArgs.length).toBeGreaterThan(0)
+      const callArgs = onReload.mock.calls[0]?.[0]
+      expect((callArgs as any)?.length).toBeGreaterThan(0)
     })
 
     it('should preserve complex state across reloads', () => {
@@ -476,8 +476,8 @@ describe('Hot Reload', () => {
       })
 
       const restored = newHotReload.restoreState('complexState')
-      expect(restored.user).toEqual(complexState.user)
-      expect(restored.settings).toEqual(complexState.settings)
+      expect((restored as any).user).toEqual(complexState.user)
+      expect((restored as any).settings).toEqual(complexState.settings)
 
       newHotReload.stop()
     })

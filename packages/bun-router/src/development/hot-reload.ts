@@ -536,18 +536,20 @@ export const HotReloadDecorators = {
   /**
    * Method decorator for hot-reloadable methods
    */
-  hotMethod: (target: any, propertyKey: string, descriptor: PropertyDescriptor): void => {
+  hotMethod: (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
     const originalMethod = descriptor.value
 
     descriptor.value = function (...args: any[]) {
       try {
         return originalMethod.apply(this, args)
       }
-      catch {
+      catch (error) {
         console.error(`Hot method error in ${propertyKey}:`, error)
         throw error
       }
     }
+
+    return descriptor
   },
 }
 

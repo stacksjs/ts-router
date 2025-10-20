@@ -29,6 +29,9 @@ export interface EnvironmentConfig {
 }
 
 export interface ContextualBindingBuilder<T> {
+  to: (implementation: new (...args: any[]) => T) => ContextualBindingBuilder<T>
+  toValue: (value: T) => ContextualBindingBuilder<T>
+  toFactory: (factory: (...args: any[]) => T) => ContextualBindingBuilder<T>
   when: (condition: BindingCondition) => ContextualBindingBuilder<T>
   whenEnvironment: (...environments: string[]) => ContextualBindingBuilder<T>
   whenTag: (tag: string) => ContextualBindingBuilder<T>

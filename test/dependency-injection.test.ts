@@ -204,11 +204,17 @@ describe('IoC Container', () => {
 
     it('should handle circular dependency detection', () => {
       class ServiceB {
-        constructor(@Inject('serviceA') private serviceA: any) {}
+        constructor(serviceA: any) {
+          this.serviceA = serviceA
+        }
+        private serviceA: any
       }
 
       class ServiceA {
-        constructor(@Inject('serviceB') private serviceB: ServiceB) {}
+        constructor(serviceB: ServiceB) {
+          this.serviceB = serviceB
+        }
+        private serviceB: ServiceB
       }
 
       container.transient('serviceA', ServiceA)
@@ -248,10 +254,10 @@ describe('IoC Container', () => {
   describe('Container Hierarchy', () => {
     it('should handle scoped containers', () => {
       const parent = new Container()
-      parent.bind('shared').toValue({ value: 'shared' }).build()
+      parent.value('shared', { value: 'shared' })
 
       const child = parent.createChild()
-      child.bind('child-only').toValue({ value: 'child' }).build()
+      child.value('child-only', { value: 'child' })
 
       expect(child.resolve('shared')).toEqual({ value: 'shared' })
       expect(child.resolve('child-only')).toEqual({ value: 'child' })
@@ -647,8 +653,8 @@ describe('Integration Tests', () => {
     envManager.setEnvironment('development')
 
     // Set up contextual bindings
-    container.forDevelopment('logger').to(LoggerService).build()
-    container.forDevelopment('database').to(DatabaseService).build()
+    container.bindContextual('logger').to(LoggerService).when(BindingConditions.environment('development')).build()
+    container.bindContextual('database').to(DatabaseService).when(BindingConditions.environment('development')).build()
 
     // Register service provider
     const testProvider = new TestServiceProvider()
@@ -676,7 +682,7 @@ describe('Integration Tests', () => {
 
     @Injectable()
     class CacheService {
-      constructor(@Inject(ConfigService) private config: ConfigService) {}
+      constructor(private config: ConfigService) {}
 
       get(key: string): any {
         return this.config.get(`cache.${key}`)
@@ -686,9 +692,9 @@ describe('Integration Tests', () => {
     @Injectable()
     class ApiService {
       constructor(
-        @Inject(LoggerService) private logger: LoggerService,
-        @Inject(CacheService) private cache: CacheService,
-        @Inject(DatabaseService) private db: DatabaseService,
+        private logger: LoggerService,
+        private cache: CacheService,
+        private db: DatabaseService,
       ) {}
 
       async processRequest(): Promise<string> {
@@ -790,11 +796,17 @@ describe('Error Handling', () => {
 
   it('should detect and report circular dependencies', () => {
     class ServiceA {
-      constructor(@Inject('serviceB') private b: any) {}
+      constructor(b: any) {
+        this.b = b
+      }
+      private b: any
     }
 
     class ServiceB {
-      constructor(@Inject('serviceA') private a: any) {}
+      constructor(a: any) {
+        this.a = a
+      }
+      private a: any
     }
 
     container.singleton('serviceA', ServiceA)
