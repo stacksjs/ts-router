@@ -118,7 +118,7 @@ export class ObservabilityManager {
   /**
    * Create observability middleware stack
    */
-  createMiddleware() {
+  createMiddleware(): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
     const middlewares: Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> = []
 
     // Add correlation middleware first (provides context for others)
@@ -145,7 +145,7 @@ export class ObservabilityManager {
           return await next()
         }
 
-        const middleware = middlewares[index++]
+        const middleware = middlewares[index++]!
         return await middleware(req, executeNext)
       }
 
@@ -415,16 +415,22 @@ export const ObservabilityIntegration = {
     router.use(middleware)
 
     // Add observability endpoints
-    Object.entries(handlers).forEach(([path, handler]) => {
+    Object.entries(handlers).forEach(([path, handler]: [string, (req: EnhancedRequest) => Promise<Response>]) => {
       router.get(path, handler)
     })
 
-    return {
+    const result: {
+      manager: ObservabilityManager
+      middleware: (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>
+      handlers: Record<string, (req: EnhancedRequest) => Promise<Response>>
+      status: ReturnType<ObservabilityManager['getStatus']>
+    } = {
       manager,
       middleware,
       handlers,
       status: manager.getStatus(),
     }
+    return result
   },
 
   /**
@@ -437,7 +443,7 @@ export const ObservabilityIntegration = {
       /**
        * Create route with observability
        */
-      route: (method: string, path: string, handler: (req: EnhancedRequest) => Promise<Response>) => {
+      route: (method: string, path: string, handler: (req: EnhancedRequest) => Promise<Response>): { method: string, path: string, handler: (req: EnhancedRequest) => Promise<Response> } => {
         const middleware = manager.createMiddleware()
 
         return {
@@ -452,12 +458,12 @@ export const ObservabilityIntegration = {
       /**
        * Get observability endpoints
        */
-      getEndpoints: () => manager.createRouteHandlers(),
+      getEndpoints: (): Record<string, (req: EnhancedRequest) => Promise<Response>> => manager.createRouteHandlers(),
 
       /**
        * Get manager instance
        */
-      getManager: () => manager,
+      getManager: (): ObservabilityManager => manager,
     }
   },
 }

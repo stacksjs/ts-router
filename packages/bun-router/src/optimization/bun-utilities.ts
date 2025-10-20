@@ -423,7 +423,7 @@ export class BunOptimizer {
       /**
        * Get pool statistics
        */
-      getStats: () => {
+      getStats: (): Record<number, number> => {
         const stats: Record<number, number> = {}
         bufferPool.forEach((pool, size) => {
           stats[size] = pool.length
@@ -486,7 +486,7 @@ export class BunOptimizer {
       /**
        * Get cache statistics
        */
-      getStats: () => ({
+      getStats: (): { parseCache: number, stringifyCache: number } => ({
         parseCache: parseCache.size,
         stringifyCache: stringifyCache.size,
       }),
@@ -557,7 +557,7 @@ export class BunOptimizer {
       /**
        * Get pool statistics
        */
-      getStats: () => ({
+      getStats: (): { poolSize: number, queueSize: number, activeWorkers: number } => ({
         poolSize: workers.length,
         queueSize: taskQueue.length,
         activeWorkers: workers.length - taskQueue.length,

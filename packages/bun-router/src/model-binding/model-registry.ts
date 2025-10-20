@@ -215,7 +215,7 @@ export class ModelRegistry {
   /**
    * Get cache statistics
    */
-  getCacheStats() {
+  getCacheStats(): { totalEntries: number, validEntries: number, expiredEntries: number, models: number } {
     const now = Date.now()
     let validEntries = 0
     let expiredEntries = 0
@@ -327,7 +327,7 @@ export class ModelRegistry {
 /**
  * Global model registry instance
  */
-export const modelRegistry = new ModelRegistry()
+export const modelRegistry: ModelRegistry = new ModelRegistry()
 
 /**
  * Model binding utilities

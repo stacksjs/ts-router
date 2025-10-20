@@ -179,7 +179,7 @@ export class RouteCacheManager {
   /**
    * Get cache statistics
    */
-  getStats() {
+  getStats(): ReturnType<LRUCache<CachedResponse>['getStats']> & { totalTags: number, totalKeyTagMappings: number } {
     return {
       ...this.cache.getStats(),
       totalTags: this.tagIndex.size,
@@ -191,7 +191,7 @@ export class RouteCacheManager {
 /**
  * Global route cache manager instance
  */
-export const routeCacheManager = new RouteCacheManager()
+export const routeCacheManager: RouteCacheManager = new RouteCacheManager()
 
 /**
  * Create route caching middleware

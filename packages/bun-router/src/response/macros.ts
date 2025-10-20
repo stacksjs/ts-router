@@ -92,9 +92,9 @@ class ResponseMacroRegistry {
 export const responseMacroRegistry: ResponseMacroRegistry = new ResponseMacroRegistry()
 
 /**
- * Enhanced Response class with macro support
+ * Response class with macro support
  */
-export class EnhancedResponse extends Response {
+export class ResponseWithMacros extends Response {
   /**
    * Register a response macro
    */
@@ -464,9 +464,9 @@ export const BuiltInResponseMacros = {
    * Health check response
    */
   health: (status: 'healthy' | 'unhealthy' | 'degraded' = 'healthy', checks: Record<string, any> = {}): Response => {
-    const statusCode = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503
+    const statusCode: number = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503
 
-    const response = {
+    const response: { status: string, timestamp: string, checks: Record<string, any>, uptime: number } = {
       status,
       timestamp: new Date().toISOString(),
       checks,
@@ -487,7 +487,7 @@ export const BuiltInResponseMacros = {
  */
 export function registerBuiltInResponseMacros(): void {
   Object.entries(BuiltInResponseMacros).forEach(([name, handler]) => {
-    EnhancedResponse.macro(name, handler)
+    ResponseWithMacros.macro(name, handler)
   })
 }
 
@@ -545,8 +545,8 @@ export const ResponseMacroFactory = {
   /**
    * Create custom error response macro
    */
-  customError: (defaultStatus = 400, defaultMessage = 'An error occurred') => {
-    return (message = defaultMessage, errors?: Record<string, string[]>, status = defaultStatus): Response => {
+  customError: (defaultStatus: number = 400, defaultMessage: string = 'An error occurred'): (message?: string, errors?: Record<string, string[]>, status?: number) => Response => {
+    return (message: string = defaultMessage, errors?: Record<string, string[]>, status: number = defaultStatus): Response => {
       const response: ApiResponse = {
         success: false,
         message,

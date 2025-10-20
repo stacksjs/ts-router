@@ -63,7 +63,7 @@ class RequestMacroRegistry {
 /**
  * Global request macro registry
  */
-export const requestMacroRegistry = new RequestMacroRegistry()
+export const requestMacroRegistry: RequestMacroRegistry = new RequestMacroRegistry()
 
 /**
  * Request class with macro support
@@ -96,11 +96,6 @@ export class RequestWithMacros {
     return requestMacroRegistry.has(name)
   }
 }
-
-/**
- * @deprecated Use RequestWithMacros instead
- */
-export const EnhancedRequestWithMacros = RequestWithMacros
 
 /**
  * Built-in request macros
@@ -646,7 +641,7 @@ export const RequestHelpers = {
    * Apply macros to request
    */
   withMacros: (request: EnhancedRequest): EnhancedRequest => {
-    return EnhancedRequestWithMacros.applyMacros(request)
+    return RequestWithMacros.applyMacros(request)
   },
 
   /**
@@ -654,7 +649,7 @@ export const RequestHelpers = {
    */
   create: (url: string, options: RequestInit = {}): EnhancedRequest => {
     const request = new Request(url, options) as EnhancedRequest
-    return EnhancedRequestWithMacros.applyMacros(request)
+    return RequestWithMacros.applyMacros(request)
   },
 
   /**

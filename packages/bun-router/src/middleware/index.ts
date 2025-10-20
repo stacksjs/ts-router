@@ -58,11 +58,11 @@ export {
 }
 
 // Factory functions for easier middleware creation
-export const cors = () => new Cors()
+export const cors = (): Cors => new Cors()
 export const jsonBody = (): JsonBody => new JsonBody()
 export const requestId = (): RequestId => new RequestId()
 export const session = (): Session => new Session()
-export const csrf = () => new Csrf()
+export const csrf = (): Csrf => new Csrf()
 export function auth(): Auth {
   return new Auth({
     type: 'bearer',

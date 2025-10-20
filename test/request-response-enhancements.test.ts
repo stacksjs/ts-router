@@ -7,9 +7,9 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 import {
   BuiltInResponseMacros,
   createValidationMiddleware,
-  EnhancedRequestWithMacros,
-  EnhancedResponse,
-  EnhancedRouteBuilder,
+  RequestWithMacros,
+  ResponseWithMacros,
+  RouteBuilder,
   rule,
   validate,
   ValidationHelpers,
@@ -187,15 +187,15 @@ describe('Request/Response Enhancements', () => {
     })
 
     test('should register custom macro', () => {
-      EnhancedResponse.macro('customSuccess', (data: any) => {
+      ResponseWithMacros.macro('customSuccess', (data: any) => {
         return new Response(JSON.stringify({ custom: true, data }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         })
       })
 
-      expect(EnhancedResponse.hasMacro('customSuccess')).toBe(true)
-      const response = EnhancedResponse.callMacro('customSuccess', { test: true })
+      expect(ResponseWithMacros.hasMacro('customSuccess')).toBe(true)
+      const response = ResponseWithMacros.callMacro('customSuccess', { test: true })
       expect(response.status).toBe(200)
     })
   })
@@ -225,7 +225,7 @@ describe('Request/Response Enhancements', () => {
       }
 
       // Apply macros to the mock request
-      EnhancedRequestWithMacros.applyMacros(mockRequest as EnhancedRequest)
+      RequestWithMacros.applyMacros(mockRequest as EnhancedRequest)
     })
 
     test('should detect content type preferences', () => {
@@ -358,7 +358,7 @@ describe('Request/Response Enhancements', () => {
   describe('Enhanced Route Builder', () => {
     test('should create route with validation', () => {
       const handler = async (_req: EnhancedRequest) => new Response('OK')
-      const builder = new EnhancedRouteBuilder('POST', '/users', handler)
+      const builder = new RouteBuilder('POST', '/users', handler)
 
       const route = builder
         .validate({
@@ -375,7 +375,7 @@ describe('Request/Response Enhancements', () => {
 
     test('should create route without validation', () => {
       const handler = async (_req: EnhancedRequest) => new Response('OK')
-      const builder = new EnhancedRouteBuilder('GET', '/users', handler)
+      const builder = new RouteBuilder('GET', '/users', handler)
 
       const route = builder.build()
 

@@ -5,14 +5,14 @@
  */
 
 import {
-  EnhancedRouteBuilder,
+  RouteBuilder,
   BuiltInResponseMacros,
-  EnhancedResponse,
+  ResponseWithMacros,
   rule,
   validate,
   createValidationMiddleware,
   EnhancementPresets,
-  createEnhancedRouter
+  createFluentRouter
 } from '../packages/bun-router/src/enhancements'
 import type { EnhancedRequest } from '../packages/bun-router/src/enhancements'
 
@@ -72,7 +72,7 @@ const mockDatabase = {
 }
 
 // Register custom response macros
-EnhancedResponse.macro('apiSuccess', (data: any, message = 'Success') => {
+ResponseWithMacros.macro('apiSuccess', (data: any, message = 'Success') => {
   return new Response(JSON.stringify({
     success: true,
     data,
@@ -88,7 +88,7 @@ EnhancedResponse.macro('apiSuccess', (data: any, message = 'Success') => {
   })
 })
 
-EnhancedResponse.macro('apiError', (message: string, errors?: any, status = 400) => {
+ResponseWithMacros.macro('apiError', (message: string, errors?: any, status = 400) => {
   return new Response(JSON.stringify({
     success: false,
     message,
@@ -103,10 +103,10 @@ EnhancedResponse.macro('apiError', (message: string, errors?: any, status = 400)
 })
 
 // Create enhanced router
-const router = createEnhancedRouter()
+const router = createFluentRouter()
 
 // Example 1: User Registration with Comprehensive Validation
-const registerRoute = new EnhancedRouteBuilder('POST', '/api/register', async (req: EnhancedRequest) => {
+const registerRoute = new RouteBuilder('POST', '/api/register', async (req: EnhancedRequest) => {
   try {
     // Validated data is automatically available in req.validated
     const userData = req.validated
@@ -130,7 +130,7 @@ const registerRoute = new EnhancedRouteBuilder('POST', '/api/register', async (r
     // Remove password from response
     const { password, ...userResponse } = user
 
-    return EnhancedResponse.callMacro('apiSuccess', userResponse, 'Registration successful')
+    return ResponseWithMacros.callMacro('apiSuccess', userResponse, 'Registration successful')
 
   } catch (error) {
     console.error('Registration error:', error)
@@ -168,7 +168,7 @@ const registerRoute = new EnhancedRouteBuilder('POST', '/api/register', async (r
 router.register(registerRoute)
 
 // Example 2: User Login with Request Macros
-const loginRoute = new EnhancedRouteBuilder('POST', '/api/login', async (req: EnhancedRequest) => {
+const loginRoute = new RouteBuilder('POST', '/api/login', async (req: EnhancedRequest) => {
   // Use request macros for enhanced functionality
   const clientIp = req.ip()
   const userAgent = req.userAgent()
@@ -187,7 +187,7 @@ const loginRoute = new EnhancedRouteBuilder('POST', '/api/login', async (req: En
   // Generate mock JWT token
   const token = `jwt_token_for_${user.id}_${Date.now()}`
 
-  return EnhancedResponse.callMacro('apiSuccess', {
+  return ResponseWithMacros.callMacro('apiSuccess', {
     user: {
       id: user.id,
       name: user.name,
@@ -210,7 +210,7 @@ const loginRoute = new EnhancedRouteBuilder('POST', '/api/login', async (req: En
 router.register(loginRoute)
 
 // Example 3: User List with Pagination and Search
-const usersListRoute = new EnhancedRouteBuilder('GET', '/api/users', async (req: EnhancedRequest) => {
+const usersListRoute = new RouteBuilder('GET', '/api/users', async (req: EnhancedRequest) => {
   // Use request macros for input handling
   const page = parseInt(req.query('page', '1'))
   const limit = parseInt(req.query('limit', '10'))
@@ -218,7 +218,7 @@ const usersListRoute = new EnhancedRouteBuilder('GET', '/api/users', async (req:
 
   // Validate pagination parameters
   if (page < 1 || limit < 1 || limit > 100) {
-    return EnhancedResponse.callMacro('apiError', 'Invalid pagination parameters')
+    return ResponseWithMacros.callMacro('apiError', 'Invalid pagination parameters')
   }
 
   // Get paginated users
@@ -235,7 +235,7 @@ const usersListRoute = new EnhancedRouteBuilder('GET', '/api/users', async (req:
 router.register(usersListRoute)
 
 // Example 4: User Profile Update with Partial Validation
-const updateProfileRoute = new EnhancedRouteBuilder('PUT', '/api/users/{id}', async (req: EnhancedRequest) => {
+const updateProfileRoute = new RouteBuilder('PUT', '/api/users/{id}', async (req: EnhancedRequest) => {
   const userId = parseInt(req.param('id'))
 
   // Check if user exists
@@ -270,7 +270,7 @@ const updateProfileRoute = new EnhancedRouteBuilder('PUT', '/api/users/{id}', as
 router.register(updateProfileRoute)
 
 // Example 5: File Upload with Validation
-const uploadRoute = new EnhancedRouteBuilder('POST', '/api/upload', async (req: EnhancedRequest) => {
+const uploadRoute = new RouteBuilder('POST', '/api/upload', async (req: EnhancedRequest) => {
   // Check if file was uploaded
   if (!req.hasFile('document')) {
     return BuiltInResponseMacros.error('No file uploaded')
@@ -300,7 +300,7 @@ const uploadRoute = new EnhancedRouteBuilder('POST', '/api/upload', async (req: 
 router.register(uploadRoute)
 
 // Example 6: Admin Route with Role-based Access
-const adminUsersRoute = new EnhancedRouteBuilder('GET', '/api/admin/users', async (req: EnhancedRequest) => {
+const adminUsersRoute = new RouteBuilder('GET', '/api/admin/users', async (req: EnhancedRequest) => {
   // Mock authentication check
   const token = req.bearerToken()
   if (!token) {
@@ -320,13 +320,13 @@ const adminUsersRoute = new EnhancedRouteBuilder('GET', '/api/admin/users', asyn
     ip_address: req.ip()
   }))
 
-  return EnhancedResponse.callMacro('apiSuccess', users, 'Admin user list retrieved')
+  return ResponseWithMacros.callMacro('apiSuccess', users, 'Admin user list retrieved')
 })
 
 router.register(adminUsersRoute)
 
 // Example 7: Health Check Endpoint
-const healthRoute = new EnhancedRouteBuilder('GET', '/health', async (req: EnhancedRequest) => {
+const healthRoute = new RouteBuilder('GET', '/health', async (req: EnhancedRequest) => {
   const checks = {
     database: 'healthy',
     memory: process.memoryUsage ? 'healthy' : 'unknown',
@@ -339,10 +339,10 @@ const healthRoute = new EnhancedRouteBuilder('GET', '/health', async (req: Enhan
 router.register(healthRoute)
 
 // Example 8: Complex Validation with Custom Rules
-const complexValidationRoute = new EnhancedRouteBuilder('POST', '/api/complex', async (req: EnhancedRequest) => {
+const complexValidationRoute = new RouteBuilder('POST', '/api/complex', async (req: EnhancedRequest) => {
   const data = req.validated
 
-  return EnhancedResponse.callMacro('apiSuccess', {
+  return ResponseWithMacros.callMacro('apiSuccess', {
     message: 'Complex validation passed',
     validated_data: data
   })
@@ -377,7 +377,7 @@ const complexValidationRoute = new EnhancedRouteBuilder('POST', '/api/complex', 
 router.register(complexValidationRoute)
 
 // Example 9: API Versioning with Response Macros
-EnhancedResponse.macro('v2ApiSuccess', (data: any, message = 'Success') => {
+ResponseWithMacros.macro('v2ApiSuccess', (data: any, message = 'Success') => {
   return new Response(JSON.stringify({
     success: true,
     data,
@@ -398,9 +398,9 @@ EnhancedResponse.macro('v2ApiSuccess', (data: any, message = 'Success') => {
   })
 })
 
-const v2UsersRoute = new EnhancedRouteBuilder('GET', '/api/v2/users', async (req: EnhancedRequest) => {
+const v2UsersRoute = new RouteBuilder('GET', '/api/v2/users', async (req: EnhancedRequest) => {
   const users = mockDatabase.users
-  return EnhancedResponse.callMacro('v2ApiSuccess', users, 'Users retrieved')
+  return ResponseWithMacros.callMacro('v2ApiSuccess', users, 'Users retrieved')
 })
 
 router.register(v2UsersRoute)
@@ -414,8 +414,8 @@ const apiValidationMiddleware = validate()
   })
   .build()
 
-const protectedRoute = new EnhancedRouteBuilder('GET', '/api/protected', async (req: EnhancedRequest) => {
-  return EnhancedResponse.callMacro('apiSuccess', {
+const protectedRoute = new RouteBuilder('GET', '/api/protected', async (req: EnhancedRequest) => {
+  return ResponseWithMacros.callMacro('apiSuccess', {
     message: 'Access granted to protected resource',
     user_id: 'extracted_from_api_key'
   })

@@ -327,7 +327,7 @@ export class SSEConnectionManager {
   /**
    * Get connection statistics
    */
-  getStats() {
+  getStats(): { totalConnections: number, connectionsByUser: Record<string, number>, activeConnections: string[] } {
     return {
       totalConnections: this.connections.size,
       connectionsByUser: Object.fromEntries(this.connectionCounts),
@@ -350,7 +350,7 @@ export class SSEConnectionManager {
 /**
  * Global SSE connection manager instance
  */
-export const sseManager = new SSEConnectionManager()
+export const sseManager: SSEConnectionManager = new SSEConnectionManager()
 
 /**
  * SSE middleware for route handlers
@@ -439,7 +439,7 @@ export const SSEUtils = {
     dataFn: () => any | Promise<any>,
     intervalMs: number,
   ): () => void {
-    const interval = setInterval(async () => {
+    const interval: Timer = setInterval(async () => {
       try {
         const data = await dataFn()
         if (!sse.send({ data })) {

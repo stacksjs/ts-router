@@ -22,11 +22,11 @@ export const SkipConditions = {
  * Dependency helpers
  */
 export const Dependencies = {
-  cache: (config: { type: string, ttl: number }) => ({
+  cache: (config: { type: string, ttl: number }): { type: string, config: { type: string, ttl: number } } => ({
     type: 'cache',
     config,
   }),
-  logger: (level: string) => ({
+  logger: (level: string): { type: string, config: { level: string } } => ({
     type: 'logger',
     config: { level },
   }),
@@ -370,7 +370,7 @@ export function setupMiddlewareStack(router: any, options: {
     level?: string
     skipPaths?: string[]
   }
-} = {}) {
+} = {}): MiddlewareHandler[] {
   const factory = new MiddlewareFactory(router._middlewarePipeline)
   const middleware: MiddlewareHandler[] = []
 

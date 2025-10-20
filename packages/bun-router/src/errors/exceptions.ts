@@ -483,34 +483,34 @@ export class FileSystemException extends RouterException {
  * Factory functions for common errors
  */
 export const ErrorFactory = {
-  validation: (message: string, fields?: Record<string, string[]>, context?: ErrorContext) =>
+  validation: (message: string, fields?: Record<string, string[]>, context?: ErrorContext): ValidationException =>
     new ValidationException(message, fields, context),
 
-  authentication: (message?: string, context?: ErrorContext) =>
+  authentication: (message?: string, context?: ErrorContext): AuthenticationException =>
     new AuthenticationException(message, context),
 
-  authorization: (message?: string, requiredPermissions?: string[], context?: ErrorContext) =>
+  authorization: (message?: string, requiredPermissions?: string[], context?: ErrorContext): AuthorizationException =>
     new AuthorizationException(message, requiredPermissions, context),
 
-  notFound: (resource?: string, resourceId?: string, context?: ErrorContext) =>
+  notFound: (resource?: string, resourceId?: string, context?: ErrorContext): NotFoundException =>
     new NotFoundException(undefined, resource, resourceId, context),
 
-  methodNotAllowed: (method: string, allowedMethods: string[], context?: ErrorContext) =>
+  methodNotAllowed: (method: string, allowedMethods: string[], context?: ErrorContext): MethodNotAllowedException =>
     new MethodNotAllowedException(method, allowedMethods, context),
 
-  timeout: (timeoutMs: number, message?: string, context?: ErrorContext) =>
+  timeout: (timeoutMs: number, message?: string, context?: ErrorContext): TimeoutException =>
     new TimeoutException(message, timeoutMs, context),
 
-  rateLimit: (retryAfter: number, limit: number, remaining?: number, context?: ErrorContext) =>
+  rateLimit: (retryAfter: number, limit: number, remaining?: number, context?: ErrorContext): RateLimitException =>
     new RateLimitException(undefined, retryAfter, limit, remaining, context),
 
-  internalServer: (message?: string, cause?: Error, context?: ErrorContext) =>
+  internalServer: (message?: string, cause?: Error, context?: ErrorContext): InternalServerException =>
     new InternalServerException(message, cause, context),
 
-  serviceUnavailable: (message?: string, retryAfter?: number, context?: ErrorContext) =>
+  serviceUnavailable: (message?: string, retryAfter?: number, context?: ErrorContext): ServiceUnavailableException =>
     new ServiceUnavailableException(message, retryAfter, context),
 
-  database: (message: string, operation?: string, query?: string, cause?: Error, context?: ErrorContext) =>
+  database: (message: string, operation?: string, query?: string, cause?: Error, context?: ErrorContext): DatabaseException =>
     new DatabaseException(message, operation, query, cause, context),
 
   externalService: (
@@ -520,17 +520,17 @@ export const ErrorFactory = {
     statusCode?: number,
     cause?: Error,
     context?: ErrorContext,
-  ) => new ExternalServiceException(message, service, endpoint, statusCode, cause, context),
+  ): ExternalServiceException => new ExternalServiceException(message, service, endpoint, statusCode, cause, context),
 
-  circuitBreakerOpen: (service: string, nextAttemptAt: Date, context?: ErrorContext) =>
+  circuitBreakerOpen: (service: string, nextAttemptAt: Date, context?: ErrorContext): CircuitBreakerOpenException =>
     new CircuitBreakerOpenException(service, nextAttemptAt, context),
 
-  businessLogic: (message: string, businessRule: string, context?: ErrorContext) =>
+  businessLogic: (message: string, businessRule: string, context?: ErrorContext): BusinessLogicException =>
     new BusinessLogicException(message, businessRule, context),
 
-  configuration: (message: string, configKey: string, context?: ErrorContext) =>
+  configuration: (message: string, configKey: string, context?: ErrorContext): ConfigurationException =>
     new ConfigurationException(message, configKey, context),
 
-  fileSystem: (message: string, path: string, operation: string, cause?: Error, context?: ErrorContext) =>
+  fileSystem: (message: string, path: string, operation: string, cause?: Error, context?: ErrorContext): FileSystemException =>
     new FileSystemException(message, path, operation, cause, context),
 }

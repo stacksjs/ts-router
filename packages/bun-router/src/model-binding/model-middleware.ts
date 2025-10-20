@@ -110,7 +110,7 @@ export function bindModel(
     as?: string
     failOnError?: boolean
   } = {},
-) {
+): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
   const {
     required = true,
     as,
@@ -225,7 +225,7 @@ export const ModelBindingUtils = {
   /**
    * Create middleware that binds multiple models
    */
-  multiple(bindings: Array<{ model: string, param: string, required?: boolean }>) {
+  multiple(bindings: Array<{ model: string, param: string, required?: boolean }>): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
     return createModelBindingMiddleware(
       bindings.map(binding => ({
         model: binding.model,
@@ -329,21 +329,21 @@ export class ModelBindingFactory {
   /**
    * Create binding for user model
    */
-  static user(paramName: string = 'id', as: string = 'user') {
+  static user(paramName: string = 'id', as: string = 'user'): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
     return bindModel('user', paramName, { as, required: true })
   }
 
   /**
    * Create binding for post model
    */
-  static post(paramName: string = 'postId', as: string = 'post') {
+  static post(paramName: string = 'postId', as: string = 'post'): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
     return bindModel('post', paramName, { as, required: true })
   }
 
   /**
    * Create binding for category model
    */
-  static category(paramName: string = 'categoryId', as: string = 'category') {
+  static category(paramName: string = 'categoryId', as: string = 'category'): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
     return bindModel('category', paramName, { as, required: true })
   }
 
@@ -354,11 +354,11 @@ export class ModelBindingFactory {
     modelName: string,
     paramName: string,
     userIdField: string = 'userId',
-  ) {
+  ): Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> {
     return [
       bindModel(modelName, paramName),
       ModelBindingUtils.requireOwnership(modelName, userIdField),
-    ]
+    ] as const
   }
 
   /**
@@ -369,7 +369,7 @@ export class ModelBindingFactory {
     parentParam: string,
     childModel: string,
     childParam: string,
-  ) {
+  ): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
     return createModelBindingMiddleware([
       {
         model: parentModel,
@@ -399,7 +399,7 @@ export const TypedModelBinding = {
       required?: boolean
       as?: string
     }>,
-  ) {
+  ): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
     return createModelBindingMiddleware(
       bindings.map(binding => ({
         model: binding.model,
@@ -420,7 +420,7 @@ export const TypedModelBinding = {
       required?: boolean
       as?: string
     } = {},
-  ) {
+  ): (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response> {
     return bindModel(modelName, String(param), options)
   },
 }

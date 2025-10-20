@@ -1,17 +1,20 @@
 /**
  * Request/Response Enhancements - Main Exports
  *
- * Comprehensive request validation, response macros, and router enhancements
+ * @deprecated This folder has been refactored into the main router logic.
+ * Import from '../request/macros', '../response/macros', '../router/validation-integration', or '../validation/validator' instead.
+ *
+ * This file re-exports for backward compatibility.
  */
 
 // Request macro exports
 export {
   BuiltInRequestMacros,
-  EnhancedRequestWithMacros,
   registerBuiltInRequestMacros,
   RequestHelpers,
   RequestMacroFactory,
   requestMacroRegistry,
+  RequestWithMacros,
 } from '../request/macros'
 
 export type {
@@ -21,11 +24,11 @@ export type {
 // Response macro exports
 export {
   BuiltInResponseMacros,
-  EnhancedResponse,
   registerBuiltInResponseMacros,
   ResponseHelpers,
   ResponseMacroFactory,
   responseMacroRegistry,
+  ResponseWithMacros,
 } from '../response/macros'
 
 export type {
@@ -56,15 +59,15 @@ export type {
   ValidatorConfig,
 } from '../validation/validator'
 
-// Router integration exports
+// Router integration exports (now in ../router/validation-integration.ts)
 export {
-  createEnhancedRouter,
   createEnhancementMiddleware,
-  EnhancedRouteBuilder,
-  EnhancedRouter,
+  createFluentRouter,
   EnhancementPresets,
+  FluentRouter,
   MiddlewareHelpers,
+  RouteBuilder,
   RouteHelpers,
   validate,
   ValidationMiddlewareBuilder,
-} from './router-integration'
+} from '../router/validation-integration'

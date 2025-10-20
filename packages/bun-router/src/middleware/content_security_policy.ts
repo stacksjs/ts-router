@@ -209,7 +209,7 @@ export default class ContentSecurityPolicy {
 }
 
 // Factory function for easy use
-export function contentSecurityPolicy(options: CSPOptions = {}) {
+export function contentSecurityPolicy(options: CSPOptions = {}): (req: EnhancedRequest, next: NextFunction) => Promise<Response> {
   const instance = new ContentSecurityPolicy(options)
   return async (req: EnhancedRequest, next: NextFunction) => instance.handle(req, next)
 }

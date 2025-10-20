@@ -446,7 +446,7 @@ export const StaticFileHelpers = {
   /**
    * Create development server with hot reload
    */
-  createDevelopmentServer: (config: StaticFileConfig) => {
+  createDevelopmentServer: (config: StaticFileConfig): StaticFileServer => {
     return new StaticFileServer({
       ...config,
       maxAge: 0,
@@ -459,7 +459,7 @@ export const StaticFileHelpers = {
   /**
    * Create production server with aggressive caching
    */
-  createProductionServer: (config: StaticFileConfig) => {
+  createProductionServer: (config: StaticFileConfig): StaticFileServer => {
     return new StaticFileServer({
       ...config,
       maxAge: 31536000, // 1 year
@@ -474,7 +474,7 @@ export const StaticFileHelpers = {
   /**
    * Create SPA server with fallback to index.html
    */
-  createSPAServer: (config: StaticFileConfig) => {
+  createSPAServer: (config: StaticFileConfig): StaticFileServer => {
     return new StaticFileServer({
       ...config,
       fallthrough: false,
@@ -491,7 +491,7 @@ export const StaticFileHelpers = {
   /**
    * Create CDN-optimized server
    */
-  createCDNServer: (config: StaticFileConfig) => {
+  createCDNServer: (config: StaticFileConfig): StaticFileServer => {
     return new StaticFileServer({
       ...config,
       maxAge: 86400 * 30, // 30 days
@@ -565,7 +565,7 @@ export const FileServingUtils = {
   /**
    * Create file watcher for cache invalidation
    */
-  createFileWatcher: async (server: StaticFileServer, watchPath: string) => {
+  createFileWatcher: async (server: StaticFileServer, watchPath: string): Promise<{ close: () => void }> => {
     const fs = await import('node:fs')
     const watcher = fs.watch(watchPath, { recursive: true }, (eventType: string, filename: string | null) => {
       if (eventType === 'change' || eventType === 'rename') {

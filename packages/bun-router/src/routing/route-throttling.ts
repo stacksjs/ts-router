@@ -147,7 +147,7 @@ export class RateLimiter {
   /**
    * Get current statistics
    */
-  getStats() {
+  getStats(): ReturnType<LRUCache<RateLimitEntry>['getStats']> & { config: { maxAttempts: number, windowMs: number } } {
     return {
       ...this.cache.getStats(),
       config: {
@@ -195,7 +195,7 @@ export class RateLimitRegistry {
 /**
  * Global rate limit registry instance
  */
-export const rateLimitRegistry = new RateLimitRegistry()
+export const rateLimitRegistry: RateLimitRegistry = new RateLimitRegistry()
 
 /**
  * Create rate limiting middleware
@@ -442,7 +442,7 @@ export const RateLimitUtils = {
   /**
    * Create throttle middleware from string (Laravel-style)
    */
-  fromString: (throttleStr: string, name?: string) => {
+  fromString: (throttleStr: string, name?: string): MiddlewareHandler => {
     const config = parseThrottleString(throttleStr as ThrottlePattern)
     return createRateLimitMiddleware(config, name)
   },
@@ -451,7 +451,7 @@ export const RateLimitUtils = {
    * Get rate limit info for a request without incrementing
    */
   getInfo: async (req: EnhancedRequest, config: ThrottleConfig): Promise<RateLimitInfo> => {
-    const limiter = new RateLimiter(config)
+    const limiter: RateLimiter = new RateLimiter(config)
     const { info } = await limiter.checkLimit(req)
     return info
   },

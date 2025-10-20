@@ -479,14 +479,18 @@ export class CircuitBreakerRegistry {
 /**
  * Decorator for circuit breaker protection
  */
-export function circuitBreaker(config: CircuitBreakerConfig) {
+export function circuitBreaker(config: CircuitBreakerConfig): <T extends (...args: any[]) => Promise<any>>(
+  target: any,
+  propertyName: string,
+  descriptor: TypedPropertyDescriptor<T>,
+) => TypedPropertyDescriptor<T> {
   const breaker = new CircuitBreaker(config)
 
   return function <T extends (...args: any[]) => Promise<any>>(
     target: any,
     propertyName: string,
     descriptor: TypedPropertyDescriptor<T>,
-  ) {
+  ): TypedPropertyDescriptor<T> {
     const method = descriptor.value!
 
     descriptor.value = async function (this: any, ...args: any[]) {
@@ -498,6 +502,8 @@ export function circuitBreaker(config: CircuitBreakerConfig) {
         },
       })
     } as T
+
+    return descriptor
   }
 }
 
@@ -706,7 +712,7 @@ export const CircuitBreakerPresets = {
 /**
  * Global circuit breaker registry instance
  */
-export const globalCircuitBreakerRegistry = new CircuitBreakerRegistry()
+export const globalCircuitBreakerRegistry: CircuitBreakerRegistry = new CircuitBreakerRegistry()
 
 /**
  * Convenience function to create and register a circuit breaker

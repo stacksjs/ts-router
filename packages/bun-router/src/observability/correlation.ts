@@ -327,7 +327,13 @@ export class CorrelationManager {
   /**
    * Create HTTP client with correlation propagation
    */
-  createHttpClient(correlationId: string) {
+  createHttpClient(correlationId: string): {
+    fetch: (url: string, options?: RequestInit) => Promise<Response>
+    get: (url: string, options?: RequestInit) => Promise<Response>
+    post: (url: string, options?: RequestInit) => Promise<Response>
+    put: (url: string, options?: RequestInit) => Promise<Response>
+    delete: (url: string, options?: RequestInit) => Promise<Response>
+  } {
     const context = this.contexts.get(correlationId)
     if (!context) {
       throw new Error(`Correlation context not found: ${correlationId}`)
@@ -383,16 +389,16 @@ export class CorrelationManager {
         }
       },
 
-      get: (url: string, options?: RequestInit) =>
+      get: (url: string, options?: RequestInit): Promise<Response> =>
         this.createHttpClient(correlationId).fetch(url, { ...options, method: 'GET' }),
 
-      post: (url: string, options?: RequestInit) =>
+      post: (url: string, options?: RequestInit): Promise<Response> =>
         this.createHttpClient(correlationId).fetch(url, { ...options, method: 'POST' }),
 
-      put: (url: string, options?: RequestInit) =>
+      put: (url: string, options?: RequestInit): Promise<Response> =>
         this.createHttpClient(correlationId).fetch(url, { ...options, method: 'PUT' }),
 
-      delete: (url: string, options?: RequestInit) =>
+      delete: (url: string, options?: RequestInit): Promise<Response> =>
         this.createHttpClient(correlationId).fetch(url, { ...options, method: 'DELETE' }),
     }
   }
