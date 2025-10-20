@@ -667,7 +667,7 @@ export const CorrelationEndpoints = {
   /**
    * Get correlation statistics endpoint
    */
-  stats: async (req: EnhancedRequest): Promise<Response> => {
+  stats: async (_req: EnhancedRequest): Promise<Response> => {
     const manager = getCorrelationManager()
     if (!manager) {
       return new Response('Correlation not initialized', { status: 500 })

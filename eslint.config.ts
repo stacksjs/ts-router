@@ -12,6 +12,10 @@ const config: ESLintConfig = stacks({
   yaml: true,
   rules: {
     'no-console': 'off',
+    // Disable regex strictness rules as requested
+    'no-control-regex': 'off',
+    'new-cap': 'off',
+    'regexp/no-super-linear-backtracking': 'off',
   },
   ignores: [
     'fixtures/**',

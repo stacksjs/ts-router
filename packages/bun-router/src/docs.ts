@@ -1,4 +1,3 @@
-/* eslint-disable regexp/no-super-linear-backtracking */
 import { join } from 'node:path'
 import process from 'node:process'
 

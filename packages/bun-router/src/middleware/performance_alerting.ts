@@ -238,15 +238,16 @@ export default class PerformanceAlerting {
       case 'errorRate':
         return metrics.map(m => m.statusCode >= 400 ? 1 : 0)
       case 'memoryUsage':
-        return metrics.map(m => m.memoryUsage)
+        return metrics.map(m => m.memoryUsage.heapUsed)
       case 'cpuUsage':
-        return metrics.map(m => m.cpuUsage || 0)
-      case 'requestRate':
+        return metrics.map(m => m.cpuUsage.user + m.cpuUsage.system)
+      case 'requestRate': {
         // Calculate requests per second over the time window
         if (metrics.length < 2)
           return []
         const timeSpan = (metrics[metrics.length - 1].timestamp - metrics[0].timestamp) / 1000
         return [metrics.length / Math.max(timeSpan, 1)]
+      }
       default:
         return []
     }
@@ -394,30 +395,33 @@ export default class PerformanceAlerting {
       ? ':rotating_light:'
       : notification.severity === 'warning' ? ':warning:' : ':information_source:'
 
-    const payload = {
-      channel: channel.config.channel,
-      username: 'Performance Monitor',
-      icon_emoji: ':chart_with_upwards_trend:',
-      attachments: [{
-        color,
-        title: `${emoji} ${notification.ruleName}`,
-        text: notification.message,
-        fields: [
-          {
-            title: 'Severity',
-            value: notification.severity.toUpperCase(),
-            short: true,
-          },
-          {
-            title: 'Time',
-            value: new Date(notification.timestamp).toISOString(),
-            short: true,
-          },
-        ],
-        footer: 'bun-router Performance Monitor',
-        ts: Math.floor(notification.timestamp / 1000),
-      }],
-    }
+    const payload = (() => {
+      const base = {
+        channel: channel.config.channel,
+        username: 'Performance Monitor',
+        icon_emoji: ':chart_with_upwards_trend:',
+        attachments: [{
+          color,
+          title: `${emoji} ${notification.ruleName}`,
+          text: notification.message,
+          fields: [
+            {
+              title: 'Severity',
+              value: notification.severity.toUpperCase(),
+              short: true,
+            },
+            {
+              title: 'Time',
+              value: new Date(notification.timestamp).toISOString(),
+              short: true,
+            },
+          ],
+          footer: 'bun-router Performance Monitor',
+          ts: Math.floor(notification.timestamp / 1000),
+        }],
+      }
+      return base
+    })()
 
     await fetch(channel.config.url, {
       method: 'POST',
@@ -510,7 +514,10 @@ export default class PerformanceAlerting {
 
   async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
     // This middleware doesn't intercept requests, it just provides the alerting service
-    return await next()
+    const response = await next()
+    if (response)
+      return response
+    return new Response('No response from next middleware', { status: 500 })
   }
 
   destroy(): void {

@@ -135,7 +135,7 @@ export default class InputValidation {
           }
         }
         break
-
+      }
       case 'boolean':
         if (typeof value !== 'boolean' && value !== 'true' && value !== 'false') {
           errors.push({
@@ -158,10 +158,10 @@ export default class InputValidation {
           })
         }
         break
-
+      }
       case 'url':
         try {
-          new URL(value)
+          void new URL(value)
         }
         catch {
           errors.push({
@@ -184,7 +184,7 @@ export default class InputValidation {
           })
         }
         break
-
+      }
       case 'date': {
         const date = new Date(value)
         if (Number.isNaN(date.getTime())) {
@@ -196,7 +196,7 @@ export default class InputValidation {
           })
         }
         break
-
+      }
       case 'regex':
         if (rule.pattern && typeof value === 'string' && !rule.pattern.test(value)) {
           errors.push({
@@ -353,6 +353,7 @@ export default class InputValidation {
       }
     }
     catch (error) {
+      console.error(error)
       throw new Error('Invalid request body format')
     }
 

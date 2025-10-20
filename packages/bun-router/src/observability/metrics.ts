@@ -634,7 +634,7 @@ export function getMetricsRegistry(): MetricsRegistry | null {
 /**
  * Metrics middleware factory
  */
-export function createMetricsMiddleware(config?: Partial<MetricConfig>) {
+export function createMetricsMiddleware(_config?: Partial<MetricConfig>) {
   return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
     const registry = getMetricsRegistry()
     if (!registry) {

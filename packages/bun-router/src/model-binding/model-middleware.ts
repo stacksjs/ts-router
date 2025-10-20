@@ -258,13 +258,11 @@ export const ModelBindingUtils = {
   withCache(
     modelName: string,
     paramName: string,
-    options: {
+    _options: {
       ttl?: number
       keyGenerator?: (params: Record<string, string>) => string
     } = {},
   ) {
-    const { ttl = 300000, keyGenerator } = options
-
     return async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       // This would integrate with the model registry's caching system
       // For now, just resolve normally

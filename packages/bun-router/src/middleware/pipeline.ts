@@ -1,4 +1,5 @@
 import type { EnhancedRequest, MiddlewareHandler, NextFunction } from '../types'
+import process from 'node:process'
 
 /**
  * Middleware pipeline with composition caching, conditional execution,
@@ -325,7 +326,7 @@ export const Dependencies = {
     factory: async () => {
       // Mock database connection
       return {
-        query: async (sql: string) => ({ rows: [] }),
+        query: async (_sql: string) => ({ rows: [] }),
         close: async () => {},
         connectionString: connectionString || 'mock://database',
       }
@@ -370,17 +371,17 @@ export const Dependencies = {
     name: 'httpClient',
     factory: () => ({
       get: async (url: string) => fetch(baseURL ? `${baseURL}${url}` : url),
-      post: async (url: string, data: any) =>
+      post: async (url: string, _data: any) =>
         fetch(baseURL ? `${baseURL}${url}` : url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify(_data),
         }),
-      put: async (url: string, data: any) =>
+      put: async (url: string, _data: any) =>
         fetch(baseURL ? `${baseURL}${url}` : url, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify(_data),
         }),
       delete: async (url: string) =>
         fetch(baseURL ? `${baseURL}${url}` : url, { method: 'DELETE' }),
@@ -463,7 +464,7 @@ export const MiddlewareFactory = {
     }
   },
 
-  logging: (options: { level?: string } = {}): MiddlewareHandler => {
+  logging: (_options: { level?: string } = {}): MiddlewareHandler => {
     return async (req, next) => {
       const start = performance.now()
       const url = new URL(req.url)
@@ -485,4 +486,4 @@ export const MiddlewareFactory = {
 /**
  * Global middleware pipeline instance
  */
-export const globalMiddlewarePipeline = new MiddlewarePipeline()
+export const globalMiddlewarePipeline: MiddlewarePipeline = new MiddlewarePipeline()
