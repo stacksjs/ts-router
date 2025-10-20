@@ -2,19 +2,18 @@
  * Request/Response Enhancements Test Suite
  */
 
-import type { EnhancedRequest, ValidationRules } from '../packages/bun-router/src/enhancements'
+import type { EnhancedRequest } from '../packages/bun-router/src/types'
+import type { ValidationRules } from '../packages/bun-router/src/validation/validator'
 import { beforeEach, describe, expect, test } from 'bun:test'
+import { RequestWithMacros } from '../packages/bun-router/src/request/macros'
+import { BuiltInResponseMacros, ResponseWithMacros } from '../packages/bun-router/src/response/macros'
+import { RouteBuilder, validate } from '../packages/bun-router/src/router/validation-integration'
 import {
-  BuiltInResponseMacros,
   createValidationMiddleware,
-  RequestWithMacros,
-  ResponseWithMacros,
-  RouteBuilder,
   rule,
-  validate,
   ValidationHelpers,
   Validator,
-} from '../packages/bun-router/src/enhancements'
+} from '../packages/bun-router/src/validation/validator'
 
 describe('Request/Response Enhancements', () => {
   describe('Validation System', () => {

@@ -4,17 +4,15 @@
  * Comprehensive example demonstrating validation, macros, and enhanced functionality
  */
 
+import type { EnhancedRequest } from '../packages/bun-router/src/types'
+import { BuiltInResponseMacros, ResponseWithMacros } from '../packages/bun-router/src/response/macros'
 import {
-  RouteBuilder,
-  BuiltInResponseMacros,
-  ResponseWithMacros,
-  rule,
-  validate,
-  createValidationMiddleware,
+  createFluentRouter,
   EnhancementPresets,
-  createFluentRouter
-} from '../packages/bun-router/src/enhancements'
-import type { EnhancedRequest } from '../packages/bun-router/src/enhancements'
+  RouteBuilder,
+  validate,
+} from '../packages/bun-router/src/router/validation-integration'
+import { createValidationMiddleware, rule } from '../packages/bun-router/src/validation/validator'
 
 // Mock database functions
 const mockDatabase = {

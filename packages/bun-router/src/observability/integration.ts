@@ -406,7 +406,12 @@ export const ObservabilityIntegration = {
   /**
    * Add observability to router
    */
-  enhance: (router: any, config?: ObservabilityConfig) => {
+  enhance: (router: any, config?: ObservabilityConfig): {
+    manager: ObservabilityManager
+    middleware: (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>
+    handlers: Record<string, (req: EnhancedRequest) => Promise<Response>>
+    status: ReturnType<ObservabilityManager['getStatus']>
+  } => {
     const manager = initializeObservability(config)
     const middleware = manager.createMiddleware()
     const handlers = manager.createRouteHandlers()
