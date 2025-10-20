@@ -11,7 +11,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
      * Start the HTTP server
      */
     serve: {
-      async value(options: ServerOptions = {}): Promise<Server> {
+      async value(options: ServerOptions = {}): Promise<Server<any>> {
         // Invalidate route cache before starting server
         this.invalidateCache()
 
@@ -222,7 +222,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
           cookies,
           _cookiesToSet: [],
           _cookiesToDelete: [],
-        }) as EnhancedRequest
+        }) as unknown as EnhancedRequest
       },
       writable: true,
       configurable: true,

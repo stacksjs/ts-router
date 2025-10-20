@@ -727,7 +727,7 @@ export interface EnhancedRequest extends Request {
   /**
    * Model binding errors
    */
-  modelErrors?: Record<string, Error>
+  modelErrors?: Record<string, string>
   /**
    * Authenticated user from auth middleware
    */
@@ -777,6 +777,21 @@ export interface EnhancedRequest extends Request {
    */
   nonce?: string
   validatedBody?: any
+  /**
+   * Internal cookies to set in response (used by cookie utilities)
+   */
+  _cookiesToSet?: Array<{ name: string, value: string, options: any }>
+  /**
+   * Internal cookies to delete in response (used by cookie utilities)
+   */
+  _cookiesToDelete?: Array<{ name: string, options: any }>
+  /**
+   * SSE connection information
+   */
+  sse?: {
+    id: string
+    eventSource?: any
+  }
 }
 
 export interface UploadedFile {
@@ -1364,6 +1379,9 @@ export interface SSEConfig {
   maxConnections?: number
   heartbeatInterval?: number
   headers?: Record<string, string>
+  enableHeartbeat?: boolean
+  connectionTimeout?: number
+  retryDelay?: number
 }
 
 /**
@@ -1483,6 +1501,24 @@ export type ModelResolver<T = any> = (
   params: Record<string, string>,
   req: EnhancedRequest
 ) => T | Promise<T> | null
+
+/**
+ * Model validator function type
+ */
+export type ModelValidatorFn<T = any> = (
+  model: T,
+  params: Record<string, string>,
+  req?: EnhancedRequest
+) => Promise<{ valid: boolean, error?: string, status?: number }> | { valid: boolean, error?: string, status?: number }
+
+/**
+ * Model transformer function type
+ */
+export type ModelTransformerFn<T = any> = (
+  model: T,
+  params?: Record<string, string>,
+  req?: EnhancedRequest
+) => any | Promise<any>
 
 /**
  * Model registry interface

@@ -15,10 +15,20 @@ export interface ModelBindingMiddlewareOptions {
 }
 
 /**
+ * Simplified model binding configuration for middleware
+ */
+export interface ModelBindingRef {
+  model: string
+  parameter: string
+  required?: boolean
+  as?: string
+}
+
+/**
  * Create model binding middleware
  */
 export function createModelBindingMiddleware(
-  bindings: ModelBinding[],
+  bindings: ModelBindingRef[],
   options: ModelBindingMiddlewareOptions = {},
 ) {
   const {
@@ -124,7 +134,7 @@ export function bindModel(
  * Route parameter model binding decorator
  */
 export function withModelBinding<TPath extends string>(
-  bindings: ModelBinding[],
+  bindings: ModelBindingRef[],
 ) {
   return function (
     _target: any,
@@ -202,7 +212,7 @@ export const ModelBindingUtils = {
 
       // Apply custom transformation
       if (options.transformer) {
-        model = await options.transformer(model)
+        model = await options.transformer(model) as T
       }
 
       // Attach to request

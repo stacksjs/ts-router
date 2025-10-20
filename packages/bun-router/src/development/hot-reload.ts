@@ -39,7 +39,14 @@ declare global {
  */
 export class HotReloadManager {
   private config: Required<HotReloadConfig>
-  private state: HotReloadState = { changes: {}, moduleCache: new Map() }
+  private state: HotReloadState = {
+    reloadCount: 0,
+    lastReload: Date.now(),
+    changedFiles: [],
+    preservedState: {},
+    watchers: new Map(),
+  }
+
   private debounceTimer?: Timer
   private isReloading = false
 
@@ -409,12 +416,12 @@ export const HotReloadHelpers = {
    * Create hot-reloadable route handlers
    */
   createHotHandler: (_handlerPath: string) => {
-    return async (request: Request): Promise<Response> => {
+    return async (_request: Request): Promise<Response> => {
       try {
         // Clear module cache in hot reload mode
         // Note: Dynamic handler loading would require proper import handling
         const handler = async () => new Response('Handler not available', { status: 501 })
-        return await handler(request)
+        return await handler()
       }
       catch {
         console.error('Hot handler error')

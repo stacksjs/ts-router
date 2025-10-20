@@ -1,25 +1,54 @@
 import type { EnhancedRequest, MiddlewareHandler, Route } from '../types'
 import type { Router } from './router'
 
-// Type placeholders for enhanced pipeline (feature not yet implemented)
-export type Dependencies = Record<string, any>
-export type SkipConditions = Array<(req: EnhancedRequest) => boolean>
-class EnhancedMiddlewarePipeline {
-  registerDependency(_key: string, _dependency: any): void {}
-  registerSkipConditions(_middleware: MiddlewareHandler, _conditions: SkipConditions): void {}
-  getStats(): any { return {} }
-  getCacheInfo(): any { return {} }
-  clearCache(): void {}
-  execute(_req: EnhancedRequest, _middleware: MiddlewareHandler[]): Promise<Response | null> { return Promise.resolve(null) }
+// Type placeholders for middleware pipeline
+export type SkipConditionFn = (req: EnhancedRequest) => boolean
+export type SkipConditionsList = SkipConditionFn[]
+
+/**
+ * Skip condition helpers
+ */
+export const SkipConditions = {
+  skipForPaths: (paths: string[]): SkipConditionFn => (req: EnhancedRequest) => {
+    const url = new URL(req.url)
+    return paths.some(path => url.pathname.startsWith(path))
+  },
+  skipForMethods: (methods: string[]): SkipConditionFn => (req: EnhancedRequest) => {
+    return methods.includes(req.method)
+  },
 }
 
 /**
- * Integration layer for enhanced middleware pipeline with the router
+ * Dependency helpers
  */
-export function registerEnhancedMiddleware(RouterClass: typeof Router): void {
-  // Add enhanced pipeline instance to router prototype
-  Object.defineProperty(RouterClass.prototype, '_enhancedPipeline', {
-    value: new EnhancedMiddlewarePipeline(),
+export const Dependencies = {
+  cache: (config: { type: string, ttl: number }) => ({
+    type: 'cache',
+    config,
+  }),
+  logger: (level: string) => ({
+    type: 'logger',
+    config: { level },
+  }),
+}
+
+class MiddlewarePipeline {
+  registerDependency(_key: string, _dependency: any): this { return this }
+  registerSkipConditions(_middleware: MiddlewareHandler, _conditions: SkipConditionsList): void {}
+  getStats(): any { return {} }
+  getCacheInfo(): any { return {} }
+  clearCache(): this { return this }
+  compilePipeline(_key: string, _middleware: MiddlewareHandler[], _options?: any): void {}
+  execute(_key: string, _req: EnhancedRequest, _handler: () => Promise<Response>): Promise<Response> { return _handler() }
+}
+
+/**
+ * Integration layer for middleware pipeline with the router
+ */
+export function registerMiddlewarePipeline(RouterClass: typeof Router): void {
+  // Add pipeline instance to router prototype
+  Object.defineProperty(RouterClass.prototype, '_middlewarePipeline', {
+    value: new MiddlewarePipeline(),
     writable: false,
     enumerable: false,
     configurable: false,
@@ -33,8 +62,8 @@ export function registerEnhancedMiddleware(RouterClass: typeof Router): void {
 
     // Compile middleware pipeline for this route
     const routeKey = `${route.method}:${route.path}`
-    if (route.middleware && route.middleware.length > 0) {
-      this._enhancedPipeline.compilePipeline(routeKey, route.middleware, {
+    if (route.middleware && route.middleware.length > 0 && this._middlewarePipeline) {
+      this._middlewarePipeline.compilePipeline(routeKey, route.middleware, {
         allowShortCircuit: true,
         enableConditionalExecution: true,
         resolveDependencies: true,
@@ -43,78 +72,15 @@ export function registerEnhancedMiddleware(RouterClass: typeof Router): void {
 
     return result
   }
-
-  // Add method to register middleware dependencies
-  RouterClass.prototype.registerMiddlewareDependency = function (dependency: any) {
-    return this._enhancedPipeline.registerDependency(dependency)
-  }
-
-  // Add method to register skip conditions
-  RouterClass.prototype.registerMiddlewareSkipConditions = function (middlewareName: string, conditions: any[]) {
-    return this._enhancedPipeline.registerSkipConditions(middlewareName, conditions)
-  }
-
-  // Add method to get middleware statistics
-  RouterClass.prototype.getMiddlewareStats = function () {
-    return this._enhancedPipeline.getStats()
-  }
-
-  // Add method to get middleware cache info
-  RouterClass.prototype.getMiddlewareCacheInfo = function () {
-    return this._enhancedPipeline.getCacheInfo()
-  }
-
-  // Add method to clear middleware cache
-  RouterClass.prototype.clearMiddlewareCache = function () {
-    return this._enhancedPipeline.clearCache()
-  }
-
-  // Override route execution to use enhanced pipeline
-  const originalExecuteMiddleware = RouterClass.prototype.executeMiddleware || function (middleware: MiddlewareHandler[], request: EnhancedRequest, handler: () => Promise<Response>) {
-    // Fallback implementation for basic middleware execution
-    let currentIndex = 0
-
-    const next = async (): Promise<Response | null> => {
-      if (currentIndex >= middleware.length) {
-        return handler()
-      }
-
-      const mw = middleware[currentIndex++]
-      return mw(request, next)
-    }
-
-    return next()
-  }
-
-  RouterClass.prototype.executeMiddleware = function (middleware: MiddlewareHandler[], request: EnhancedRequest, handler: () => Promise<Response>) {
-    // Try to use enhanced pipeline if available
-    if (middleware.length === 0) {
-      return handler()
-    }
-
-    // Create route key for pipeline lookup
-    const routeKey = `${request.method}:${new URL(request.url).pathname}`
-
-    // Check if we have a compiled pipeline for this route pattern
-    const cacheInfo = this._enhancedPipeline.getCacheInfo()
-    if (cacheInfo.compiledPipelines > 0) {
-      // Try to find matching compiled pipeline
-      // In a real implementation, this would use more sophisticated matching
-      return this._enhancedPipeline.execute(routeKey, request, handler)
-    }
-
-    // Fallback to original middleware execution
-    return originalExecuteMiddleware.call(this, middleware, request, handler)
-  }
 }
 
 /**
- * Middleware factory for common use cases with enhanced features
+ * Middleware factory for common use cases
  */
 export class MiddlewareFactory {
-  private pipeline: EnhancedMiddlewarePipeline
+  private pipeline: MiddlewarePipeline
 
-  constructor(pipeline: EnhancedMiddlewarePipeline) {
+  constructor(pipeline: MiddlewarePipeline) {
     this.pipeline = pipeline
   }
 
@@ -381,9 +347,9 @@ export class MiddlewareFactory {
 }
 
 /**
- * Helper function to setup common middleware stack with enhanced features
+ * Helper function to setup common middleware stack
  */
-export function setupEnhancedMiddlewareStack(router: any, options: {
+export function setupMiddlewareStack(router: any, options: {
   auth?: {
     jwtSecret: string
     skipPaths?: string[]
@@ -405,7 +371,7 @@ export function setupEnhancedMiddlewareStack(router: any, options: {
     skipPaths?: string[]
   }
 } = {}) {
-  const factory = new MiddlewareFactory(router._enhancedPipeline)
+  const factory = new MiddlewareFactory(router._middlewarePipeline)
   const middleware: MiddlewareHandler[] = []
 
   // Add CORS middleware first

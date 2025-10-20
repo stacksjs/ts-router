@@ -52,6 +52,9 @@ export class Router {
   private namedMiddleware: Map<string, (params?: string) => MiddlewareHandler> = new Map()
   private conditionalMiddleware: Array<{ condition: MiddlewareCondition, middleware: MiddlewareHandler[] }> = []
 
+  // Middleware pipeline for advanced features
+  _middlewarePipeline?: any
+
   config: RouterConfig = {
     verbose: false,
     routesPath: 'routes',
@@ -218,6 +221,88 @@ export class Router {
 
   group(_options: { prefix?: string, middleware?: (string | MiddlewareHandler)[] }, _callback: () => void): Router {
     throw new Error('Route group methods not implemented - use router extensions')
+  }
+
+  /**
+   * Add route to the router
+   */
+  addRoute(route: Route): this {
+    this.routes.push(route)
+    if (route.name) {
+      this.namedRoutes.set(route.name, route)
+    }
+    return this
+  }
+
+  /**
+   * Register middleware dependency
+   */
+  registerMiddlewareDependency(dependency: any): this {
+    if (this._middlewarePipeline) {
+      this._middlewarePipeline.registerDependency('default', dependency)
+    }
+    return this
+  }
+
+  /**
+   * Register middleware skip conditions
+   */
+  registerMiddlewareSkipConditions(_middlewareName: string, _conditions: any[]): this {
+    // Implementation would register skip conditions with the pipeline
+    return this
+  }
+
+  /**
+   * Get middleware statistics
+   */
+  getMiddlewareStats(): any {
+    if (this._middlewarePipeline) {
+      return this._middlewarePipeline.getStats()
+    }
+    return {}
+  }
+
+  /**
+   * Get middleware cache info
+   */
+  getMiddlewareCacheInfo(): any {
+    if (this._middlewarePipeline) {
+      return this._middlewarePipeline.getCacheInfo()
+    }
+    return {}
+  }
+
+  /**
+   * Clear middleware cache
+   */
+  clearMiddlewareCache(): this {
+    if (this._middlewarePipeline) {
+      this._middlewarePipeline.clearCache()
+    }
+    return this
+  }
+
+  /**
+   * Execute middleware pipeline
+   */
+  async executeMiddleware(middleware: MiddlewareHandler[], request: EnhancedRequest, handler: () => Promise<Response>): Promise<Response> {
+    if (middleware.length === 0) {
+      return handler()
+    }
+
+    let currentIndex = 0
+
+    const next = async (): Promise<Response> => {
+      if (currentIndex >= middleware.length) {
+        return handler()
+      }
+
+      const mw = middleware[currentIndex++]
+      const result = await mw(request, next)
+      return result || new Response('No response from middleware', { status: 500 })
+    }
+
+    return next()
   }
 }
 

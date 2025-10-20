@@ -446,17 +446,8 @@ export type {
 
 // Export types
 export type {
-  PerformanceMetrics,
-  ProfileConfig,
-  RouteAnalysis,
   RouteDebugConfig,
   RouteDebugInfo,
-  RouteMetadata,
-  RouteProfile,
-  RouteTypeInfo,
-  TypeDefinition,
-  TypeScriptConfig,
-  ValidationSchema,
 } from './route-debugger'
 
 export type {

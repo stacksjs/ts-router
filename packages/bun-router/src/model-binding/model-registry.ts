@@ -97,7 +97,7 @@ export class ModelRegistry {
       }
 
       // Resolve the model
-      const model = await config.resolver(params, req)
+      const model = await config.resolver(params, req!)
 
       if (model === null || model === undefined) {
         return {

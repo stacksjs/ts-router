@@ -335,7 +335,7 @@ export class PerformanceProfiler {
       }
 
       if (filter.pattern) {
-        profiles = profiles.filter(p => p.pattern.includes(filter.pattern))
+        profiles = profiles.filter(p => p.pattern.includes(filter.pattern!))
       }
 
       if (filter.minDuration !== undefined) {
@@ -471,18 +471,18 @@ export class PerformanceProfiler {
    */
   private setupGcObserver(): void {
     try {
-      this.gcObserver = new PerformanceObserver()
-
-      this.gcObserver.on('entry', (entry) => {
-        if (entry.entryType === 'gc') {
-          // Update GC metrics for active profiles
-          this.activeProfiles.forEach((profile) => {
-            if (!profile.gc) {
-              profile.gc = { collections: 0, duration: 0, reclaimedMemory: 0 }
-            }
-            profile.gc.collections++
-            profile.gc.duration += entry.duration
-          })
+      this.gcObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.entryType === 'gc') {
+            // Update GC metrics for active profiles
+            this.activeProfiles.forEach((profile) => {
+              if (!profile.gc) {
+                profile.gc = { collections: 0, duration: 0, reclaimedMemory: 0 }
+              }
+              profile.gc.collections++
+              profile.gc.duration += entry.duration
+            })
+          }
         }
       })
 
