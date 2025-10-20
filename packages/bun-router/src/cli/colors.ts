@@ -3,16 +3,16 @@
  */
 
 const colors = {
-  reset: '\x1b[0m',
-  bold: '\x1b[1m',
-  dim: '\x1b[2m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  cyan: '\x1b[36m',
-  white: '\x1b[37m',
-  gray: '\x1b[90m',
+  reset: '\x1B[0m',
+  bold: '\x1B[1m',
+  dim: '\x1B[2m',
+  red: '\x1B[31m',
+  green: '\x1B[32m',
+  yellow: '\x1B[33m',
+  blue: '\x1B[34m',
+  cyan: '\x1B[36m',
+  white: '\x1B[37m',
+  gray: '\x1B[90m',
 }
 
 export const chalk = {
@@ -25,5 +25,5 @@ export const chalk = {
   gray: (text: string) => `${colors.gray}${text}${colors.reset}`,
   bold: (text: string) => `${colors.bold}${text}${colors.reset}`,
   dim: (text: string) => `${colors.dim}${text}${colors.reset}`,
-  hex: (color: string) => (text: string) => text, // Simple passthrough for hex colors
+  hex: () => (text: string): string => text, // Simple passthrough for hex colors
 }

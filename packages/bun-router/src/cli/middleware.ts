@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
-import { chalk } from './colors'
 import { middleware } from '../../src/middleware'
+import { chalk } from './colors'
 
 /**
  * Options for the middleware:types command
