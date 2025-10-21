@@ -70,10 +70,11 @@ const filteredHistory = computed(() => {
     : historyStore.history
 
   // Apply status filter
-  if (statusFilter.value) {
+  if (statusFilter.value && statusFilter.value !== null) {
+    const filterValue = statusFilter.value
     results = results.filter(item =>
-      item.status >= statusFilter.value
-      && item.status < statusFilter.value + 100,
+      item.status && item.status >= filterValue
+      && item.status < filterValue + 100,
     )
   }
 
@@ -167,6 +168,11 @@ function addTag(item: HistoryItem, tag: string) {
 // Remove tag from history item
 function removeTag(item: HistoryItem, tag: string) {
   historyStore.removeTagFromHistoryItem(item.id, tag)
+}
+
+// Get prompt input
+function getPromptInput(message: string): string | null {
+  return window.prompt(message)
 }
 
 // Format date
@@ -317,10 +323,10 @@ function highlightSearchTerms(text: string) {
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate">
-                <span v-html="highlightSearchTerms(item.path)" />
+                <span v-html="highlightSearchTerms(item.path || '')" />
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <span :class="`font-medium ${getStatusClass(item.status)}`">
+                <span :class="`font-medium ${getStatusClass(item.status || 0)}`">
                   {{ item.status }}
                 </span>
               </td>
@@ -328,7 +334,7 @@ function highlightSearchTerms(text: string) {
                 {{ formatDate(item.timestamp) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ formatDuration(item.duration) }}
+                {{ formatDuration(item.duration || 0) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
@@ -382,7 +388,7 @@ function highlightSearchTerms(text: string) {
                 {{ selectedItem.url }}
               </p>
             </div>
-            <span :class="`font-medium text-lg ${getStatusClass(selectedItem.status)}`">
+            <span :class="`font-medium text-lg ${getStatusClass(selectedItem.status || 0)}`">
               {{ selectedItem.status }}
             </span>
           </div>
@@ -398,7 +404,7 @@ function highlightSearchTerms(text: string) {
               <p class="text-gray-500">
                 Duration
               </p>
-              <p>{{ formatDuration(selectedItem.duration) }}</p>
+              <p>{{ formatDuration(selectedItem.duration || 0) }}</p>
             </div>
           </div>
 
@@ -423,7 +429,7 @@ function highlightSearchTerms(text: string) {
               </span>
               <button
                 class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border border-dashed border-gray-300 text-gray-500 hover:text-gray-700"
-                @click="addTag(selectedItem, prompt('Enter tag name:') || '')"
+                @click="addTag(selectedItem, getPromptInput('Enter tag name:') || '')"
               >
                 <span class="i-carbon-add mr-1" />
                 Add Tag
@@ -439,7 +445,7 @@ function highlightSearchTerms(text: string) {
           </h3>
 
           <!-- Query Params -->
-          <div v-if="Object.keys(selectedItem.queryParams).length > 0" class="mb-4">
+          <div v-if="selectedItem.queryParams && Object.keys(selectedItem.queryParams).length > 0" class="mb-4">
             <p class="text-xs text-gray-500 mb-1">
               Query Parameters
             </p>

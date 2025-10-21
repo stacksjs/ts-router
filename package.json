@@ -32,7 +32,7 @@
   "types": "./dist/index.d.ts",
   "files": ["README.md", "dist"],
   "scripts": {
-    "build": "bun --bun build.ts && bun run compile",
+    "build": "cd ./packages/bun-router && bun run build && cd ../dashboard && bun run build",
     "compile": "bun build ./bin/cli.ts --compile --minify --outfile bin/router",
     "compile:all": "bun run compile:linux-x64 && bun run compile:linux-arm64 && bun run compile:windows-x64 && bun run compile:darwin-x64 && bun run compile:darwin-arm64",
     "compile:linux-x64": "bun build ./packages/bun-router/bin/cli.ts --compile --minify --target=bun-linux-x64 --outfile ./packages/bun-router/dist/bin/router-linux-x64",

@@ -13,12 +13,20 @@ export interface HistoryItem {
   responseBody?: string
   responseHeaders?: Record<string, string>
   timestamp: string
+  path?: string
+  duration?: number
+  tags?: string[]
+  queryParams?: Record<string, string>
+  requestHeaders?: Record<string, string>
+  requestBody?: string
+  error?: string
 }
 
 export const useHistoryStore = defineStore('history', () => {
   // State
   const history = ref<HistoryItem[]>([])
   const maxHistoryItems = ref(50)
+  const isLoading = ref(false)
 
   // Computed
   const hasHistory = computed(() => history.value.length > 0)
@@ -68,6 +76,46 @@ export const useHistoryStore = defineStore('history', () => {
     }
   }
 
+  async function fetchHistory() {
+    isLoading.value = true
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 100))
+      // In a real app, this would fetch from an API
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  function searchHistory(query: string) {
+    if (!query.trim()) return history.value
+    return history.value.filter(item => 
+      item.url.toLowerCase().includes(query.toLowerCase()) ||
+      item.method.toLowerCase().includes(query.toLowerCase())
+    )
+  }
+
+  function deleteHistoryItem(id: string) {
+    return removeHistoryItem(id)
+  }
+
+  function addTagToHistoryItem(id: string, tag: string) {
+    const item = history.value.find(item => item.id === id)
+    if (item) {
+      if (!item.tags) item.tags = []
+      if (!item.tags.includes(tag)) {
+        item.tags.push(tag)
+      }
+    }
+  }
+
+  function removeTagFromHistoryItem(id: string, tag: string) {
+    const item = history.value.find(item => item.id === id)
+    if (item && item.tags) {
+      item.tags = item.tags.filter(t => t !== tag)
+    }
+  }
+
   // Initialize with some sample data for demonstration
   addToHistory({
     method: 'GET',
@@ -100,9 +148,15 @@ export const useHistoryStore = defineStore('history', () => {
     maxHistoryItems,
     hasHistory,
     sortedHistory,
+    isLoading,
     addToHistory,
     clearHistory,
     removeHistoryItem,
     setMaxHistoryItems,
+    fetchHistory,
+    searchHistory,
+    deleteHistoryItem,
+    addTagToHistoryItem,
+    removeTagFromHistoryItem,
   }
 })

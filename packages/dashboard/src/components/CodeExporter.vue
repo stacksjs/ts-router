@@ -22,7 +22,7 @@ onMounted(() => {
 })
 
 function generateSnippet() {
-  codeSnippet.value = generateCode(props.request, selectedLanguage.value)
+  codeSnippet.value = generateCode(props.request, selectedLanguage.value as any)
 }
 
 function copyToClipboard() {

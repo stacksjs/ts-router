@@ -11,6 +11,17 @@ interface RequestData {
   body?: string
 }
 
+interface RequestItem {
+  id: string
+  name: string
+  method: string
+  url: string
+  headers: Record<string, string>
+  body?: string
+  createdAt: string
+  updatedAt: string
+}
+
 function escapeQuotes(str: string, quoteChar: string = '"'): string {
   if (quoteChar === '"') {
     return str.replace(/"/g, '\\"')
@@ -288,32 +299,46 @@ function generateGo(request: RequestData): string {
 }
 
 /**
+ * Convert RequestItem to RequestData format
+ */
+function convertRequestItem(request: RequestItem): RequestData {
+  return {
+    method: request.method,
+    url: request.url,
+    headers: Object.entries(request.headers).map(([key, value]) => ({ key, value })),
+    body: request.body,
+  }
+}
+
+/**
  * Generate a code snippet based on the language and request data
  */
-export function generateCode(language: Language, request: RequestData): string {
+export function generateCode(request: RequestItem, language: Language): string {
+  const requestData = convertRequestItem(request)
+  
   switch (language) {
     case 'curl':
-      return generateCurl(request)
+      return generateCurl(requestData)
     case 'javascript':
-      return generateJavaScript(request)
+      return generateJavaScript(requestData)
     case 'python':
-      return generatePython(request)
+      return generatePython(requestData)
     case 'php':
-      return generatePhp(request)
+      return generatePhp(requestData)
     case 'csharp':
-      return generateCSharp(request)
+      return generateCSharp(requestData)
     case 'go':
-      return generateGo(request)
+      return generateGo(requestData)
     default:
       throw new Error(`Language ${language} not supported`)
   }
 }
 
-export const supportedLanguages: { id: Language, name: string }[] = [
-  { id: 'curl', name: 'cURL' },
-  { id: 'javascript', name: 'JavaScript' },
-  { id: 'python', name: 'Python' },
-  { id: 'php', name: 'PHP' },
-  { id: 'csharp', name: 'C#' },
-  { id: 'go', name: 'Go' },
+export const supportedLanguages: { id: Language, name: string, icon: string }[] = [
+  { id: 'curl', name: 'cURL', icon: 'i-carbon-terminal' },
+  { id: 'javascript', name: 'JavaScript', icon: 'i-carbon-logo-javascript' },
+  { id: 'python', name: 'Python', icon: 'i-carbon-logo-python' },
+  { id: 'php', name: 'PHP', icon: 'i-carbon-logo-php' },
+  { id: 'csharp', name: 'C#', icon: 'i-carbon-logo-c-sharp' },
+  { id: 'go', name: 'Go', icon: 'i-carbon-logo-go' },
 ]
