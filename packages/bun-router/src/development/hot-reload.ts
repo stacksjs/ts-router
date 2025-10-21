@@ -75,8 +75,28 @@ export class HotReloadManager {
     if (globalThis.__HOT_RELOAD_STATE__) {
       // Restore existing state
       this.state = globalThis.__HOT_RELOAD_STATE__
+      
+      // Ensure numeric values are valid
+      if (typeof this.state.reloadCount !== 'number' || isNaN(this.state.reloadCount)) {
+        this.state.reloadCount = 0
+      }
+      if (typeof this.state.lastReload !== 'number' || isNaN(this.state.lastReload)) {
+        this.state.lastReload = Date.now()
+      }
+      
       this.state.reloadCount++
       this.state.lastReload = Date.now()
+
+      // Ensure all required properties exist
+      if (!this.state.changedFiles) {
+        this.state.changedFiles = []
+      }
+      if (!this.state.watchers) {
+        this.state.watchers = new Map()
+      }
+      if (!this.state.preservedState) {
+        this.state.preservedState = {}
+      }
 
       if (this.config.verbose) {
         console.log(`🔥 Hot reload #${this.state.reloadCount}`)
@@ -110,6 +130,11 @@ export class HotReloadManager {
   private setupWatchers(): void {
     if (!this.config.enabled)
       return
+
+    // Ensure state is initialized
+    if (!this.state || !this.state.watchers) {
+      this.initializeState()
+    }
 
     // Clear existing watchers
     this.state.watchers.forEach((watcher) => {
@@ -341,7 +366,9 @@ export const HotReloadUtils = {
    * Check if running in hot reload mode
    */
   isHotReloadEnabled: (): boolean => {
-    return !!globalThis.__HOT_RELOAD_STATE__
+    return !!(globalThis.__HOT_RELOAD_STATE__ && 
+              typeof globalThis.__HOT_RELOAD_STATE__.reloadCount === 'number' &&
+              !isNaN(globalThis.__HOT_RELOAD_STATE__.reloadCount))
   },
 
   /**
@@ -471,8 +498,9 @@ export const HotReloadHelpers = {
     let server = hotReload.restoreState<any>(serverKey)
 
     if (!server) {
+      const port = config.port || 3000
       server = Bun.serve({
-        port: config.port || 3000,
+        port: port === 0 ? undefined : port, // Use random port if 0
         hostname: config.hostname || 'localhost',
 
         fetch: async (request) => {

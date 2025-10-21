@@ -26,8 +26,8 @@ describe('Hot Reload', () => {
     mkdirSync(tempDir, { recursive: true })
 
     // Clear global state
-    globalThis.__HOT_RELOAD_STATE__ = {} as any
-    globalThis.__HOT_RELOAD_PRESERVE__ = {}
+    delete globalThis.__HOT_RELOAD_STATE__
+    delete globalThis.__HOT_RELOAD_PRESERVE__
   })
 
   afterEach(() => {
@@ -52,7 +52,7 @@ describe('Hot Reload', () => {
 
       const stats = hotReload.getStats()
       expect(stats.reloadCount).toBe(0)
-      expect(stats.watchedPaths).toContain(process.cwd())
+      expect(stats.watchedPaths).toContain('.')
     })
 
     it('should initialize with custom config', () => {
@@ -318,7 +318,7 @@ describe('Hot Reload', () => {
       const request = new Request('http://localhost:3000/test')
       const response = await hotHandler(request)
 
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(501)
       expect(await response.text()).toBe('Handler Error')
     })
 

@@ -198,8 +198,10 @@ describe('Middleware', () => {
 
       // Should create a new session
       expect(req.session).toBeDefined()
-      // Should set a session cookie
-      expect(req.cookies.set).toHaveBeenCalled()
+      // Should add session cookie to _cookiesToSet array
+      expect(req._cookiesToSet).toBeDefined()
+      expect(req._cookiesToSet).toHaveLength(1)
+      expect(req._cookiesToSet[0].name).toBe('session')
       expect(nextMock).toHaveBeenCalled()
     })
   })

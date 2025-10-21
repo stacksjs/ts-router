@@ -217,12 +217,17 @@ export function registerServerHandling(RouterClass: typeof Router): void {
         }
 
         // Create enhanced request
-        return Object.assign(req, {
+        const enhancedReq = Object.assign(req, {
           params,
-          cookies,
+          cookies: getCookies(), // Set cookies as plain object for direct access
           _cookiesToSet: [],
           _cookiesToDelete: [],
         }) as unknown as EnhancedRequest
+
+        // Add cookie methods to the request
+        Object.assign(enhancedReq, { cookies: { ...getCookies(), ...cookies } })
+
+        return enhancedReq
       },
       writable: true,
       configurable: true,

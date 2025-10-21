@@ -117,7 +117,8 @@ describe('Laravel-style Streaming APIs', () => {
 
       expect(data.users).toHaveLength(3)
       expect(data.users[0]).toEqual({ id: 1, name: 'User 1', email: 'user1@example.com' })
-      expect(data.meta).toEqual([{ total: 3, page: 1 }])
+      // streamJson only streams the provided data, no meta property is added automatically
+      expect(data.meta).toBeUndefined()
     })
 
     it('should support custom status and headers for JSON streaming', async () => {
