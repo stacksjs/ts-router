@@ -4,7 +4,7 @@ import { Router } from '../src/router/index'
 
 describe('Laravel-style Streaming APIs', () => {
   let router: Router
-  let server: Server<any>
+  let server: Server
 
   beforeEach(() => {
     router = new Router()

@@ -424,4 +424,3 @@ export const EnhancementPresets = {
     createValidationMiddleware(rules, config) as (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>,
   ],
 }
-

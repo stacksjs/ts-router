@@ -11,7 +11,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
      * Start the HTTP server
      */
     serve: {
-      async value(options: ServerOptions = {}): Promise<Server<any>> {
+      async value(options: ServerOptions = {}): Promise<Server> {
         // Invalidate route cache before starting server
         this.invalidateCache()
 

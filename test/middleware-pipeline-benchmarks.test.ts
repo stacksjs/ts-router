@@ -558,15 +558,6 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
         resolveDependencies: true,
       })
 
-      // Test with mixed request patterns
-      const testCases = [
-        { url: 'http://localhost:3000/api/users', method: 'GET' },
-        { url: 'http://localhost:3000/api/posts', method: 'POST' },
-        { url: 'http://localhost:3000/health', method: 'GET' }, // Should skip some middleware
-        { url: 'http://localhost:3000/api/users/123', method: 'PUT' },
-        { url: 'http://localhost:3000/metrics', method: 'GET' }, // Should skip some middleware
-      ]
-
       const iterations = 50
       const start = performance.now()
 

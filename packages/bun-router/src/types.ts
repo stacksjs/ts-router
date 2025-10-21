@@ -986,7 +986,7 @@ export type Compressor =
   | '128KB'
   | '256KB'
 
-export interface ServerOptions extends Partial<Omit<Server<any>, 'websocket'>> {
+export interface ServerOptions extends Partial<Omit<Server, 'websocket'>> {
   websocket?: WebSocketConfig
 }
 

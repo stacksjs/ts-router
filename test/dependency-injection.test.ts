@@ -15,7 +15,6 @@ import {
 import {
   Controller,
   DecoratorContainer,
-  Inject,
   Injectable,
   MetadataReader,
 } from '../packages/bun-router/src/container/decorators'
@@ -206,6 +205,7 @@ describe('IoC Container', () => {
         constructor(serviceA: any) {
           this.serviceA = serviceA
         }
+
         private serviceA: any
       }
 
@@ -213,6 +213,7 @@ describe('IoC Container', () => {
         constructor(serviceB: ServiceB) {
           this.serviceB = serviceB
         }
+
         private serviceB: ServiceB
       }
 
@@ -798,6 +799,7 @@ describe('Error Handling', () => {
       constructor(b: any) {
         this.b = b
       }
+
       private b: any
     }
 
@@ -805,6 +807,7 @@ describe('Error Handling', () => {
       constructor(a: any) {
         this.a = a
       }
+
       private a: any
     }
 

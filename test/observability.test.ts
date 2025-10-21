@@ -4,7 +4,6 @@
 
 import type { EnhancedRequest } from '../packages/bun-router/src/types'
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
-import { createMockRequest as createTestMockRequest } from '../packages/bun-router/src/testing/test-request'
 import {
   // Correlation
   CorrelationManager,
@@ -43,6 +42,7 @@ import {
   ObservabilityUtils,
   Summary,
 } from '../packages/bun-router/src/observability'
+import { createMockRequest as createTestMockRequest } from '../packages/bun-router/src/testing/test-request'
 
 // Mock request helper - using the proper test utility
 function createMockRequest(
