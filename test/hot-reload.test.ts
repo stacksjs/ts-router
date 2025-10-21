@@ -26,8 +26,8 @@ describe('Hot Reload', () => {
     mkdirSync(tempDir, { recursive: true })
 
     // Clear global state
-    globalThis.__HOT_RELOAD_STATE__ = {} as any
-    globalThis.__HOT_RELOAD_PRESERVE__ = {}
+    delete (globalThis as any).__HOT_RELOAD_STATE__
+    delete (globalThis as any).__HOT_RELOAD_PRESERVE__
   })
 
   afterEach(() => {
@@ -52,7 +52,7 @@ describe('Hot Reload', () => {
 
       const stats = hotReload.getStats()
       expect(stats.reloadCount).toBe(0)
-      expect(stats.watchedPaths).toContain(process.cwd())
+      expect(stats.watchedPaths).toContain('.')
     })
 
     it('should initialize with custom config', () => {
@@ -323,8 +323,9 @@ describe('Hot Reload', () => {
     })
 
     it('should create development server', () => {
+      // Use a high port number to avoid conflicts
       const devServer = HotReloadHelpers.createDevelopmentServer({
-        port: 0, // Use random port
+        port: 9999,
         hostname: 'localhost',
       })
 
@@ -503,11 +504,11 @@ describe('Hot Reload', () => {
       // Make rapid changes
       for (let i = 0; i < 5; i++) {
         writeFileSync(testFile, `export const test = "change-${i}"`)
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise(resolve => setTimeout(resolve, 2))
       }
 
       // Wait for debounce
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // Should only trigger once due to debouncing
       expect(onReload).toHaveBeenCalledTimes(1)

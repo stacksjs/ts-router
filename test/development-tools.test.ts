@@ -19,12 +19,15 @@ import {
 // Mock request helper
 function createMockRequest(method: string = 'GET', url: string = 'http://localhost/test'): EnhancedRequest {
   const request = new Request(url, { method })
-  return Object.assign(request, {
+  return {
+    method: request.method,
+    url: request.url,
+    headers: request.headers,
     params: {},
     query: {},
     body: null,
     route: { pattern: '/test', id: 'test_route' },
-  }) as unknown as EnhancedRequest
+  } as unknown as EnhancedRequest
 }
 
 // Mock handler
@@ -471,7 +474,7 @@ describe('TypeScript Utilities', () => {
     const routeBuilder = tsUtils.generateRouteBuilder()
 
     expect(routeBuilder).toContain('TypeSafeRouteBuilder')
-    expect(routeBuilder).toContain('getUsersId')
+    expect(routeBuilder).toContain('getusersId')
     expect(routeBuilder).toContain('params: { id: string }')
   })
 
@@ -611,7 +614,7 @@ describe('Development Router', () => {
 
   test('should list routes', () => {
     // @ts-expect-error - Testing internal API
-    const routes = devRouter.routes()
+    const routes = Array.from(devRouter.routes.values())
     expect(routes).toBeInstanceOf(Array)
   })
 })

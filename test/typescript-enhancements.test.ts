@@ -572,11 +572,11 @@ describe('TypeScript Enhancements', () => {
       type EmptyChain = Compose<[]>
       type EmptyContext = AccumulateContext<[]>
 
-      const chainAssertion: AssertEqual<EmptyChain, TypedMiddleware<any, any, Record<string, never>, any>> = true
-      const contextAssertion: AssertEqual<EmptyContext, Record<string, never>> = false as any
+      const chainAssertion: AssertEqual<EmptyChain, TypedMiddleware<any, any, object, any>> = true
+      const contextAssertion: AssertEqual<EmptyContext, object> = true
 
       expect(chainAssertion).toBe(true)
-      expect(contextAssertion).toBe(true as any)
+      expect(contextAssertion).toBe(true)
     })
   })
 })

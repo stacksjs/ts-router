@@ -75,8 +75,28 @@ export class HotReloadManager {
     if (globalThis.__HOT_RELOAD_STATE__) {
       // Restore existing state
       this.state = globalThis.__HOT_RELOAD_STATE__
+
+      // Ensure numeric values are valid
+      if (typeof this.state.reloadCount !== 'number' || Number.isNaN(this.state.reloadCount)) {
+        this.state.reloadCount = 0
+      }
+      if (typeof this.state.lastReload !== 'number' || Number.isNaN(this.state.lastReload)) {
+        this.state.lastReload = Date.now()
+      }
+
       this.state.reloadCount++
       this.state.lastReload = Date.now()
+
+      // Ensure all required properties exist
+      if (!this.state.changedFiles) {
+        this.state.changedFiles = []
+      }
+      if (!this.state.watchers) {
+        this.state.watchers = new Map()
+      }
+      if (!this.state.preservedState) {
+        this.state.preservedState = {}
+      }
 
       if (this.config.verbose) {
         console.log(`🔥 Hot reload #${this.state.reloadCount}`)
@@ -110,6 +130,11 @@ export class HotReloadManager {
   private setupWatchers(): void {
     if (!this.config.enabled)
       return
+
+    // Ensure state is initialized
+    if (!this.state || !this.state.watchers) {
+      this.initializeState()
+    }
 
     // Clear existing watchers
     this.state.watchers.forEach((watcher) => {
@@ -341,7 +366,9 @@ export const HotReloadUtils = {
    * Check if running in hot reload mode
    */
   isHotReloadEnabled: (): boolean => {
-    return !!globalThis.__HOT_RELOAD_STATE__
+    return !!(globalThis.__HOT_RELOAD_STATE__
+      && typeof globalThis.__HOT_RELOAD_STATE__.reloadCount === 'number'
+      && !Number.isNaN(globalThis.__HOT_RELOAD_STATE__.reloadCount))
   },
 
   /**
@@ -387,14 +414,14 @@ export const HotReloadUtils = {
           // Note: Dynamic config reloading would require proper import handling
           const newConfig = {}
           currentConfig = { ...currentConfig, ...newConfig }
-
-          // Notify change callbacks
-          changeCallbacks.forEach(callback => callback(currentConfig))
         }
         catch (err) {
           console.error('Failed to reload config:', err)
         }
       }
+
+      // Always notify change callbacks on reload
+      changeCallbacks.forEach(callback => callback(currentConfig))
       return currentConfig
     }
 
@@ -415,16 +442,25 @@ export const HotReloadHelpers = {
   /**
    * Create hot-reloadable route handlers
    */
-  createHotHandler: (_handlerPath: string) => {
-    return async (_request: Request): Promise<Response> => {
+  createHotHandler: (handlerPath: string) => {
+    return async (request: Request): Promise<Response> => {
       try {
         // Clear module cache in hot reload mode
-        // Note: Dynamic handler loading would require proper import handling
-        const handler = async () => new Response('Handler not available', { status: 501 })
-        return await handler()
+        delete require.cache[require.resolve(handlerPath)]
+
+        // Load the handler dynamically
+        const handlerModule = await import(handlerPath)
+        const handler = handlerModule.default || handlerModule
+
+        if (typeof handler === 'function') {
+          return await handler(request)
+        }
+        else {
+          return new Response('Handler not available', { status: 501 })
+        }
       }
-      catch {
-        console.error('Hot handler error')
+      catch (error) {
+        console.error('Hot handler error:', error)
         return new Response('Handler Error', { status: 500 })
       }
     }
@@ -433,17 +469,31 @@ export const HotReloadHelpers = {
   /**
    * Create hot-reloadable middleware
    */
-  createHotMiddleware: (_middlewarePath: string) => {
+  createHotMiddleware: (middlewarePath: string) => {
     return async (request: Request, next: () => Promise<Response>): Promise<Response> => {
       try {
-        // Note: Module cache clearing would require proper import handling
+        // Clear module cache in hot reload mode
+        delete require.cache[require.resolve(middlewarePath)]
 
-        // Note: Dynamic middleware loading would require proper import handling
-        return await next()
+        // Load the middleware dynamically
+        const middlewareModule = await import(middlewarePath)
+        const middleware = middlewareModule.default || middlewareModule
+
+        if (typeof middleware === 'function') {
+          return await middleware(request, next)
+        }
+        else {
+          // Fallback: add hot reload header and continue
+          const response = await next()
+          response.headers.set('X-Hot-Middleware', 'true')
+          return response
+        }
       }
-      catch {
-        console.error('Hot middleware error')
-        return await next()
+      catch (error) {
+        console.error('Hot middleware error:', error)
+        const response = await next()
+        response.headers.set('X-Hot-Middleware', 'true')
+        return response
       }
     }
   },
@@ -471,8 +521,9 @@ export const HotReloadHelpers = {
     let server = hotReload.restoreState<any>(serverKey)
 
     if (!server) {
+      const port = config.port ?? 3000
       server = Bun.serve({
-        port: config.port || 3000,
+        port: port === 0 ? undefined : port, // Use random port if 0
         hostname: config.hostname || 'localhost',
 
         fetch: async (request) => {

@@ -72,8 +72,10 @@ export function Inject(token: string | symbol | Function, options?: {
   when?: (context: ResolutionContext) => boolean
 }): ParameterDecorator {
   return function (target: any, propertyKey: string | symbol | undefined, parameterIndex: number) {
-    if (!target[INJECT_METADATA_KEY]) {
-      target[INJECT_METADATA_KEY] = []
+    // Store metadata on the constructor, not the prototype
+    const constructor = target.constructor || target
+    if (!constructor[INJECT_METADATA_KEY]) {
+      constructor[INJECT_METADATA_KEY] = []
     }
     const metadata: InjectMetadata = {
       token,
@@ -81,7 +83,7 @@ export function Inject(token: string | symbol | Function, options?: {
       tags: options?.tags,
       when: options?.when,
     }
-    target[INJECT_METADATA_KEY][parameterIndex] = metadata
+    constructor[INJECT_METADATA_KEY][parameterIndex] = metadata
   }
 }
 

@@ -455,6 +455,7 @@ export class Container {
   private getConstructorDependencies(constructor: ((...args: any[]) => any) | (new (...args: any[]) => any)): Token[] {
     // Check for explicit metadata
     const injectMetadata = Reflect.getMetadata?.(INJECT_METADATA_KEY, constructor) as InjectMetadata[]
+      || (constructor as any)[INJECT_METADATA_KEY] as InjectMetadata[]
     if (injectMetadata) {
       return injectMetadata.map(meta => meta.token)
     }
