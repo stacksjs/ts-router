@@ -3,7 +3,7 @@ import type {
   EnhancedRequest,
 } from '../types'
 import type { Router } from './router'
-import { FileStreamHandler, StreamHandler, StreamUtils } from '../streaming/stream-handler'
+import { FileStreamHandler, StreamHandler } from '../streaming/stream-handler'
 
 /**
  * File streaming extension for Router class

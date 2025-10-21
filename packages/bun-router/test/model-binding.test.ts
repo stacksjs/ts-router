@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { Router } from '../src/router/index'
 
 // Test types for JSON responses
-type UserData = { id: string, name: string, email: string, slug: string }
-type PostData = { id: string, title: string, slug: string, userId: string }
-type UserPostResponse = { user: UserData, post: PostData }
+interface UserData { id: string, name: string, email: string, slug: string }
+interface PostData { id: string, title: string, slug: string, userId: string }
+interface UserPostResponse { user: UserData, post: PostData }
 
 describe('Laravel-style Model Binding APIs', () => {
   let router: Router

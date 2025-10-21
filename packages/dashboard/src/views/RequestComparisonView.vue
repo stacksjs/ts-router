@@ -212,9 +212,15 @@ function getMethodClass(method: string) {
 }
 
 // Get header differences
-function getHeaderDiffs(requestIndex: number, headerType: 'requestHeaders' | 'responseHeaders') {
+function getHeaderDiffs(requestIndex: number, headerType: 'requestHeaders' | 'responseHeaders'): Record<string, string | { value: string, status: 'same' | 'different' | 'missing' }> {
   if (!diffMode.value || selectedRequests.value.length < 2) {
-    return selectedRequests.value[requestIndex][headerType] || {}
+    const headers = selectedRequests.value[requestIndex][headerType] || {}
+    // Convert to consistent format
+    const result: Record<string, string | { value: string, status: 'same' | 'different' | 'missing' }> = {}
+    Object.entries(headers).forEach(([key, value]) => {
+      result[key] = value
+    })
+    return result
   }
 
   const result: Record<string, { value: string, status: 'same' | 'different' | 'missing' }> = {}
@@ -249,6 +255,14 @@ function getHeaderDiffs(requestIndex: number, headerType: 'requestHeaders' | 're
   })
 
   return result
+}
+
+// Helper function to get header value and status
+function getHeaderValue(header: string | { value: string, status: 'same' | 'different' | 'missing' }) {
+  if (typeof header === 'string') {
+    return { value: header, status: 'same' as const }
+  }
+  return header
 }
 
 // Navigate back to requests
@@ -546,15 +560,15 @@ function goBack() {
                           <tr
                             v-for="(header, name) in getHeaderDiffs(index, 'requestHeaders')" :key="`req-header-${name}-${index}`"
                             :class="{
-                              'bg-red-50': diffMode && header.status === 'missing',
-                              'bg-yellow-50': diffMode && header.status === 'different',
+                              'bg-red-50': diffMode && getHeaderValue(header).status === 'missing',
+                              'bg-yellow-50': diffMode && getHeaderValue(header).status === 'different',
                             }"
                           >
                             <td class="px-3 py-2 text-sm font-medium text-gray-900">
                               {{ name }}
                             </td>
                             <td class="px-3 py-2 text-sm text-gray-500 break-all">
-                              {{ header.value }}
+                              {{ getHeaderValue(header).value }}
                             </td>
                           </tr>
                         </template>
@@ -599,15 +613,15 @@ function goBack() {
                           <tr
                             v-for="(header, name) in getHeaderDiffs(index, 'responseHeaders')" :key="`resp-header-${name}-${index}`"
                             :class="{
-                              'bg-red-50': diffMode && header.status === 'missing',
-                              'bg-yellow-50': diffMode && header.status === 'different',
+                              'bg-red-50': diffMode && getHeaderValue(header).status === 'missing',
+                              'bg-yellow-50': diffMode && getHeaderValue(header).status === 'different',
                             }"
                           >
                             <td class="px-3 py-2 text-sm font-medium text-gray-900">
                               {{ name }}
                             </td>
                             <td class="px-3 py-2 text-sm text-gray-500 break-all">
-                              {{ header.value }}
+                              {{ getHeaderValue(header).value }}
                             </td>
                           </tr>
                         </template>

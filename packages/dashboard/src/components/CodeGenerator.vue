@@ -20,12 +20,16 @@ const generatedCode = computed(() => {
     return ''
 
   try {
-    return generateCode(selectedLanguage.value, {
+    return generateCode({
+      id: '',
+      name: '',
       method: props.method,
       url: props.url,
-      headers: props.headers.filter(h => h.key.trim() !== ''),
+      headers: props.headers.filter(h => h.key.trim() !== '').reduce((acc, h) => ({ ...acc, [h.key]: h.value }), {}),
       body: props.body,
-    })
+      createdAt: '',
+      updatedAt: '',
+    }, selectedLanguage.value as any)
   }
   catch (error) {
     console.error('Error generating code:', error)

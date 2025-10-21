@@ -33,7 +33,7 @@ function createMockRequest(options: {
 const mockNext = async () => new Response('OK', { status: 200 })
 
 // Type for validation error responses
-type ValidationErrorResponse = {
+interface ValidationErrorResponse {
   errors: Array<{ field: string, message: string }>
 }
 

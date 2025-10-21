@@ -35,7 +35,6 @@ export interface ServiceProvider {
   readonly priority?: number
 }
 
-// eslint-disable-next-line ts/no-unsafe-declaration-merging
 export interface DeferredServiceProvider extends ServiceProvider {
   /**
    * Services that should trigger loading of this provider

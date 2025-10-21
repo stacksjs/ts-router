@@ -1,7 +1,6 @@
 import type {
   EnhancedRequest,
   ExtractRouteParams,
-  ModelBinding,
 } from '../types'
 import { modelRegistry } from './model-registry'
 
