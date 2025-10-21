@@ -315,7 +315,7 @@ function convertRequestItem(request: RequestItem): RequestData {
  */
 export function generateCode(request: RequestItem, language: Language): string {
   const requestData = convertRequestItem(request)
-  
+
   switch (language) {
     case 'curl':
       return generateCurl(requestData)

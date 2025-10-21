@@ -82,16 +82,18 @@ export const useHistoryStore = defineStore('history', () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 100))
       // In a real app, this would fetch from an API
-    } finally {
+    }
+    finally {
       isLoading.value = false
     }
   }
 
   function searchHistory(query: string) {
-    if (!query.trim()) return history.value
-    return history.value.filter(item => 
-      item.url.toLowerCase().includes(query.toLowerCase()) ||
-      item.method.toLowerCase().includes(query.toLowerCase())
+    if (!query.trim())
+      return history.value
+    return history.value.filter(item =>
+      item.url.toLowerCase().includes(query.toLowerCase())
+      || item.method.toLowerCase().includes(query.toLowerCase()),
     )
   }
 
@@ -102,7 +104,8 @@ export const useHistoryStore = defineStore('history', () => {
   function addTagToHistoryItem(id: string, tag: string) {
     const item = history.value.find(item => item.id === id)
     if (item) {
-      if (!item.tags) item.tags = []
+      if (!item.tags)
+        item.tags = []
       if (!item.tags.includes(tag)) {
         item.tags.push(tag)
       }
