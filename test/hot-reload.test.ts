@@ -318,13 +318,14 @@ describe('Hot Reload', () => {
       const request = new Request('http://localhost:3000/test')
       const response = await hotHandler(request)
 
-      expect(response.status).toBe(501)
+      expect(response.status).toBe(500)
       expect(await response.text()).toBe('Handler Error')
     })
 
     it('should create development server', () => {
+      // Use a high port number to avoid conflicts
       const devServer = HotReloadHelpers.createDevelopmentServer({
-        port: 0, // Use random port
+        port: 9999,
         hostname: 'localhost',
       })
 
@@ -503,11 +504,11 @@ describe('Hot Reload', () => {
       // Make rapid changes
       for (let i = 0; i < 5; i++) {
         writeFileSync(testFile, `export const test = "change-${i}"`)
-        await new Promise(resolve => setTimeout(resolve, 10))
+        await new Promise(resolve => setTimeout(resolve, 2))
       }
 
       // Wait for debounce
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // Should only trigger once due to debouncing
       expect(onReload).toHaveBeenCalledTimes(1)

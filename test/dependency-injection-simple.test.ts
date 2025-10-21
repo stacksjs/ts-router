@@ -107,6 +107,9 @@ describe('Dependency Injection System', () => {
       // Register DatabaseService first to avoid circular dependency detection
       container.singleton('DatabaseService', DatabaseService)
 
+      // Register UserService
+      container.singleton(UserService, UserService)
+
       const userService = container.resolve(UserService) as UserService
       expect(userService.getStatus()).toBe('connected')
     })

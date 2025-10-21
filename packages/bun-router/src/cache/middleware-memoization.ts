@@ -92,6 +92,11 @@ export class MiddlewareMemoizer {
           ? this.options.resultDeserializer(cachedResult.value)
           : cachedResult.value
 
+        // Clone Response objects to avoid "Body already used" errors
+        if (result instanceof Response) {
+          return result.clone()
+        }
+
         return result
       }
 
@@ -111,9 +116,14 @@ export class MiddlewareMemoizer {
       const shouldMemoize = options.shouldMemoize || this.options.shouldMemoize
       if (!shouldMemoize || shouldMemoize(req, result)) {
         // Serialize and cache result
-        const serializedResult = this.options.resultSerializer
+        let serializedResult = this.options.resultSerializer
           ? this.options.resultSerializer(result)
           : result
+
+        // Clone Response objects before caching to preserve body
+        if (result instanceof Response && !this.options.resultSerializer) {
+          serializedResult = result.clone()
+        }
 
         const memoizedResult: MemoizedResult = {
           value: serializedResult,
