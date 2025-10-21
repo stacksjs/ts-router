@@ -3,7 +3,7 @@ import type { OpenAPIOptions } from './openapi'
 import type { GenerateRouterTypesOptions } from './router'
 import type { GenerateRouteTypesOptions, RouteListOptions } from './routes'
 import process from 'node:process'
-import { CAC } from 'cac'
+import { CLI } from '@stacksjs/clapp'
 import { version } from '../../package.json'
 import { generateMiddlewareMap, generateMiddlewareTypes, watchDirectoryForMiddleware, watchMiddlewareDirectory } from './middleware'
 import { generateOpenAPISpec } from './openapi'
@@ -14,8 +14,8 @@ import { checkRouterHealth, clearCaches, debugRoute, testRoutes, validateRoutes 
 /**
  * Create and configure the CLI
  */
-export function createCLI(): CAC {
-  const cli = new CAC('router')
+export function createCLI(): CLI {
+  const cli = new CLI('router')
 
   // Set version info
   cli.version(version)
@@ -36,7 +36,7 @@ export function createCLI(): CAC {
 /**
  * Register route-related commands
  */
-function registerRouteCommands(cli: CAC): void {
+function registerRouteCommands(cli: CLI): void {
   cli
     .command('route:list', 'List all registered routes')
     .option('-v, --verbose', 'Show detailed information including middleware')
@@ -84,7 +84,7 @@ function registerRouteCommands(cli: CAC): void {
 /**
  * Register middleware-related commands
  */
-function registerMiddlewareCommands(cli: CAC): void {
+function registerMiddlewareCommands(cli: CLI): void {
   cli
     .command('middleware:types', 'Generate TypeScript types for middleware configurations')
     .option('--output <file>', 'Output file path', { default: 'middleware-types.ts' })
@@ -139,7 +139,7 @@ function registerMiddlewareCommands(cli: CAC): void {
 /**
  * Register router extension-related commands
  */
-function registerRouterCommands(cli: CAC): void {
+function registerRouterCommands(cli: CLI): void {
   cli
     .command('router:types', 'Generate TypeScript types for router extensions')
     .option('--output <file>', 'Output file path', { default: 'router-types.ts' })
@@ -167,7 +167,7 @@ function registerRouterCommands(cli: CAC): void {
 /**
  * Register OpenAPI-related commands
  */
-function registerOpenAPICommands(cli: CAC): void {
+function registerOpenAPICommands(cli: CLI): void {
   cli
     .command('openapi', 'Generate OpenAPI specification for API routes')
     .option('--output <file>', 'Output file path', { default: 'openapi.json' })
@@ -196,7 +196,7 @@ function registerOpenAPICommands(cli: CAC): void {
 /**
  * Register utility commands for debugging and development
  */
-function registerUtilityCommands(cli: CAC): void {
+function registerUtilityCommands(cli: CLI): void {
   cli
     .command('health', 'Check router health and configuration')
     .option('--verbose', 'Show detailed health information')
