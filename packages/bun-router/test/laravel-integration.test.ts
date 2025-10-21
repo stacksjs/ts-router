@@ -5,7 +5,7 @@ import { Router } from '../src/router/index'
 
 describe('Laravel-style API Integration Tests', () => {
   let router: Router
-  let server: Server
+  let server: Server<any>
 
   // Mock data
   const users = [

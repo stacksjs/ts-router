@@ -9,7 +9,7 @@ interface UserPostResponse { user: UserData, post: PostData }
 
 describe('Laravel-style Model Binding APIs', () => {
   let router: Router
-  let server: Server
+  let server: Server<any>
 
   // Mock data
   const users = [
