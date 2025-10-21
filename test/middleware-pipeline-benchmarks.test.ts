@@ -189,7 +189,6 @@ describe('Middleware Pipeline Performance Benchmarks', () => {
       Object.defineProperty(middleware, 'name', { value: 'test-middleware' })
 
       // Register multiple skip conditions
-      // @ts-expect-error - Testing enhanced API
       const skipConditions = [
         SkipConditions.skipForMethods(['POST']),
         SkipConditions.skipForPaths(['/skip']),

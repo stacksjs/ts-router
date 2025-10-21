@@ -26,8 +26,8 @@ describe('Hot Reload', () => {
     mkdirSync(tempDir, { recursive: true })
 
     // Clear global state
-    delete globalThis.__HOT_RELOAD_STATE__
-    delete globalThis.__HOT_RELOAD_PRESERVE__
+    delete (globalThis as any).__HOT_RELOAD_STATE__
+    delete (globalThis as any).__HOT_RELOAD_PRESERVE__
   })
 
   afterEach(() => {

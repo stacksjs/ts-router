@@ -75,15 +75,15 @@ export class HotReloadManager {
     if (globalThis.__HOT_RELOAD_STATE__) {
       // Restore existing state
       this.state = globalThis.__HOT_RELOAD_STATE__
-      
+
       // Ensure numeric values are valid
-      if (typeof this.state.reloadCount !== 'number' || isNaN(this.state.reloadCount)) {
+      if (typeof this.state.reloadCount !== 'number' || Number.isNaN(this.state.reloadCount)) {
         this.state.reloadCount = 0
       }
-      if (typeof this.state.lastReload !== 'number' || isNaN(this.state.lastReload)) {
+      if (typeof this.state.lastReload !== 'number' || Number.isNaN(this.state.lastReload)) {
         this.state.lastReload = Date.now()
       }
-      
+
       this.state.reloadCount++
       this.state.lastReload = Date.now()
 
@@ -366,9 +366,9 @@ export const HotReloadUtils = {
    * Check if running in hot reload mode
    */
   isHotReloadEnabled: (): boolean => {
-    return !!(globalThis.__HOT_RELOAD_STATE__ && 
-              typeof globalThis.__HOT_RELOAD_STATE__.reloadCount === 'number' &&
-              !isNaN(globalThis.__HOT_RELOAD_STATE__.reloadCount))
+    return !!(globalThis.__HOT_RELOAD_STATE__
+      && typeof globalThis.__HOT_RELOAD_STATE__.reloadCount === 'number'
+      && !Number.isNaN(globalThis.__HOT_RELOAD_STATE__.reloadCount))
   },
 
   /**

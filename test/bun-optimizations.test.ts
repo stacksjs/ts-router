@@ -355,7 +355,7 @@ describe('Bun Optimizations', () => {
       // Just verify that both functions work and memoization is functional
       expect(optimizedTime).toBeGreaterThan(0)
       expect(unoptimizedTime).toBeGreaterThan(0)
-      
+
       // Test that memoization is working by checking cache hits
       const optimized2 = optimizer.optimizeFunction(testFunction, { memoize: true })
       const start3 = performance.now()
@@ -363,7 +363,7 @@ describe('Bun Optimizations', () => {
         optimized2(5) // Same value repeatedly
       }
       const memoizedTime = performance.now() - start3
-      
+
       // Memoized version should be faster for repeated values
       expect(memoizedTime).toBeLessThan(optimizedTime)
     })
