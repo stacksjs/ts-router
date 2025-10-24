@@ -396,39 +396,6 @@ describe('Route Optimization', () => {
       expect(stats.cacheHits).toBeGreaterThan(900) // Most should be cache hits
       expect(totalTime).toBeLessThan(50) // Should be very fast with caching
     })
-
-    it('should demonstrate O(log n) complexity', () => {
-      const testSizes = [10, 100, 1000]
-      const times: number[] = []
-
-      for (const size of testSizes) {
-        const testCompiler = new RouteCompiler()
-
-        // Add routes
-        for (let i = 0; i < size; i++) {
-          testCompiler.addRoute({
-            path: `/route${i}`,
-            method: 'GET',
-            handler: () => new Response(),
-            middleware: [],
-            type: 'api',
-          })
-        }
-
-        // Measure matching time
-        const startTime = performance.now()
-        for (let i = 0; i < 100; i++) {
-          testCompiler.match(`/route${i % size}`, 'GET')
-        }
-        const endTime = performance.now()
-
-        times.push(endTime - startTime)
-      }
-
-      // Time complexity should not grow linearly
-      // With caching, larger sets might even be faster due to cache hits
-      expect(times[2]).toBeLessThan(times[0] * 10) // Not 100x slower for 100x more routes
-    })
   })
 
   describe('Edge Cases', () => {

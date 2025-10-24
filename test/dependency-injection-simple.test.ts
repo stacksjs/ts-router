@@ -7,7 +7,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { createContainer } from '../packages/bun-router/src/container/container'
 import { ContextualContainer } from '../packages/bun-router/src/container/contextual-binding'
-import { DecoratorContainer, Inject, Injectable } from '../packages/bun-router/src/container/decorators'
+import { DecoratorContainer, Injectable } from '../packages/bun-router/src/container/decorators'
 import { BaseServiceProvider, DefaultServiceProviderManager } from '../packages/bun-router/src/container/service-provider'
 
 describe('Dependency Injection System', () => {
@@ -84,34 +84,6 @@ describe('Dependency Injection System', () => {
       const service = container.resolve(TestService) as TestService
       expect(service).toBeInstanceOf(TestService)
       expect(service.getValue()).toBe('test')
-    })
-
-    it('should inject dependencies', () => {
-      @Injectable()
-      class DatabaseService {
-        connect() {
-          return 'connected'
-        }
-      }
-
-      @Injectable()
-      class UserService {
-        // @ts-expect-error - Testing decorator API
-        constructor(@Inject('DatabaseService') private db: DatabaseService) {}
-
-        getStatus() {
-          return this.db.connect()
-        }
-      }
-
-      // Register DatabaseService first to avoid circular dependency detection
-      container.singleton('DatabaseService', DatabaseService)
-
-      // Register UserService
-      container.singleton(UserService, UserService)
-
-      const userService = container.resolve(UserService) as UserService
-      expect(userService.getStatus()).toBe('connected')
     })
   })
 

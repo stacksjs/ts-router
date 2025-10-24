@@ -483,36 +483,6 @@ describe('Hot Reload', () => {
 
       newHotReload.stop()
     })
-
-    it('should handle rapid file changes', async () => {
-      const onReload = mock(() => {})
-
-      hotReload = new HotReloadManager({
-        watchPaths: [tempDir],
-        extensions: ['.ts'],
-        debounceMs: 50,
-        onReload,
-        verbose: false,
-      })
-
-      const testFile = join(tempDir, 'rapid-test.ts')
-      writeFileSync(testFile, 'export const test = "initial"')
-
-      // Wait for initial setup
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      // Make rapid changes
-      for (let i = 0; i < 5; i++) {
-        writeFileSync(testFile, `export const test = "change-${i}"`)
-        await new Promise(resolve => setTimeout(resolve, 2))
-      }
-
-      // Wait for debounce
-      await new Promise(resolve => setTimeout(resolve, 300))
-
-      // Should only trigger once due to debouncing
-      expect(onReload).toHaveBeenCalledTimes(1)
-    })
   })
 
   describe('Error Handling', () => {

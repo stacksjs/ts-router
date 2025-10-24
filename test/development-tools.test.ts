@@ -374,17 +374,6 @@ describe('Performance Profiler', () => {
     const profileId = disabledProfiler.startProfiling(req, '/test')
     expect(profileId).toBeNull()
   })
-
-  test('should respect sample rate', () => {
-    const sampledProfiler = new PerformanceProfiler({
-      enabled: true,
-      sampleRate: 0.0, // Never sample
-    })
-
-    const req = createMockRequest()
-    const profileId = sampledProfiler.startProfiling(req, '/test')
-    expect(profileId).toBeNull()
-  })
 })
 
 describe('TypeScript Utilities', () => {

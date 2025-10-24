@@ -454,8 +454,32 @@ export class Container {
    */
   private getConstructorDependencies(constructor: ((...args: any[]) => any) | (new (...args: any[]) => any)): Token[] {
     // Check for explicit metadata
-    const injectMetadata = Reflect.getMetadata?.(INJECT_METADATA_KEY, constructor) as InjectMetadata[]
+    let injectMetadata = Reflect.getMetadata?.(INJECT_METADATA_KEY, constructor) as InjectMetadata[]
       || (constructor as any)[INJECT_METADATA_KEY] as InjectMetadata[]
+
+    // If not found on the constructor itself, check the constructor property
+    // For classes, the metadata might be stored on the constructor property
+    if (!injectMetadata && (constructor as any).constructor) {
+      injectMetadata = (constructor as any).constructor[INJECT_METADATA_KEY] as InjectMetadata[]
+    }
+
+    // Also check if this is a class and the metadata is on the class itself
+    if (!injectMetadata && typeof constructor === 'function' && constructor.prototype) {
+      // This is a class constructor, check if metadata is stored on the class
+      const classMetadata = (constructor as any)[INJECT_METADATA_KEY] as InjectMetadata[]
+      if (classMetadata) {
+        injectMetadata = classMetadata
+      }
+    }
+
+    // Final check: if this is a class, look for metadata on the class itself
+    if (!injectMetadata && typeof constructor === 'function') {
+      const directMetadata = (constructor as any)[INJECT_METADATA_KEY] as InjectMetadata[]
+      if (directMetadata) {
+        injectMetadata = directMetadata
+      }
+    }
+
     if (injectMetadata) {
       return injectMetadata.map(meta => meta.token)
     }

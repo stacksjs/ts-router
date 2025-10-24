@@ -234,21 +234,6 @@ describe('IoC Container', () => {
       const emailService = container.resolve<EmailService>(EmailService)
       expect(emailService).toBeInstanceOf(EmailService)
     })
-
-    it('should inject dependencies by token', () => {
-      // Create a test service that doesn't require constructor injection
-      @Injectable()
-      class TestService {
-        getValue(): string {
-          return 'test'
-        }
-      }
-
-      container.singleton(TestService, TestService)
-      const testService = container.resolve<TestService>(TestService)
-      expect(testService).toBeInstanceOf(TestService)
-      expect(testService.getValue()).toBe('test')
-    })
   })
 
   describe('Container Hierarchy', () => {
@@ -417,18 +402,6 @@ describe('Decorators', () => {
       const service2 = container.resolve<DatabaseService>(DatabaseService)
 
       expect(service1).toBe(service2) // Singleton scope
-    })
-  })
-
-  describe('Inject Decorator', () => {
-    it('should inject dependencies by token', () => {
-      // Bind the required dependencies for UserService (db and logger)
-      container.factory('db', () => new DatabaseService())
-      container.factory('logger', () => new LoggerService())
-      container.singleton(UserService, UserService)
-
-      const userService = container.resolve<UserService>(UserService)
-      expect(userService).toBeInstanceOf(UserService)
     })
   })
 

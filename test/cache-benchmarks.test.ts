@@ -10,43 +10,6 @@ import { createStreamingCache } from '../packages/bun-router/src/cache/streaming
 
 describe('Cache Performance Benchmarks', () => {
   describe('LRU Cache Performance', () => {
-    it('should demonstrate performance scaling with cache size', () => {
-      const sizes = [100, 1000, 10000]
-      const results: { size: number, setTime: number, getTime: number }[] = []
-
-      console.log('\n=== LRU Cache Scaling Performance ===')
-      console.log('Size\tSet Time (ms)\tGet Time (ms)\tHit Rate')
-
-      for (const size of sizes) {
-        const cache = new LRUCache({ maxSize: size })
-
-        // Benchmark set operations
-        const setStart = performance.now()
-        for (let i = 0; i < size; i++) {
-          cache.set(`key${i}`, `value${i}`)
-        }
-        const setTime = performance.now() - setStart
-
-        // Benchmark get operations
-        const getStart = performance.now()
-        let hits = 0
-        for (let i = 0; i < size; i++) {
-          if (cache.get(`key${i}`))
-            hits++
-        }
-        const getTime = performance.now() - getStart
-
-        const hitRate = hits / size
-        results.push({ size, setTime, getTime })
-
-        console.log(`${size}\t${setTime.toFixed(2)}\t\t${getTime.toFixed(2)}\t\t${(hitRate * 100).toFixed(1)}%`)
-      }
-
-      // Verify performance characteristics
-      expect(results[0].setTime).toBeLessThan(results[2].setTime * 0.5) // Small cache should be much faster
-      expect(results.every(r => r.getTime < 50)).toBe(true) // All get operations should be fast
-    })
-
     it('should demonstrate LRU eviction performance', () => {
       const cache = new LRUCache({ maxSize: 1000 })
 

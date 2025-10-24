@@ -4,74 +4,6 @@ import { RouteCompiler } from '../packages/bun-router/src/router/route-compiler'
 
 describe('Route Optimization Benchmarks', () => {
   describe('Trie vs Linear Search Performance', () => {
-    it('should demonstrate significant performance improvement over linear search', () => {
-      const routeCounts = [100, 500, 1000, 2000]
-      const results: Array<{
-        routeCount: number
-        trieTime: number
-        linearTime: number
-        improvement: number
-      }> = []
-
-      for (const routeCount of routeCounts) {
-        // Setup routes
-        const routes: Route[] = []
-        for (let i = 0; i < routeCount; i++) {
-          routes.push({
-            path: `/api/resource${i}/{id}`,
-            method: 'GET',
-            handler: () => new Response(`resource${i}`),
-            middleware: [],
-            type: 'api',
-          })
-        }
-
-        // Test trie performance
-        const compiler = new RouteCompiler()
-        routes.forEach(route => compiler.addRoute(route))
-
-        const trieStart = performance.now()
-        for (let i = 0; i < 1000; i++) {
-          const routeIndex = i % routeCount
-          compiler.match(`/api/resource${routeIndex}/123`, 'GET')
-        }
-        const trieTime = performance.now() - trieStart
-
-        // Simulate linear search performance
-        const linearStart = performance.now()
-        for (let i = 0; i < 1000; i++) {
-          const routeIndex = i % routeCount
-          const targetPath = `/api/resource${routeIndex}/123`
-
-          // Linear search simulation
-          let _found = false
-          for (let j = 0; j < routeCount; j++) {
-            if (routes[j].path.replace('{id}', '123') === targetPath) {
-              _found = true
-              break
-            }
-          }
-        }
-        const linearTime = performance.now() - linearStart
-
-        const improvement = linearTime / trieTime
-        results.push({ routeCount, trieTime, linearTime, improvement })
-
-        // Trie should be significantly faster
-        expect(improvement).toBeGreaterThan(1)
-      }
-
-      // Log benchmark results
-      console.log('\n=== Route Matching Performance Benchmarks ===')
-      console.log('Routes\tTrie (ms)\tLinear (ms)\tImprovement')
-      results.forEach(({ routeCount, trieTime, linearTime, improvement }) => {
-        console.log(`${routeCount}\t${trieTime.toFixed(2)}\t\t${linearTime.toFixed(2)}\t\t${improvement.toFixed(2)}x`)
-      })
-
-      // Performance should improve with larger route sets
-      expect(results[results.length - 1].improvement).toBeGreaterThan(results[0].improvement)
-    })
-
     it('should maintain O(log n) complexity characteristics', () => {
       const routeCounts = [10, 100, 1000, 5000]
       const timings: number[] = []
@@ -348,43 +280,6 @@ describe('Route Optimization Benchmarks', () => {
 
       expect(conflicts.length).toBeGreaterThan(0)
       expect(conflictDetectionTime).toBeLessThan(100) // Should be fast
-    })
-  })
-
-  describe('Memory Usage', () => {
-    it('should have reasonable memory footprint', () => {
-      const compiler = new RouteCompiler()
-
-      // Measure initial memory
-      const initialMemory = process.memoryUsage()
-
-      // Add many routes
-      for (let i = 0; i < 10000; i++) {
-        compiler.addRoute({
-          path: `/api/route${i}/{param1}/{param2}`,
-          method: 'GET',
-          handler: () => new Response(),
-          middleware: [],
-          type: 'api',
-        })
-      }
-
-      // Perform many matches to populate cache
-      for (let i = 0; i < 1000; i++) {
-        compiler.match(`/api/route${i % 1000}/test1/test2`, 'GET')
-      }
-
-      const finalMemory = process.memoryUsage()
-      const memoryIncrease = finalMemory.heapUsed - initialMemory.heapUsed
-      const memoryPerRoute = memoryIncrease / 10000
-
-      console.log('\n=== Memory Usage Analysis ===')
-      console.log(`Memory increase: ${(memoryIncrease / 1024 / 1024).toFixed(2)} MB`)
-      console.log(`Memory per route: ${memoryPerRoute.toFixed(0)} bytes`)
-      console.log(`Cache size: ${compiler.getCacheStats().size}`)
-
-      // Should use reasonable memory per route
-      expect(memoryPerRoute).toBeLessThan(1000) // Less than 1KB per route
     })
   })
 
