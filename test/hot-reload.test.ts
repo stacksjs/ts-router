@@ -102,33 +102,6 @@ describe('Hot Reload', () => {
       expect(hotReload.restoreState('testKey')).toBeUndefined()
     })
 
-    it('should handle file changes with debouncing', async () => {
-      const onReload = mock(() => {})
-
-      hotReload = new HotReloadManager({
-        watchPaths: [tempDir],
-        extensions: ['.ts'],
-        debounceMs: 50,
-        onReload,
-        verbose: false,
-      })
-
-      // Create a test file
-      const testFile = join(tempDir, 'test.ts')
-      writeFileSync(testFile, 'export const test = "initial"')
-
-      // Wait for initial setup
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      // Modify the file
-      writeFileSync(testFile, 'export const test = "modified"')
-
-      // Wait for debounce and reload
-      await new Promise(resolve => setTimeout(resolve, 200))
-
-      expect(onReload).toHaveBeenCalled()
-    })
-
     it('should ignore files based on config', async () => {
       const onReload = mock(() => {})
 

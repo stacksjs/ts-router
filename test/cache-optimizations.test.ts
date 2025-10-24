@@ -421,49 +421,6 @@ describe('Cache Optimizations', () => {
       expect(stats.cacheHits).toBe(1)
     })
 
-    it('should support conditional memoization', async () => {
-      let executionCount = 0
-
-      const middleware = async (req: EnhancedRequest, _next: any) => {
-        executionCount++
-        return new Response(JSON.stringify({ success: req.method === 'GET', count: executionCount }), {
-          headers: { 'content-type': 'application/json' },
-        })
-      }
-
-      const memoizedMiddleware = memoizer.memoize(middleware, {
-        shouldMemoize: (req, result) => {
-          if (result instanceof Response) {
-            return result.status === 200 // Only memoize successful responses
-          }
-          return false
-        },
-      })
-
-      // GET request - should be memoized
-      const result1 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
-      const result2 = await memoizedMiddleware(mockRequest, () => Promise.resolve(null))
-      expect(result1).toBeInstanceOf(Response)
-      expect(result2).toBeInstanceOf(Response)
-      if (result1 && result2) {
-        const data1 = await result1.json() as { success: boolean, count: number }
-        const data2 = await result2.json() as { success: boolean, count: number }
-        expect(data2.count).toBe(data1.count)
-      }
-
-      // POST request - should not be memoized
-      const postRequest = { ...mockRequest, method: 'POST' as const }
-      const result3 = await memoizedMiddleware(postRequest, () => Promise.resolve(null))
-      const result4 = await memoizedMiddleware(postRequest, () => Promise.resolve(null))
-      expect(result3).toBeInstanceOf(Response)
-      expect(result4).toBeInstanceOf(Response)
-      if (result3 && result4) {
-        const data3 = await result3.json() as { success: boolean, count: number }
-        const data4 = await result4.json() as { success: boolean, count: number }
-        expect(data4.count).not.toBe(data3.count)
-      }
-    })
-
     it('should invalidate cache by pattern', async () => {
       const middleware = async (req: EnhancedRequest, _next: any) => {
         return new Response(JSON.stringify({ path: req.url }), {

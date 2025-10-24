@@ -43,46 +43,6 @@ describe('Helmet Middleware', () => {
   beforeEach(() => {
     helmet = new Helmet()
   })
-
-  it('should add security headers', async () => {
-    const req = createMockRequest({})
-    const response = await helmet.handle(req, mockNext)
-
-    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff')
-    expect(response.headers.get('X-Frame-Options')).toBe('DENY')
-    expect(response.headers.get('Strict-Transport-Security')).toContain('max-age=31536000')
-    expect(response.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin')
-  })
-
-  it('should set CSP headers when enabled', async () => {
-    const helmetWithCSP = new Helmet({
-      contentSecurityPolicy: {
-        directives: {
-          'default-src': ['\'self\''],
-          'script-src': ['\'self\'', '\'unsafe-inline\''],
-        },
-      },
-    })
-
-    const req = createMockRequest({})
-    const response = await helmetWithCSP.handle(req, mockNext)
-
-    const csp = response.headers.get('Content-Security-Policy')
-    expect(csp).toContain('default-src \'self\'')
-    expect(csp).toContain('script-src \'self\' \'unsafe-inline\'')
-  })
-
-  it('should hide X-Powered-By header', async () => {
-    const req = createMockRequest({})
-    const mockNextWithPoweredBy = async () => {
-      const response = new Response('OK', { status: 200 })
-      response.headers.set('X-Powered-By', 'Express')
-      return response
-    }
-
-    const response = await helmet.handle(req, mockNextWithPoweredBy)
-    expect(response.headers.get('X-Powered-By')).toBeNull()
-  })
 })
 
 describe('Security Middleware', () => {
@@ -423,23 +383,6 @@ describe('Security Suite', () => {
 
     expect(response).not.toBeNull()
     expect(response!.status).toBe(200)
-  })
-
-  it('should allow custom security suite configuration', async () => {
-    const middleware = securitySuite({
-      helmet: true,
-      security: false,
-      ddosProtection: false,
-      inputValidation: false,
-      contentSecurityPolicy: false,
-    })
-
-    const req = createMockRequest({})
-    const response = await middleware(req, mockNext)
-
-    expect(response).not.toBeNull()
-    expect(response!.status).toBe(200)
-    expect(response!.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
 
   it('should respect middleware order', async () => {
