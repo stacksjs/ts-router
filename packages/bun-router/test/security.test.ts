@@ -37,14 +37,6 @@ interface ValidationErrorResponse {
   errors: Array<{ field: string, message: string }>
 }
 
-describe('Helmet Middleware', () => {
-  let helmet: Helmet
-
-  beforeEach(() => {
-    helmet = new Helmet()
-  })
-})
-
 describe('Security Middleware', () => {
   let security: Security
 
