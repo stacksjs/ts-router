@@ -72,7 +72,7 @@
   "dependencies": {
     "@stacksjs/clapp": "^0.2.0",
     "better-dx": "^0.2.0",
-    "bun-plugin-dtsx": "^0.21.15",
+    "bun-plugin-dtsx": "^0.21.16",
     "bun-query-builder": "^0.1.10",
     "bunfig": "^0.15.6",
     "openapi-types": "^12.1.3",

@@ -18,7 +18,7 @@
       "dependencies": {
         "@stacksjs/clapp": "^0.2.0",
         "better-dx": "^0.2.0",
-        "bun-plugin-dtsx": "^0.21.15",
+        "bun-plugin-dtsx": "^0.21.16",
         "bun-query-builder": "^0.1.10",
         "bunfig": "^0.15.6",
         "openapi-types": "^12.1.3",
@@ -904,7 +904,7 @@
 
     "bun-git-hooks": ["bun-git-hooks@0.3.1", "", { "bin": { "git-hooks": "dist/bin/cli.js", "bun-git-hooks": "dist/bin/cli.js" } }, "sha512-Xs/QUqIYgBmLHSVr5VBLVbM5lZbUoAXKX2WZyoQDb2LlzcxC3BpBvMkMTQH75UuOJZwaRBq8yEe4IR6NckqdgQ=="],
 
-    "bun-plugin-dtsx": ["bun-plugin-dtsx@0.21.15", "", { "dependencies": { "@stacksjs/dtsx": "^0.9.8" } }, "sha512-cF3L+5mUaVunIQ36KFpox0Okq3Oxg8To5jb5hSQnM0TioLBKRJCFwm14jcEOVu0vOrxqCdkNBxm/8b+0/iDdEQ=="],
+    "bun-plugin-dtsx": ["bun-plugin-dtsx@0.21.16", "", { "dependencies": { "@stacksjs/dtsx": "^0.9.8" } }, "sha512-iM9MNwGRy2F6MYkmMCKvc2wVUOiUcfju2GKjTInd3yRfeI3mmRvKf5F0BtnTiy+1FoEBW1yIvfeVLNnr9iDNNg=="],
 
     "bun-query-builder": ["bun-query-builder@0.1.10", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "@stacksjs/ts-validation": "^0.4.7", "ts-mocker": "^0.1.5" }, "bin": { "query-builder": "dist/bin/cli.js", "qbx": "dist/bin/cli.js", "qb": "dist/bin/cli.js" } }, "sha512-mH//qnjbAbmkO0p5Ezc6KcE4WgiwwOpyHwFZJj8w8/vFlHyG5Uw5mBt9Kmunlk143gAr0Ole41TKXnsgSSe50Q=="],
 
