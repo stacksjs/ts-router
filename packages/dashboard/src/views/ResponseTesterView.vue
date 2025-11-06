@@ -318,7 +318,7 @@ function shouldShowRequestBody(method: string): boolean {
               v-model="requestBody"
               rows="6"
               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono"
-              :placeholder="`{\n  &quot;key&quot;: &quot;value&quot;\n}`"
+              placeholder="{\n  &quot;key&quot;: &quot;value&quot;\n}"
             />
           </div>
 
