@@ -347,7 +347,6 @@ function handleRealWebsocketClose() {
   })
 }
 
-// eslint-disable-next-line unused-imports/no-unused-vars, node/handle-callback-err
 function handleRealWebsocketError(_error: any) {
   if (!activeConnection.value)
     return

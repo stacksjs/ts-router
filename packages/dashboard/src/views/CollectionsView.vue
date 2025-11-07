@@ -3,6 +3,7 @@ import type { Collection, RequestItem } from '../store/collectionsStore'
 import { computed, onMounted, ref } from 'vue'
 import CodeExporter from '../components/CodeExporter.vue'
 import { useCollectionsStore } from '../store/collectionsStore'
+
 const collectionsStore = useCollectionsStore()
 const newCollectionName = ref('')
 const newCollectionDescription = ref('')

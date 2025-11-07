@@ -2,6 +2,7 @@
 import type { HistoryItem } from '../store/historyStore'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useHistoryStore } from '../store/historyStore'
+
 const historyStore = useHistoryStore()
 const searchQuery = ref('')
 const selectedItem = ref<HistoryItem | null>(null)
@@ -172,6 +173,7 @@ function removeTag(item: HistoryItem, tag: string) {
 
 // Get prompt input
 function getPromptInput(message: string): string | null {
+  // eslint-disable-next-line no-alert
   return window.prompt(message)
 }
 
