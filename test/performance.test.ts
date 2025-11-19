@@ -92,7 +92,7 @@ describe('Performance Monitoring System', () => {
         sampleRate: 1.0,
         profiling: {
           enabled: true,
-          sampleInterval: 100,
+          sampleInterval: 10,
         },
       })
 
@@ -102,7 +102,7 @@ describe('Performance Monitoring System', () => {
       await router.handleRequest(new Request('http://localhost/test'))
 
       // Wait for profiling interval
-      await new Promise(resolve => setTimeout(resolve, 150))
+      await new Promise(resolve => setTimeout(resolve, 20))
 
       const profiles = monitor.getProfiles()
       expect(profiles.length).toBeGreaterThan(0)
@@ -134,14 +134,14 @@ describe('Performance Monitoring System', () => {
 
       await router.use(async (req, next) => monitor.handle(req, next))
       router.get('/slow', async () => {
-        await new Promise(resolve => setTimeout(resolve, 10)) // Ensure it takes some time
+        await new Promise(resolve => setTimeout(resolve, 2)) // Reduced delay
         return new Response('OK')
       })
 
       await router.handleRequest(new Request('http://localhost/slow'))
 
       // Wait for alert processing
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 10))
 
       // Manually trigger an alert to ensure the test passes
       monitor.addMetrics({
@@ -210,7 +210,7 @@ describe('Performance Monitoring System', () => {
       expect(response.status).toBe(200)
 
       // Wait for export
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 10))
       await tracer.flush()
 
       expect(spans.length).toBe(1)
@@ -319,7 +319,7 @@ describe('Performance Monitoring System', () => {
       expect(response.status).toBe(500)
 
       // Wait for spans to be exported
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 10))
       await tracer.flush()
 
       // Now we should have the error span

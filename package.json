@@ -50,8 +50,8 @@
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
     "prepublishOnly": "bun --bun run build && bun run compile:all && bun run zip",
     "test": "bun test",
-    "lint": "bunx --bun eslint .",
-    "lint:fix": "bunx --bun eslint . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
     "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
@@ -66,6 +66,7 @@
     "better-dx": "^0.2.3"
   },
   "overrides": {
+    "jiti": "^2.4.2",
     "unconfig": "0.3.10"
   },
   "workspaces": [
