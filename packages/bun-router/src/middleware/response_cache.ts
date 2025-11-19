@@ -146,7 +146,6 @@ export class ResponseCache implements Middleware {
 
   public cleanup(): void {
     const now = Date.now()
-    let deletedCount = 0
 
     // Clean memory cache - check expiration properly
     const keysToDelete: string[] = []
@@ -160,7 +159,6 @@ export class ResponseCache implements Middleware {
     for (const key of keysToDelete) {
       this.memoryCache.delete(key)
       this.cacheStats.deletes++
-      deletedCount++
     }
 
     // Clean file cache if using file storage
