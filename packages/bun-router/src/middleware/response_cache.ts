@@ -170,10 +170,6 @@ export class ResponseCache implements Middleware {
 
     // Update cache stats after cleanup
     this.updateCacheStats()
-
-    if (deletedCount > 0) {
-      console.warn(`[ResponseCache] Cleaned up ${deletedCount} expired entries`)
-    }
   }
 
   private async cleanupFileCache(): Promise<void> {
