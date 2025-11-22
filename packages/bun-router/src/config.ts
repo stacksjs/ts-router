@@ -306,8 +306,17 @@ export const defaultConfig: RouterConfig = {
   },
 }
 
-// eslint-disable-next-line antfu/no-top-level-await
-export const config: RouterConfig = await loadConfig({
+let _config: RouterConfig | null = null
+
+export async function getConfig(): Promise<RouterConfig> {
+  if (!_config) {
+    _config = await loadConfig({
   name: 'router',
   defaultConfig,
 })
+  }
+  return _config
+}
+
+// For backwards compatibility - synchronous access with default fallback
+export const config: RouterConfig = defaultConfig
