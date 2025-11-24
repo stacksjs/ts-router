@@ -9,25 +9,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@unocss/reset": "^66.5.7",
+    "@unocss/reset": "^66.5.9",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
     "d3": "7.9.0",
     "pinia": "^3.0.4",
-    "vue": "^3.5.24",
+    "vue": "^3.5.25",
     "vue-chartjs": "^5.3.3",
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.2.14",
     "@types/d3": "7.4.3",
-    "@unocss/preset-icons": "^66.5.7",
-    "@unocss/preset-uno": "^66.5.7",
-    "@unocss/preset-web-fonts": "^66.5.7",
-    "@unocss/transformer-directives": "^66.5.7",
+    "@unocss/preset-icons": "^66.5.9",
+    "@unocss/preset-uno": "^66.5.9",
+    "@unocss/preset-web-fonts": "^66.5.9",
+    "@unocss/transformer-directives": "^66.5.9",
     "@vitejs/plugin-vue": "^6.0.2",
-    "unocss": "^66.5.7",
-    "vite": "^7.2.2",
-    "vue-tsc": "^3.1.4"
+    "unocss": "^66.5.9",
+    "vite": "^7.2.4",
+    "vue-tsc": "^3.1.5"
   }
 }
