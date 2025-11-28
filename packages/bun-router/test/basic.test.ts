@@ -1,3 +1,4 @@
+import type { EnhancedRequest } from '../src/types'
 import { beforeEach, describe, expect, it } from 'bun:test'
 import { Router } from '../src/router'
 
@@ -22,7 +23,7 @@ describe('Bun Router - Basic Tests', () => {
 
   it('should handle path parameters', async () => {
     // Register a route with path parameters
-    await router.get('/users/{id}', (req) => {
+    await router.get('/users/{id}', (req: EnhancedRequest) => {
       return new Response(`User ID: ${req.params.id}`)
     })
 

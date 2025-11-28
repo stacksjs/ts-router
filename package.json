@@ -65,10 +65,6 @@
     "@stacksjs/eslint-config": "^4.14.0-beta.3",
     "better-dx": "^0.2.5"
   },
-  "overrides": {
-    "jiti": "^2.6.1",
-    "unconfig": "0.3.10"
-  },
   "workspaces": [
     "packages/*"
   ]

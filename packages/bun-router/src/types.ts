@@ -1,5 +1,93 @@
-import type { Server, ServerWebSocket } from 'bun'
+import type { Server } from 'bun'
 import type { Router } from './router/router'
+import type {
+  AuthContext,
+  AuthenticatedUser,
+  BoundModels,
+  CacheAdapter,
+  CacheStats,
+  CookieToDelete,
+  CookieToSet,
+  ErrorMetadata,
+  FallbackError,
+  FileInfo,
+  FlashMessages,
+  FormBody,
+  InputValidationSchemas,
+  InputValue,
+  JsonBodyData,
+  JwtHeader,
+  JwtPayload,
+  MetricEntry,
+  MiddlewareParams,
+  OAuth2Flows,
+  OAuth2Profile,
+  RequestContext,
+  RequestInput,
+  RouteMetadata,
+  SanitizationOptions,
+  SanitizationRule,
+  SessionData,
+  SessionSerializer,
+  SessionStore,
+  SSEConnection,
+  StaticResponseBody,
+  TemplateHelper,
+  TemplateHelpers,
+  TraceAttributes,
+  TraceSpan,
+  TypedServerWebSocket,
+  User,
+  ValidatedBody,
+  ValidatedData,
+  ValidationSchema,
+  WebSocketData,
+} from './types/core'
+
+// Re-export core types
+export type {
+  AuthContext,
+  AuthenticatedUser,
+  BoundModels,
+  CacheAdapter,
+  CacheStats,
+  CookieToDelete,
+  CookieToSet,
+  ErrorMetadata,
+  FallbackError,
+  FileInfo,
+  FlashMessages,
+  FormBody,
+  InputValidationSchemas,
+  InputValue,
+  JsonBodyData,
+  JwtHeader,
+  JwtPayload,
+  MetricEntry,
+  MiddlewareParams,
+  OAuth2Flows,
+  OAuth2Profile,
+  RequestContext,
+  RequestInput,
+  RouteMetadata,
+  SanitizationOptions,
+  SanitizationRule,
+  SessionData,
+  SessionSerializer,
+  SessionStore,
+  SSEConnection,
+  StaticResponseBody,
+  TemplateHelper,
+  TemplateHelpers,
+  TraceAttributes,
+  TraceSpan,
+  TypedServerWebSocket,
+  User,
+  ValidatedBody,
+  ValidatedData,
+  ValidationSchema,
+  WebSocketData,
+}
 
 export interface Contact {
   name?: string
@@ -13,7 +101,7 @@ export interface SecurityScheme {
   bearerFormat?: string
   name?: string
   in?: 'header' | 'query' | 'cookie'
-  flows?: any // OAuth2 flows configuration
+  flows?: OAuth2Flows
 }
 
 export interface DocsConfig {
@@ -94,13 +182,7 @@ export interface CacheConfig {
       }
     }
   }
-  customAdapter?: {
-    get: (key: string) => Promise<any>
-    set: (key: string, value: any, ttl?: number) => Promise<void>
-    del: (key: string) => Promise<void>
-    clear?: () => Promise<void>
-    stats?: () => Promise<{ hits: number, misses: number, keys: number }>
-  }
+  customAdapter?: CacheAdapter<unknown>
   routeCache?: {
     enabled: boolean
     ttl: number
@@ -184,7 +266,7 @@ export interface PerformanceConfig {
       type?: CacheType
       maxEntries?: number
       filePath?: string
-      customHandler?: (metrics: any[]) => Promise<void>
+      customHandler?: (metrics: MetricEntry[]) => Promise<void>
     }
     alerting?: {
       enabled?: boolean
@@ -372,7 +454,7 @@ export interface SecurityConfig {
     trustProxy?: boolean
     skipSuccessfulRequests?: boolean
     skipFailedRequests?: boolean
-    keyGenerator?: (req: any) => string
+    keyGenerator?: (req: Request) => string
     store?: Extract<CacheType, 'memory' | 'redis'>
     redis?: {
       url: string
@@ -385,12 +467,7 @@ export interface SecurityConfig {
     strictMode?: boolean
     allowUnknownFields?: boolean
     maxDepth?: number
-    schemas?: {
-      query?: Record<string, any>
-      body?: Record<string, any>
-      headers?: Record<string, any>
-      params?: Record<string, any>
-    }
+    schemas?: InputValidationSchemas
   }
   attackPrevention?: {
     enabled?: boolean
@@ -477,20 +554,9 @@ export interface SecurityConfig {
           prefix: string
           ttl?: number
           scanCount?: number
-          serializer?: {
-            stringify: (data: any) => string
-            parse: (data: string) => any
-          }
+          serializer?: SessionSerializer
         }
-        custom?: {
-          get: (sid: string) => Promise<any>
-          set: (sid: string, session: any, ttl?: number) => Promise<void>
-          destroy: (sid: string) => Promise<void>
-          touch?: (sid: string, session: any, ttl?: number) => Promise<void>
-          all?: () => Promise<{ [sid: string]: any }>
-          length?: () => Promise<number>
-          clear?: () => Promise<void>
-        }
+        custom?: SessionStore
       }
     }
     oauth2?: {
@@ -504,7 +570,7 @@ export interface SecurityConfig {
           authorizationURL?: string
           tokenURL?: string
           profileURL?: string
-          validateProfile?: (profile: any) => Promise<boolean>
+          validateProfile?: (profile: OAuth2Profile) => Promise<boolean>
         }
       }
     }
@@ -521,7 +587,7 @@ export interface SecurityConfig {
     rules: {
       [key: string]: {
         type: 'escape' | 'strip' | 'validate'
-        options?: any
+        options?: SanitizationOptions
       }
     }
   }
@@ -573,7 +639,7 @@ export interface ServerConfig {
     onResponse?: (res: Response) => Promise<Response>
     onError?: (error: Error) => Promise<void>
     onMetric?: (metric: { name: string, value: number, tags?: Record<string, string> }) => Promise<void>
-    onTrace?: (span: { name: string, duration: number, attributes: Record<string, any> }) => Promise<void>
+    onTrace?: (span: TraceSpan) => Promise<void>
   }
   experimental?: {
     http3: boolean
@@ -628,14 +694,14 @@ export interface ViewEngineConfig {
   /**
    * Template helpers
    */
-  helpers?: Record<string, (...args: any[]) => any>
+  helpers?: TemplateHelpers
 }
 
 export interface ViewRenderOptions {
   layout?: string
   partials?: Record<string, string>
   components?: Record<string, string>
-  helpers?: Record<string, (...args: any[]) => any>
+  helpers?: TemplateHelpers
   sections?: Record<string, string>
 }
 
@@ -687,7 +753,7 @@ export interface CookieOptions {
   sameSite?: 'strict' | 'lax' | 'none'
 }
 
-export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip' | 'cookies'> {
+export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip' | 'cookies' | 'route'> {
   /**
    * Route parameters extracted from the URL
    */
@@ -699,11 +765,11 @@ export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip'
   /**
    * Parsed JSON body (if Content-Type is application/json)
    */
-  jsonBody?: any
+  jsonBody?: Record<string, unknown>
   /**
    * Form body data (if Content-Type is multipart/form-data or application/x-www-form-urlencoded)
    */
-  formBody?: Record<string, any>
+  formBody?: FormBody
   /**
    * Uploaded files (if Content-Type is multipart/form-data)
    */
@@ -711,23 +777,23 @@ export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip'
   /**
    * Session data (if session middleware is used)
    */
-  session?: any
+  session?: SessionData
   /**
    * User data (if authentication middleware is used)
    */
-  user?: any
+  user?: User
   /**
    * Additional context data that can be set by middleware
    */
-  context?: Record<string, any>
+  context?: RequestContext
   /**
    * Validated data from validation middleware
    */
-  validated?: Record<string, any>
+  validated?: ValidatedData
   /**
    * Model binding data
    */
-  models?: Record<string, any>
+  models?: BoundModels
   /**
    * Model binding errors
    */
@@ -735,7 +801,7 @@ export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip'
   /**
    * Authenticated user from auth middleware
    */
-  auth?: any
+  auth?: AuthContext
   /**
    * Rate limiting information
    */
@@ -755,7 +821,7 @@ export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip'
   /**
    * Flash messages (temporary messages for the next request)
    */
-  flash?: Record<string, any>
+  flash?: FlashMessages
   /**
    * CSRF token
    */
@@ -776,22 +842,23 @@ export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip'
    * Security middleware additions
    */
   nonce?: string
-  validatedBody?: any
+  validatedBody?: ValidatedBody
   /**
    * Internal cookies to set in response (used by cookie utilities)
    */
-  _cookiesToSet?: Array<{ name: string, value: string, options: any }>
+  _cookiesToSet?: CookieToSet[]
   /**
    * Internal cookies to delete in response (used by cookie utilities)
    */
-  _cookiesToDelete?: Array<{ name: string, options: any }>
+  _cookiesToDelete?: CookieToDelete[]
   /**
    * SSE connection information
    */
-  sse?: {
-    id: string
-    eventSource?: any
-  }
+  sse?: SSEConnection
+  /**
+   * The matched route object
+   */
+  route?: Route
 }
 
 export interface UploadedFile {
@@ -926,7 +993,7 @@ export interface AuthMiddlewareConfig {
   type: 'jwt' | 'session' | 'apikey' | 'basic' | 'bearer'
   required: boolean
   realm?: string
-  validateUser?: (user: any) => boolean
+  validateUser?: (user: User) => boolean
   onUnauthorized?: (req: EnhancedRequest) => Response
 }
 
@@ -953,14 +1020,14 @@ export interface Route {
 /**
  * WebSocket handler configuration
  */
-export interface WebSocketConfig {
-  open?: (ws: ServerWebSocket<any>) => void | Promise<void>
-  message: (ws: ServerWebSocket<any>, message: string | Uint8Array | ArrayBuffer) => void | Promise<void>
-  close?: (ws: ServerWebSocket<any>, code: number, reason: string) => void | Promise<void>
-  ping?: (ws: ServerWebSocket<any>, data: Uint8Array) => void | Promise<void>
-  pong?: (ws: ServerWebSocket<any>, data: Uint8Array) => void | Promise<void>
-  drain?: (ws: ServerWebSocket<any>) => void | Promise<void>
-  error?: (ws: ServerWebSocket<any>, error: Error) => void | Promise<void>
+export interface WebSocketConfig<T extends WebSocketData = WebSocketData> {
+  open?: (ws: TypedServerWebSocket<T>) => void | Promise<void>
+  message: (ws: TypedServerWebSocket<T>, message: string | Uint8Array | ArrayBuffer) => void | Promise<void>
+  close?: (ws: TypedServerWebSocket<T>, code: number, reason: string) => void | Promise<void>
+  ping?: (ws: TypedServerWebSocket<T>, data: Uint8Array) => void | Promise<void>
+  pong?: (ws: TypedServerWebSocket<T>, data: Uint8Array) => void | Promise<void>
+  drain?: (ws: TypedServerWebSocket<T>) => void | Promise<void>
+  error?: (ws: TypedServerWebSocket<T>, error: Error) => void | Promise<void>
   maxPayloadLength?: number
   backpressureLimit?: number
   closeOnBackpressureLimit?: boolean
@@ -986,8 +1053,8 @@ export type Compressor =
   | '128KB'
   | '256KB'
 
-export interface ServerOptions extends Partial<Omit<Server<any>, 'websocket'>> {
-  websocket?: WebSocketConfig
+export interface ServerOptions<T extends WebSocketData = WebSocketData> extends Partial<Omit<Server<T>, 'websocket'>> {
+  websocket?: WebSocketConfig<T>
 }
 
 /**
@@ -1031,7 +1098,7 @@ export interface RouteDefinition<
   /**
    * Optional route metadata for documentation or other purposes
    */
-  meta?: Record<string, any>
+  meta?: RouteMetadata
   /**
    * Cache configuration for this specific route
    */
@@ -1340,7 +1407,7 @@ export type MiddlewareConfigVariant =
   | { type: 'cors', config: CorsMiddlewareConfig }
   | { type: 'auth', config: AuthConfigVariant }
   | { type: 'cache', config: CacheConfigVariant }
-  | { type: 'custom', name: string, handler: MiddlewareHandler, params?: Record<string, any> }
+  | { type: 'custom', name: string, handler: MiddlewareHandler, params?: MiddlewareParams }
 
 /**
  * Discriminated union for route handlers
@@ -1360,7 +1427,7 @@ export type ValidationRuleVariant =
   | { type: 'number', min?: number, max?: number, integer?: boolean }
   | { type: 'email', message?: string }
   | { type: 'url', protocols?: string[] }
-  | { type: 'custom', validate: (value: any) => boolean | Promise<boolean>, message: string }
+  | { type: 'custom', validate: (value: unknown) => boolean | Promise<boolean>, message: string }
 
 /**
  * Streaming configuration types with extreme narrowing
@@ -1387,7 +1454,7 @@ export interface SSEConfig {
 /**
  * SSE Event data structure with strict typing
  */
-export interface SSEEvent<T = any> {
+export interface SSEEvent<T = unknown> {
   data: T
   event?: string
   id?: string | number
@@ -1398,7 +1465,7 @@ export interface SSEEvent<T = any> {
 /**
  * Stream generator function types
  */
-export type SSEGenerator<T = any> = () => AsyncGenerator<SSEEvent<T>, void, unknown>
+export type SSEGenerator<T = unknown> = () => AsyncGenerator<SSEEvent<T>, void, unknown>
 
 /**
  * Direct streaming configuration
@@ -1640,7 +1707,7 @@ export interface BufferedStreamOptions {
 /**
  * Async generator function type for streaming
  */
-export type StreamGenerator<T = any> = () => AsyncGenerator<T, void, unknown>
+export type StreamGenerator<T = unknown> = () => AsyncGenerator<T, void, unknown>
 
 /**
  * Direct stream handler function type
@@ -1662,7 +1729,7 @@ export type TransformFunction<T = Uint8Array, R = string | Uint8Array> = (chunk:
  */
 export interface ErrorContext {
   requestId?: string
-  userId?: string
+  userId?: string | number
   traceId?: string
   spanId?: string
   route?: string
@@ -1671,7 +1738,7 @@ export interface ErrorContext {
   userAgent?: string
   ip?: string
   timestamp?: Date
-  metadata?: Record<string, any>
+  metadata?: ErrorMetadata
 }
 
 export interface ErrorReportingConfig {
@@ -1682,7 +1749,7 @@ export interface ErrorReportingConfig {
   environment?: string
   release?: string
   sampleRate?: number
-  beforeSend?: (error: any, context: ErrorContext) => any
+  beforeSend?: (error: Error, context: ErrorContext) => Error | null
   filters?: {
     ignoreErrors?: (string | RegExp)[]
     ignoreCodes?: string[]
@@ -1695,7 +1762,7 @@ export interface ErrorReportingConfig {
     email?: string
     username?: string
   }
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
   breadcrumbs?: {
     enabled: boolean
     maxBreadcrumbs: number
@@ -1735,7 +1802,7 @@ export interface DegradationConfig {
         delay: number
         maxDelay?: number
       }
-      fallbackHandler?: (error: any, context: ErrorContext) => Promise<Response>
+      fallbackHandler?: (error: FallbackError, context: ErrorContext) => Promise<Response>
       cacheConfig?: {
         key: string
         ttl: number
@@ -1743,7 +1810,7 @@ export interface DegradationConfig {
       }
       staticResponse?: {
         status: number
-        body: any
+        body: StaticResponseBody
         headers?: Record<string, string>
       }
       redirectConfig?: {
@@ -1809,10 +1876,10 @@ export interface RequestMacroMethods {
   allHeaders: () => Record<string, string>
 
   // Input handling
-  input: (key: string, defaultValue?: any) => any
-  all: () => Record<string, any>
-  only: (keys: string[]) => Record<string, any>
-  except: (keys: string[]) => Record<string, any>
+  input: <T = InputValue>(key: string, defaultValue?: T) => T
+  all: () => RequestInput
+  only: (keys: string[]) => RequestInput
+  except: (keys: string[]) => RequestInput
 
   // Validation checks
   has: (key: string) => boolean
@@ -1821,15 +1888,15 @@ export interface RequestMacroMethods {
   filled: (key: string) => boolean
 
   // Query and params
-  getQuery: (key?: string, defaultValue?: any) => any
-  param: (key: string, defaultValue?: any) => any
+  getQuery: <T = InputValue>(key?: string, defaultValue?: T) => T
+  param: <T = InputValue>(key: string, defaultValue?: T) => T
 
   // Cookies
   cookie: (name: string, defaultValue?: string) => string | null
   cookies: () => Record<string, string>
 
   // Files
-  file: (name: string) => any
+  file: (name: string) => FileInfo | null
   hasFile: (name: string) => boolean
 
   // URL utilities
@@ -1842,8 +1909,8 @@ export interface RequestMacroMethods {
   // Utilities
   fingerprint: () => string
   signature: (secret: string) => string
-  merge: (data: Record<string, any>) => void
-  replace: (data: Record<string, any>) => void
+  merge: (data: RequestInput) => void
+  replace: (data: RequestInput) => void
   age: () => number
   isFromTrustedProxy: (trustedProxies?: string[]) => boolean
   contentLength: () => number
@@ -1861,7 +1928,7 @@ export type StreamCallbackGenerator<T = string | Uint8Array> = StreamGenerator<T
 /**
  * SSE Event generator with strict typing
  */
-export type SSEEventGenerator<T = any> = () => Generator<SSEEvent<T>, void, unknown> | AsyncGenerator<SSEEvent<T>, void, unknown>
+export type SSEEventGenerator<T = unknown> = () => Generator<SSEEvent<T>, void, unknown> | AsyncGenerator<SSEEvent<T>, void, unknown>
 
 /**
  * Extreme narrow types for Laravel-style methods with template literal patterns
@@ -1888,7 +1955,7 @@ export interface EnhancedLaravelStreamingMethods {
   /**
    * Laravel-style response()->eventStream() with strict SSE typing
    */
-  eventStream: <T = any>(
+  eventStream: <T = unknown>(
     callback: SSEEventGenerator<T>,
     headers?: Record<string, string>
   ) => Response

@@ -283,13 +283,13 @@ export const BuiltInRequestMacros = {
     }
 
     // Check JSON body
-    if (this.jsonBody && key in this.jsonBody) {
-      return this.jsonBody[key]
+    if (this.jsonBody && typeof this.jsonBody === 'object' && key in this.jsonBody) {
+      return (this.jsonBody as Record<string, unknown>)[key]
     }
 
     // Check form body
-    if (this.formBody && key in this.formBody) {
-      return this.formBody[key]
+    if (this.formBody && typeof this.formBody === 'object' && key in this.formBody) {
+      return (this.formBody as Record<string, unknown>)[key]
     }
 
     return defaultValue
@@ -298,13 +298,13 @@ export const BuiltInRequestMacros = {
   /**
    * Get all input data
    */
-  all(this: EnhancedRequest): Record<string, any> {
+  all(this: EnhancedRequest): Record<string, unknown> {
     return {
       ...this.params,
       ...this.query,
-      ...this.jsonBody,
-      ...this.formBody,
-      ...this.validated,
+      ...(typeof this.jsonBody === 'object' && this.jsonBody !== null ? this.jsonBody : {}),
+      ...(typeof this.formBody === 'object' && this.formBody !== null ? this.formBody : {}),
+      ...(typeof this.validated === 'object' && this.validated !== null ? this.validated : {}),
     }
   },
 
