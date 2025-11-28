@@ -26,7 +26,7 @@ describe('Bun Router - Middleware Tests', () => {
     }
 
     // Create a route that uses the middleware
-    await router.get('/middleware-test', async (req) => {
+    await router.get('/middleware-test', async (req: EnhancedRequest) => {
       return new Response(`Request ID: ${req.requestId}`, {
         status: 200,
       })

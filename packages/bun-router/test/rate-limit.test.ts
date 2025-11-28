@@ -1,3 +1,4 @@
+import type { EnhancedRequest } from '../src/types'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { RateLimit } from '../src/middleware'
 import { Router } from '../src/router'
@@ -16,7 +17,7 @@ describe('Rate Limiter Middleware', () => {
       windowMs: 1000,
     })
 
-    router.get('/test-rate-limit', async (_req) => {
+    router.get('/test-rate-limit', async (_req: EnhancedRequest) => {
       return new Response('OK')
     })
 
@@ -54,7 +55,7 @@ describe('Rate Limiter Middleware', () => {
       },
     })
 
-    router.get('/test-rate-limit', async (_req) => {
+    router.get('/test-rate-limit', async (_req: EnhancedRequest) => {
       return new Response('OK')
     })
 
@@ -95,7 +96,7 @@ describe('Rate Limiter Middleware', () => {
       },
     })
 
-    router.get('/test-custom-handler', async (_req) => {
+    router.get('/test-custom-handler', async (_req: EnhancedRequest) => {
       return new Response('OK')
     })
 
@@ -124,12 +125,12 @@ describe('Rate Limiter Middleware', () => {
     const rateLimiter = new RateLimit({
       maxRequests: 1,
       windowMs: 5000,
-      skip: (req) => {
+      skip: (req: Request) => {
         return req.url.includes('skip-me')
       },
     })
 
-    router.get('/test-skip-me', async (_req) => {
+    router.get('/test-skip-me', async (_req: EnhancedRequest) => {
       return new Response('OK')
     })
 

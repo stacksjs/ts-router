@@ -1,4 +1,4 @@
-import type { ActionHandler, MiddlewareHandler, Route } from '../types'
+import type { ActionHandler, Route } from '../types'
 import { Dependencies, globalMiddlewarePipeline, MiddlewareFactory, MiddlewarePipeline, SkipConditions } from '../middleware/pipeline'
 import { registerFileStreaming } from './file-streaming'
 import { FluentRouteBuilder, FluentRouter, RouteFactory, router, RouterUtils } from './fluent-routing'

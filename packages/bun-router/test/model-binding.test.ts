@@ -1,4 +1,5 @@
 import type { Server } from 'bun'
+import type { EnhancedRequest } from '../src/types'
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { Router } from '../src/router/index'
 
@@ -43,7 +44,7 @@ describe('Laravel-style Model Binding APIs', () => {
       // Enable implicit binding middleware
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         if (!user) {
           return new Response('User not found', { status: 404 })
@@ -71,7 +72,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify(user || { error: 'Not found' }), {
           headers: { 'Content-Type': 'application/json' },
@@ -103,7 +104,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify(user), {
           headers: { 'Content-Type': 'application/json' },
@@ -125,7 +126,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (_req) => {
+      await router.get('/users/{user}', (_req: EnhancedRequest) => {
         // Even with string registration, implicit binding should work
         return new Response('User route accessed', {
           headers: { 'Content-Type': 'text/plain' },
@@ -156,7 +157,7 @@ describe('Laravel-style Model Binding APIs', () => {
       router.use(router.implicitBinding())
 
       // Route with multiple model parameters
-      await router.get('/users/{user}/posts/{post}', (req) => {
+      await router.get('/users/{user}/posts/{post}', (req: EnhancedRequest) => {
         const user = (req as any).user
         const post = (req as any).post
 
@@ -185,7 +186,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify(user), {
           headers: { 'Content-Type': 'application/json' },
@@ -202,7 +203,7 @@ describe('Laravel-style Model Binding APIs', () => {
     it('should pass through when no model binding is registered', async () => {
       router.use(router.implicitBinding())
 
-      await router.get('/items/{item}', (req) => {
+      await router.get('/items/{item}', (req: EnhancedRequest) => {
         // No model binding for 'item', should just have params
         const params = req.params
         return new Response(JSON.stringify({ params }), {
@@ -245,7 +246,7 @@ describe('Laravel-style Model Binding APIs', () => {
         return null
       })
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify(user), {
           headers: { 'Content-Type': 'application/json' },
@@ -279,7 +280,7 @@ describe('Laravel-style Model Binding APIs', () => {
         post: 'user', // Posts must belong to user
       }))
 
-      await router.get('/users/{user}/posts/{post}', (req) => {
+      await router.get('/users/{user}/posts/{post}', (req: EnhancedRequest) => {
         const user = (req as any).user
         const post = (req as any).post
 
@@ -316,7 +317,7 @@ describe('Laravel-style Model Binding APIs', () => {
         })
       })
 
-      await router.get('/posts/{post}', (req) => {
+      await router.get('/posts/{post}', (req: EnhancedRequest) => {
         const post = (req as any).post
         return new Response(JSON.stringify({ post }), {
           headers: { 'Content-Type': 'application/json' },
@@ -345,7 +346,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify(user), {
           headers: { 'Content-Type': 'application/json' },
@@ -407,7 +408,7 @@ describe('Laravel-style Model Binding APIs', () => {
       router.use(router.implicitBinding())
 
       // Test with a simple handler (controller strings would require additional infrastructure)
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify({ user, controller: 'UserController@show' }), {
           headers: { 'Content-Type': 'application/json' },
@@ -434,7 +435,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify({ user, auth: req.auth }), {
           headers: { 'Content-Type': 'application/json' },
@@ -464,7 +465,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify(user), {
           headers: { 'Content-Type': 'application/json' },
@@ -486,7 +487,7 @@ describe('Laravel-style Model Binding APIs', () => {
       // Don't register 'category' model - should be ignored
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}/categories/{category}', (req) => {
+      await router.get('/users/{user}/categories/{category}', (req: EnhancedRequest) => {
         const user = (req as any).user
         const category = (req as any).category
         return new Response(JSON.stringify({ user, category }), {
@@ -516,7 +517,7 @@ describe('Laravel-style Model Binding APIs', () => {
 
       router.use(router.implicitBinding())
 
-      await router.get('/users/{user}', (req) => {
+      await router.get('/users/{user}', (req: EnhancedRequest) => {
         const user = (req as any).user
         return new Response(JSON.stringify(user), {
           headers: { 'Content-Type': 'application/json' },

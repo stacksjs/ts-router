@@ -84,7 +84,7 @@ describe('Router', () => {
 
   describe('Route Parameters', () => {
     it('should handle route parameters', async () => {
-      await router.get('/users/{id}', (req) => {
+      await router.get('/users/{id}', (req: EnhancedRequest) => {
         return new Response(`User ID: ${req.params.id}`)
       })
 
@@ -94,7 +94,7 @@ describe('Router', () => {
     })
 
     it('should handle multiple route parameters', async () => {
-      await router.get('/users/{userId}/posts/{postId}', (req) => {
+      await router.get('/users/{userId}/posts/{postId}', (req: EnhancedRequest) => {
         return new Response(`User: ${req.params.userId}, Post: ${req.params.postId}`)
       })
 
@@ -104,7 +104,7 @@ describe('Router', () => {
     })
 
     it('should handle optional route parameters with constraints', async () => {
-      await router.get('/products/{category}/{id?}', (req) => {
+      await router.get('/products/{category}/{id?}', (req: EnhancedRequest) => {
         if (req.params.id) {
           return new Response(`Category: ${req.params.category}, Product: ${req.params.id}`)
         }
@@ -250,7 +250,7 @@ describe('Router', () => {
 
   describe('Route Constraints', () => {
     it('should apply number constraints', async () => {
-      await router.get('/users/{id}', req => new Response(`User: ${req.params.id}`))
+      await router.get('/users/{id}', (req: EnhancedRequest) => new Response(`User: ${req.params.id}`))
       router.whereNumber('id')
 
       const validResponse = await router.handleRequest(new Request('http://localhost/users/123'))
@@ -262,7 +262,7 @@ describe('Router', () => {
     })
 
     it('should apply custom pattern constraints', async () => {
-      await router.get('/posts/{slug}', req => new Response(`Post: ${req.params.slug}`))
+      await router.get('/posts/{slug}', (req: EnhancedRequest) => new Response(`Post: ${req.params.slug}`))
       router.where({ slug: '^[a-z0-9-]+$' })
 
       const validResponse = await router.handleRequest(new Request('http://localhost/posts/my-awesome-post-123'))
@@ -349,7 +349,7 @@ describe('Router', () => {
 
   describe('Cookies', () => {
     it('should parse request cookies', async () => {
-      await router.get('/cookies', (req) => {
+      await router.get('/cookies', (req: EnhancedRequest) => {
         const value = req.cookies?.['test-cookie']
         return new Response(`Cookie: ${value}`)
       })
@@ -363,7 +363,7 @@ describe('Router', () => {
     })
 
     it('should set response cookies', async () => {
-      await router.get('/set-cookie', (req) => {
+      await router.get('/set-cookie', (req: EnhancedRequest) => {
         // @ts-expect-error - Testing legacy cookie API
         req.cookies?.set('new-cookie', 'new-value', {
           httpOnly: true,
@@ -382,7 +382,7 @@ describe('Router', () => {
     })
 
     it('should delete cookies', async () => {
-      await router.get('/delete-cookie', (req) => {
+      await router.get('/delete-cookie', (req: EnhancedRequest) => {
         // @ts-expect-error - Testing legacy cookie API
         req.cookies?.delete('to-delete')
         return new Response('Cookie deleted')

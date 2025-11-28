@@ -2,6 +2,7 @@ import type { Server } from 'bun'
 import type { MiddlewareDependency, MiddlewarePipeline, MiddlewarePipelineStats, MiddlewareSkipCondition } from '../middleware/pipeline'
 import type {
   ActionHandler,
+  CookieOptions,
   EnhancedRequest,
   MiddlewareHandler,
   NextFunction,
@@ -490,19 +491,15 @@ export class Router {
     // Invalidate route cache before starting server
     this.invalidateCache()
 
-    // Create server options
-    const serverOptions: any = {
+    // Create server options - use type assertion for Bun.serve compatibility
+    const serverOptions = {
       ...options,
       fetch: this.handleRequest.bind(this),
-    }
-
-    // Apply WebSocket configuration if provided
-    if (this.wsConfig) {
-      serverOptions.websocket = this.wsConfig
-    }
+      websocket: this.wsConfig,
+    } as Parameters<typeof Bun.serve>[0]
 
     // Start the server
-    this.serverInstance = Bun.serve(serverOptions)
+    this.serverInstance = Bun.serve(serverOptions) as Server<WebSocketData>
 
     if (this.config.verbose) {
       const port = this.serverInstance.port
@@ -563,7 +560,7 @@ export class Router {
         }
 
         // Create a final middleware that executes the route handler
-        const routeHandlerMiddleware = async (req: EnhancedRequest, _next: any) => {
+        const routeHandlerMiddleware = async (req: EnhancedRequest, _next: NextFunction) => {
           return await this.resolveHandler(match.route.handler, req)
         }
 
@@ -742,14 +739,14 @@ export class Router {
     // Create cookie utilities with lazy parsing
     const cookies = {
       get: (name: string) => getCookies()[name],
-      set: (name: string, value: string, options: any = {}) => {
+      set: (name: string, value: string, options: CookieOptions = {}) => {
         const enhancedRequest = req as EnhancedRequest
         if (!enhancedRequest._cookiesToSet) {
           enhancedRequest._cookiesToSet = []
         }
         enhancedRequest._cookiesToSet.push({ name, value, options })
       },
-      delete: (name: string, options: any = {}) => {
+      delete: (name: string, options: CookieOptions = {}) => {
         const enhancedRequest = req as EnhancedRequest
         if (!enhancedRequest._cookiesToDelete) {
           enhancedRequest._cookiesToDelete = []
@@ -811,7 +808,7 @@ export class Router {
   /**
    * Serialize a cookie for the Set-Cookie header
    */
-  serializeCookie(name: string, value: string, options: any = {}): string {
+  serializeCookie(name: string, value: string, options: CookieOptions = {}): string {
     let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`
 
     if (options.maxAge !== undefined) {
@@ -899,22 +896,22 @@ export class Router {
   /**
    * Resolve an action handler
    */
-  async resolveHandler(handler: any, req: EnhancedRequest): Promise<Response> {
+  async resolveHandler(handler: ActionHandler, req: EnhancedRequest): Promise<Response> {
     // If it's a function, call it with the request
-    if (typeof handler === 'function' && !handler.prototype?.handle) {
-      return await handler(req)
+    if (typeof handler === 'function' && !(handler as { prototype?: { handle?: unknown } }).prototype?.handle) {
+      return await (handler as (req: EnhancedRequest) => Response | Promise<Response>)(req)
     }
 
     // If it's a class constructor, instantiate it and call handle
-    if (typeof handler === 'function' && handler.prototype && typeof handler.prototype.handle === 'function') {
-      const HandlerClass = handler
+    if (typeof handler === 'function' && (handler as { prototype?: { handle?: unknown } }).prototype?.handle) {
+      const HandlerClass = handler as new () => { handle: (req: EnhancedRequest) => Response | Promise<Response> }
       const handlerInstance = new HandlerClass()
       return await handlerInstance.handle(req)
     }
 
     // If it's an object with a handle method
-    if (handler && typeof handler.handle === 'function') {
-      return await handler.handle(req)
+    if (handler && typeof (handler as unknown as { handle?: unknown }).handle === 'function') {
+      return await (handler as unknown as { handle: (req: EnhancedRequest) => Response | Promise<Response> }).handle(req)
     }
 
     throw new Error(`Invalid action handler: ${typeof handler}`)

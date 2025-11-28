@@ -1,3 +1,4 @@
+import type { EnhancedRequest } from '../src/types'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { Router } from '../src/router'
 import {
@@ -27,7 +28,7 @@ describe('Testing Utilities', () => {
 
   describe('Test Client', () => {
     test('creates test client and makes GET request', async () => {
-      router.get('/users/:id', async (req) => {
+      router.get('/users/:id', async (req: EnhancedRequest) => {
         return new Response(JSON.stringify({ id: req.params.id, name: 'John' }), {
           headers: { 'Content-Type': 'application/json' },
         })
@@ -43,7 +44,7 @@ describe('Testing Utilities', () => {
     })
 
     test('makes POST request with JSON body', async () => {
-      router.post('/users', async (req) => {
+      router.post('/users', async (req: EnhancedRequest) => {
         const body = req.jsonBody
         return new Response(JSON.stringify({ id: 1, ...body }), {
           status: 201,
@@ -62,7 +63,7 @@ describe('Testing Utilities', () => {
     })
 
     test('handles authentication headers', async () => {
-      router.get('/protected', async (req) => {
+      router.get('/protected', async (req: EnhancedRequest) => {
         const auth = req.headers?.get('authorization')
         if (!auth) {
           return new Response('Unauthorized', { status: 401 })
@@ -88,7 +89,7 @@ describe('Testing Utilities', () => {
 
       expect(request.method).toBe('GET')
       expect(request.params.id).toBe('123')
-      expect(request.user.name).toBe('John')
+      expect(request.user?.name).toBe('John')
       expect(request.headers?.get('Authorization')).toBe('Bearer token')
     })
 
@@ -304,7 +305,7 @@ describe('Testing Utilities', () => {
         })
       })
 
-      router.post('/api/users', async (req) => {
+      router.post('/api/users', async (req: EnhancedRequest) => {
         const body = req.jsonBody
         return new Response(JSON.stringify({
           id: 2,
@@ -339,7 +340,7 @@ describe('Testing Utilities', () => {
     })
 
     test('authenticated route with middleware', async () => {
-      router.get('/api/profile', async (req) => {
+      router.get('/api/profile', async (req: EnhancedRequest) => {
         // Mock authenticated user for testing
         req.user = { id: 1, name: 'John' }
         return new Response(JSON.stringify({

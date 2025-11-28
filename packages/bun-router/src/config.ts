@@ -311,9 +311,9 @@ let _config: RouterConfig | null = null
 export async function getConfig(): Promise<RouterConfig> {
   if (!_config) {
     _config = await loadConfig({
-  name: 'router',
-  defaultConfig,
-})
+      name: 'router',
+      defaultConfig,
+    })
   }
   return _config
 }

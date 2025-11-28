@@ -12,6 +12,7 @@ import type {
   RouteHandler,
 } from '../types'
 import type { Router } from './router'
+import { matchPath } from '../utils'
 
 // ============================================================================
 // Types
@@ -177,8 +178,10 @@ export class FluentRouter {
         handler: resolvedHandler,
         middleware,
         domain: this.currentDomain || undefined,
+        pattern: this.createPattern(fullPath),
       }
-      this.router.addRoute(route)
+      // Use direct push to routes array to avoid conflict with http-methods.ts addRoute
+      this.router.routes.push(route)
     }
 
     return new FluentRouteBuilder(this.router, fullPath, methods[0])
@@ -191,11 +194,11 @@ export class FluentRouter {
   /**
    * Register a resource controller
    */
-  resource(name: string, controller: ControllerClass, options: ResourceOptions = {}): this {
+  resource(name: string, Controller: ControllerClass, options: ResourceOptions = {}): this {
     const methods = this.getResourceMethods(options)
     const paramName = options.parameters?.[name] || 'id'
 
-    const controllerInstance = new controller()
+    const controllerInstance = new Controller()
 
     for (const method of methods) {
       const { httpMethod, path, handlerName } = this.getResourceRoute(name, method, paramName)
@@ -212,8 +215,13 @@ export class FluentRouter {
           middleware: this.buildMiddleware(options.middleware),
           name: this.currentNamePrefix + routeName,
           domain: this.currentDomain || undefined,
+          pattern: this.createPattern(fullPath),
         }
-        this.router.addRoute(route)
+        // Use direct push to routes array to avoid conflict with http-methods.ts addRoute
+        this.router.routes.push(route)
+        if (route.name) {
+          this.router.namedRoutes.set(route.name, route)
+        }
       }
     }
 
@@ -235,9 +243,9 @@ export class FluentRouter {
   /**
    * Register a singleton resource (no index, create, store, destroy)
    */
-  singleton(name: string, controller: ControllerClass, options: ResourceOptions = {}): this {
+  singleton(name: string, Controller: ControllerClass, options: ResourceOptions = {}): this {
     const singletonMethods: SingletonMethod[] = ['show', 'edit', 'update']
-    const controllerInstance = new controller()
+    const controllerInstance = new Controller()
 
     for (const method of singletonMethods) {
       if (options.except?.includes(method))
@@ -259,8 +267,13 @@ export class FluentRouter {
           middleware: this.buildMiddleware(options.middleware),
           name: this.currentNamePrefix + routeName,
           domain: this.currentDomain || undefined,
+          pattern: this.createPattern(fullPath),
         }
-        this.router.addRoute(route)
+        // Use direct push to routes array to avoid conflict with http-methods.ts addRoute
+        this.router.routes.push(route)
+        if (route.name) {
+          this.router.namedRoutes.set(route.name, route)
+        }
       }
     }
 
@@ -410,10 +423,37 @@ export class FluentRouter {
       handler: resolvedHandler,
       middleware,
       domain: this.currentDomain || undefined,
+      pattern: this.createPattern(fullPath),
     }
 
-    this.router.addRoute(route)
+    // Use direct push to routes array to avoid conflict with http-methods.ts addRoute
+    this.router.routes.push(route)
+    if (route.name) {
+      this.router.namedRoutes.set(route.name, route)
+    }
     return new FluentRouteBuilder(this.router, fullPath, method)
+  }
+
+  /**
+   * Create a pattern object for route matching
+   */
+  private createPattern(routePath: string): { exec: (url: URL) => { pathname: { groups: Record<string, string> } } | null } {
+    return {
+      exec: (url: URL): { pathname: { groups: Record<string, string> } } | null => {
+        const params: Record<string, string> = {}
+        const isMatch = matchPath(routePath, url.pathname, params)
+
+        if (!isMatch) {
+          return null
+        }
+
+        return {
+          pathname: {
+            groups: params,
+          },
+        }
+      },
+    }
   }
 
   private buildPath(path: string): string {
@@ -433,7 +473,8 @@ export class FluentRouter {
   private resolveHandler(handler: RouteHandler | string): ActionHandler {
     if (typeof handler === 'string') {
       if (this.currentController) {
-        const controllerInstance = new this.currentController()
+        const ControllerClass = this.currentController
+        const controllerInstance = new ControllerClass()
         const method = controllerInstance[handler] as RouteHandler | undefined
         if (method) {
           return method.bind(controllerInstance)
