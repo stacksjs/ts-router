@@ -1,4 +1,5 @@
 import type { Server } from 'bun'
+import type { EnhancedRequest } from '../src/types'
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { Router } from '../src/router/index'
 
@@ -305,7 +306,7 @@ describe('Laravel-style Streaming APIs', () => {
     // These tests would require actual files, so we'll test with mock implementations
     it('should handle file streaming (integration test)', async () => {
       // Create a simple test file handler
-      await router.get('/file', async (_req) => {
+      await router.get('/file', async (_req: EnhancedRequest) => {
         // Mock file streaming - in real use case this would use streamFile()
         return new Response('Mock file content', {
           headers: { 'Content-Type': 'text/plain' },
@@ -324,7 +325,7 @@ describe('Laravel-style Streaming APIs', () => {
     })
 
     it('should handle range requests (integration test)', async () => {
-      await router.get('/video', async (req) => {
+      await router.get('/video', async (req: EnhancedRequest) => {
         // Mock range request handling
         const range = req.headers.get('range')
         if (range) {

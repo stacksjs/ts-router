@@ -1,4 +1,4 @@
-import type { EnhancedRequest } from './types'
+import type { EnhancedRequest, JwtPayload } from './types'
 
 // Types
 export interface JwtVerifyOptions {
@@ -42,17 +42,8 @@ export interface OAuth2Config {
   state?: string
 }
 
-// JWT Payload interface
-export interface JwtPayload {
-  [key: string]: any
-  iat: number
-  exp?: number
-  nbf?: number
-  iss?: string
-  sub?: string
-  aud?: string | string[]
-  jti?: string
-}
+// Re-export JwtPayload from types for backwards compatibility
+export type { JwtPayload }
 
 // Base64URL encoding/decoding functions
 function base64UrlEncode(str: string): string {

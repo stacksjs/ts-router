@@ -63,11 +63,7 @@ export function registerMiddlewarePipeline(RouterClass: typeof Router): void {
     // Compile middleware pipeline for this route
     const routeKey = `${route.method}:${route.path}`
     if (route.middleware && route.middleware.length > 0 && this._middlewarePipeline) {
-      this._middlewarePipeline.compilePipeline(routeKey, route.middleware, {
-        allowShortCircuit: true,
-        enableConditionalExecution: true,
-        resolveDependencies: true,
-      })
+      this._middlewarePipeline.compileMiddleware(routeKey, route.middleware)
     }
 
     return result
@@ -172,6 +168,11 @@ export class MiddlewareFactory {
       ttl: Math.ceil(options.windowMs / 1000),
     }))
 
+    interface RateLimitEntry {
+      count: number
+      resetTime: number
+    }
+
     const middleware: MiddlewareHandler = async (req, next) => {
       const cache = req.context?.cache
       if (!cache) {
@@ -182,7 +183,7 @@ export class MiddlewareFactory {
       const clientId = req.ip || req.headers.get('x-forwarded-for') || 'unknown'
       const key = `rate_limit:${clientId}`
 
-      const current = cache.get(key) || { count: 0, resetTime: Date.now() + options.windowMs }
+      const current: RateLimitEntry = cache.get<RateLimitEntry>(key) || { count: 0, resetTime: Date.now() + options.windowMs }
 
       if (Date.now() > current.resetTime) {
         current.count = 0

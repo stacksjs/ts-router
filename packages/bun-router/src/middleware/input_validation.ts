@@ -7,10 +7,10 @@ export interface ValidationRule {
   min?: number
   max?: number
   pattern?: RegExp
-  enum?: any[]
-  custom?: (value: any) => boolean | string
+  enum?: unknown[]
+  custom?: (value: unknown) => boolean | string
   sanitize?: boolean
-  transform?: (value: any) => any
+  transform?: (value: unknown) => unknown
 }
 
 export interface ValidationSchema {
@@ -47,7 +47,7 @@ export default class InputValidation {
 
     this.options = {
       enabled: options.enabled ?? validationConfig.enabled ?? true,
-      schemas: options.schemas ?? validationConfig.schemas ?? {},
+      schemas: (options.schemas ?? validationConfig.schemas ?? {}) as InputValidationOptions['schemas'],
       sanitizeByDefault: options.sanitizeByDefault ?? validationConfig.sanitizeByDefault ?? true,
       strictMode: options.strictMode ?? validationConfig.strictMode ?? false,
       allowUnknownFields: options.allowUnknownFields ?? validationConfig.allowUnknownFields ?? true,

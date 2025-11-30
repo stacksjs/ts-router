@@ -6,7 +6,7 @@
 
 export interface ErrorContext {
   requestId?: string
-  userId?: string
+  userId?: string | number
   traceId?: string
   spanId?: string
   route?: string
@@ -15,7 +15,7 @@ export interface ErrorContext {
   userAgent?: string
   ip?: string
   timestamp?: Date
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface ErrorDetails {

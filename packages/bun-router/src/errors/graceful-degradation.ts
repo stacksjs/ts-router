@@ -496,7 +496,7 @@ export class GracefulDegradationManager {
       .replace('{service}', context.serviceName)
       .replace('{url}', context.request.url)
       .replace('{method}', context.request.method)
-      .replace('{userId}', context.request.user?.id || 'anonymous')
+      .replace('{userId}', String(context.request.user?.id || 'anonymous'))
   }
 
   private updateMetrics(serviceName: string, success: boolean, responseTime: number): void {

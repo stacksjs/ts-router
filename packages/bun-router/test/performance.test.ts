@@ -54,7 +54,7 @@ describe('Router Performance Optimizations', () => {
       await router.get('/static-path', () => new Response('Static Route'))
 
       // Register a dynamic route
-      await router.get('/dynamic/{param}', req => new Response(`Dynamic Route: ${req.params.param}`))
+      await router.get('/dynamic/{param}', (req: EnhancedRequest) => new Response(`Dynamic Route: ${req.params.param}`))
 
       // Check static route works
       const staticResponse = await router.handleRequest(new Request('http://localhost/static-path'))
@@ -100,7 +100,7 @@ describe('Router Performance Optimizations', () => {
       }
 
       // Register route with middleware
-      await router.get('/middleware-chain', (req) => {
+      await router.get('/middleware-chain', (req: EnhancedRequest) => {
         return new Response(`Middleware1: ${req.params.middleware1}, Middleware2: ${req.params.middleware2}`)
       }, 'web', 'middleware-test', [middleware1, middleware2])
 
@@ -117,7 +117,7 @@ describe('Router Performance Optimizations', () => {
       await router.get('/no-cookies', () => new Response('No Cookies Accessed'))
 
       // Create a route that accesses cookies
-      await router.get('/use-cookies', (req) => {
+      await router.get('/use-cookies', (req: EnhancedRequest) => {
         const cookieValue = req.cookies?.['test-cookie']
         return new Response(`Cookie Value: ${cookieValue}`)
       })
@@ -144,7 +144,7 @@ describe('Router Performance Optimizations', () => {
 
       // Register a route with dynamic domain parameters
       await router.domain('{subdomain}.example.com', async () => {
-        await router.get('/dynamic-domain', (_req) => {
+        await router.get('/dynamic-domain', (_req: EnhancedRequest) => {
           return new Response('Subdomain Test')
         })
       })

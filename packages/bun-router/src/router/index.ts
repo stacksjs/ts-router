@@ -1,4 +1,4 @@
-import type { ActionHandler, MiddlewareHandler, Route } from '../types'
+import type { ActionHandler, Route } from '../types'
 import { Dependencies, globalMiddlewarePipeline, MiddlewareFactory, MiddlewarePipeline, SkipConditions } from '../middleware/pipeline'
 import { registerFileStreaming } from './file-streaming'
 import { FluentRouteBuilder, FluentRouter, RouteFactory, router, RouterUtils } from './fluent-routing'
@@ -144,10 +144,6 @@ declare module './router' {
     // Domain routing
     domain: (domain: string, callback: () => Promise<void> | void) => Promise<Router>
 
-    // HTTP methods
-    options: (path: string, handler: ActionHandler, type?: 'api' | 'web', name?: string) => Promise<Router>
-    match: (methods: string[], path: string, handler: ActionHandler, type?: 'api' | 'web', name?: string) => Promise<Router>
-
     // RESTful resource routing
     resource: (name: string, handlers: {
       index?: ActionHandler
@@ -164,9 +160,7 @@ declare module './router' {
     redirect: (url: string, status?: 301 | 302 | 303 | 307 | 308) => Response
     permanentRedirect: (url: string) => Response
     fallback: (handler: ActionHandler) => Router
-    redirectRoute: (from: string, to: string, status?: 301 | 302 | 303 | 307 | 308) => Promise<Router>
     route: (name: string, params?: Record<string, string>) => string
-    any: (path: string, handler: ActionHandler, type?: 'api' | 'web', name?: string, middleware?: (string | MiddlewareHandler)[]) => Promise<Router>
   }
 }
 export { Dependencies, FluentRouteBuilder, FluentRouter, globalMiddlewarePipeline, MiddlewareFactory, MiddlewarePipeline, RouteFactory, router, RouterUtils, SkipConditions }

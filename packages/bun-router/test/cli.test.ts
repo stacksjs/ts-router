@@ -1,3 +1,4 @@
+import type { EnhancedRequest } from '../src/types'
 import { beforeEach, describe, expect, it } from 'bun:test'
 import { Router } from '../src/router/index'
 
@@ -26,7 +27,7 @@ describe('CLI Commands', () => {
       await router.get('/test', () => new Response('test'))
       await router.post('/users', () => new Response('create user'))
       await router.get('/admin/dashboard', () => new Response('admin'), 'web', 'admin.dashboard')
-      await router.get('/users/{id}', req => new Response(`User ${req.params.id}`)) // Dynamic route
+      await router.get('/users/{id}', (req: EnhancedRequest) => new Response(`User ${req.params.id}`)) // Dynamic route
 
       // Verify routes were added
       expect(router.routes.length).toBe(4)
@@ -158,7 +159,7 @@ describe('CLI Commands', () => {
 
   describe('Route Debugging Logic', () => {
     it('should match routes successfully', async () => {
-      await router.get('/users/{id}', req => new Response(`User ${req.params.id}`), 'web', 'users.show')
+      await router.get('/users/{id}', (req: EnhancedRequest) => new Response(`User ${req.params.id}`), 'web', 'users.show')
 
       // Test route matching functionality
       expect(router.matchRoute).toBeDefined()
@@ -188,7 +189,7 @@ describe('CLI Commands', () => {
     })
 
     it('should handle routes with optional parameters', async () => {
-      await router.get('/products/{category}/{id?}', (req) => {
+      await router.get('/products/{category}/{id?}', (req: EnhancedRequest) => {
         if (req.params.id) {
           return new Response(`Product ${req.params.id} in ${req.params.category}`)
         }

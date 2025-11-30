@@ -14,7 +14,7 @@ export interface ErrorReportingConfig {
   environment?: string
   release?: string
   sampleRate?: number
-  beforeSend?: (error: RouterException, context: ErrorContext) => RouterException | null
+  beforeSend?: (error: Error, context: ErrorContext) => Error | null
   filters?: {
     ignoreErrors?: (string | RegExp)[]
     ignoreCodes?: string[]
