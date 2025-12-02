@@ -27,7 +27,7 @@
     "@unocss/transformer-directives": "^66.5.9",
     "@vitejs/plugin-vue": "^6.0.2",
     "unocss": "^66.5.9",
-    "vite": "^7.2.4",
+    "vite": "^7.2.6",
     "vue-tsc": "^3.1.5"
   }
 }
