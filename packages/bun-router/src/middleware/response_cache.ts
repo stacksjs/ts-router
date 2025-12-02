@@ -140,11 +140,11 @@ export class ResponseCache implements Middleware {
 
   private startCleanupInterval(): void {
     this.cleanupInterval = setInterval(() => {
-      this.cleanup()
+      void this.cleanup()
     }, 60000) // Cleanup every minute
   }
 
-  public cleanup(): void {
+  public async cleanup(): Promise<void> {
     const now = Date.now()
 
     // Clean memory cache - check expiration properly
@@ -163,7 +163,7 @@ export class ResponseCache implements Middleware {
 
     // Clean file cache if using file storage
     if (this.options.storage.type === 'file' || this.options.storage.type === 'hybrid') {
-      this.cleanupFileCache()
+      await this.cleanupFileCache()
     }
 
     // Update cache stats after cleanup
