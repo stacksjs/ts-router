@@ -213,10 +213,29 @@ export function validate(): ValidationMiddlewareBuilder {
   return new ValidationMiddlewareBuilder()
 }
 
+/** Resource handlers configuration */
+export interface ResourceHandlers {
+  index?: RouteHandler
+  show?: RouteHandler
+  store?: RouteHandler
+  update?: RouteHandler
+  destroy?: RouteHandler
+}
+
+/** Resource validation configuration */
+export interface ResourceValidation {
+  store?: ValidationRules
+  update?: ValidationRules
+}
+
 /**
  * Route helper functions
  */
-export const RouteHelpers = {
+export const RouteHelpers: {
+  validated: (method: string, path: string, handler: RouteHandler, rules: ValidationRules, config?: ValidatorConfig) => RouteBuilder
+  apiRoute: (method: string, path: string, handler: RouteHandler, rules?: ValidationRules) => RouteBuilder
+  resourceRoute: (basePath: string, handlers: ResourceHandlers, validation?: ResourceValidation) => RouteBuilder[]
+} = {
   /**
    * Create validated route
    */
@@ -261,17 +280,8 @@ export const RouteHelpers = {
    */
   resourceRoute: (
     basePath: string,
-    handlers: {
-      index?: RouteHandler
-      show?: RouteHandler
-      store?: RouteHandler
-      update?: RouteHandler
-      destroy?: RouteHandler
-    },
-    validation?: {
-      store?: ValidationRules
-      update?: ValidationRules
-    },
+    handlers: ResourceHandlers,
+    validation?: ResourceValidation,
   ): RouteBuilder[] => {
     const routes: RouteBuilder[] = []
 
@@ -371,14 +381,21 @@ export const MiddlewareHelpers = {
   },
 }
 
+/** Enhancement middleware type */
+export type EnhancementMiddleware = (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>
+
 /**
  * Request/Response enhancement presets
  */
-export const EnhancementPresets = {
+export const EnhancementPresets: {
+  api: () => EnhancementMiddleware[]
+  web: () => EnhancementMiddleware[]
+  validation: (rules: ValidationRules, config?: ValidatorConfig) => EnhancementMiddleware[]
+} = {
   /**
    * API preset with JSON validation and response macros
    */
-  api: (): Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> => [
+  api: (): EnhancementMiddleware[] => [
     createEnhancementMiddleware(),
     async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       try {
@@ -406,7 +423,7 @@ export const EnhancementPresets = {
   /**
    * Web preset with request enhancements and CSRF protection
    */
-  web: (): Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> => [
+  web: (): EnhancementMiddleware[] => [
     createEnhancementMiddleware(),
     async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
       // Add web-specific enhancements
@@ -419,8 +436,8 @@ export const EnhancementPresets = {
   /**
    * Validation preset with comprehensive validation
    */
-  validation: (rules: ValidationRules, config?: ValidatorConfig): Array<(req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>> => [
+  validation: (rules: ValidationRules, config?: ValidatorConfig): EnhancementMiddleware[] => [
     createEnhancementMiddleware(),
-    createValidationMiddleware(rules, config) as (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>,
+    createValidationMiddleware(rules, config) as EnhancementMiddleware,
   ],
 }
