@@ -2,11 +2,22 @@ import type { MiddlewareMemoizer } from '../packages/bun-router/src/cache/middle
 import type { RouteCacheWarmer } from '../packages/bun-router/src/cache/route-cache-warmer'
 import type { StreamingCache } from '../packages/bun-router/src/cache/streaming-cache'
 import type { EnhancedRequest } from '../packages/bun-router/src/types'
-import { beforeEach, describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { createLRUCache, LRUCache } from '../packages/bun-router/src/cache/lru-cache'
 import { createMemoizer } from '../packages/bun-router/src/cache/middleware-memoization'
 import { createRouteCacheWarmer } from '../packages/bun-router/src/cache/route-cache-warmer'
 import { createStreamingCache } from '../packages/bun-router/src/cache/streaming-cache'
+
+// Track all cache instances for cleanup
+const activeWarmers: RouteCacheWarmer[] = []
+
+// Ensure all timers are stopped after all tests
+afterAll(() => {
+  for (const warmer of activeWarmers) {
+    warmer.stop()
+  }
+  activeWarmers.length = 0
+})
 
 describe('Cache Performance Benchmarks', () => {
   describe('LRU Cache Performance', () => {
@@ -167,6 +178,15 @@ describe('Cache Performance Benchmarks', () => {
     beforeEach(() => {
       routeCache = createLRUCache.large()
       warmer = createRouteCacheWarmer.development(routeCache)
+      activeWarmers.push(warmer)
+    })
+
+    afterEach(() => {
+      warmer.stop()
+      const index = activeWarmers.indexOf(warmer)
+      if (index > -1) {
+        activeWarmers.splice(index, 1)
+      }
     })
 
     it('should demonstrate warmup concurrency benefits', async () => {
@@ -353,6 +373,7 @@ describe('Cache Performance Benchmarks', () => {
       const routeCache = createLRUCache.large()
       const streamingCache = createStreamingCache.api(100)
       const warmer = createRouteCacheWarmer.production(routeCache, streamingCache)
+      activeWarmers.push(warmer)
       const memoizer = createMemoizer.production()
 
       // Simulate realistic workload
@@ -424,6 +445,13 @@ describe('Cache Performance Benchmarks', () => {
       expect(memoizerStats.hitRate).toBeGreaterThan(0.4) // At least 40% hit rate
       expect(streamingCacheStats.totalResponses).toBeGreaterThan(0)
       expect(warmerStats.totalRoutes).toBe(routes.length)
+
+      // Cleanup
+      warmer.stop()
+      const index = activeWarmers.indexOf(warmer)
+      if (index > -1) {
+        activeWarmers.splice(index, 1)
+      }
     })
 
     it('should demonstrate memory efficiency of integrated system', async () => {

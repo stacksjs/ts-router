@@ -231,70 +231,108 @@ export class FileValidationTester {
   }
 }
 
+/** Middleware function type */
+export type MiddlewareFn = (req: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>
+
+/** File storage service interface */
+export interface FileStorageService {
+  store: (file: UploadedFile, path?: string) => Promise<string>
+  delete: (path: string) => Promise<void>
+  exists: (path: string) => Promise<boolean>
+  getUrl: (path: string) => string
+}
+
+/** Virus scanner interface */
+export interface VirusScanResult {
+  clean: boolean
+  threat?: string
+}
+
+export interface VirusScanner {
+  scan: (file: UploadedFile) => Promise<VirusScanResult>
+}
+
+/** Validation middleware options */
+export interface ValidationMiddlewareOptions {
+  maxSize?: number
+  allowedTypes?: string[]
+  maxFiles?: number
+}
+
+/** Image upload middleware options */
+export interface ImageUploadMiddlewareOptions {
+  maxSize?: number
+  maxWidth?: number
+  maxHeight?: number
+}
+
 /**
  * File upload mock factories
  */
-export const fileUploadMocks = {
+export const fileUploadMocks: {
+  validationMiddleware: (options?: ValidationMiddlewareOptions) => MiddlewareFn
+  imageUploadMiddleware: (options?: ImageUploadMiddlewareOptions) => MiddlewareFn
+  storageService: FileStorageService
+  virusScanner: VirusScanner
+} = {
   /**
    * Mock file upload middleware that validates files
    */
-  validationMiddleware: (options: {
-    maxSize?: number
-    allowedTypes?: string[]
-    maxFiles?: number
-  } = {}): any => mock(async (req: EnhancedRequest, next: any): Promise<Response> => {
-    const files = req.files || []
-    const { maxSize = 5 * 1024 * 1024, allowedTypes = [], maxFiles = 10 } = options
+  validationMiddleware: (options: ValidationMiddlewareOptions = {}): MiddlewareFn => {
+    const fn = async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+      const files = req.files || []
+      const { maxSize = 5 * 1024 * 1024, allowedTypes = [], maxFiles = 10 } = options
 
-    // Check file count
-    if (files.length > maxFiles) {
-      return new Response(`Too many files. Maximum ${maxFiles} allowed.`, { status: 400 })
+      // Check file count
+      if (files.length > maxFiles) {
+        return new Response(`Too many files. Maximum ${maxFiles} allowed.`, { status: 400 })
+      }
+
+      // Validate each file
+      for (const file of files) {
+        // Check file size
+        if (file.size > maxSize) {
+          return new Response(`File ${file.originalName} is too large. Maximum size: ${maxSize} bytes.`, { status: 400 })
+        }
+
+        // Check file type
+        if (allowedTypes.length > 0 && !allowedTypes.includes(file.mimetype)) {
+          return new Response(`File type ${file.mimetype} not allowed.`, { status: 400 })
+        }
+
+        // Check filename security
+        if (!FileValidationTester.testFilename(file)) {
+          return new Response(`Invalid filename: ${file.originalName}`, { status: 400 })
+        }
+      }
+
+      return await next()
     }
-
-    // Validate each file
-    for (const file of files) {
-      // Check file size
-      if (file.size > maxSize) {
-        return new Response(`File ${file.originalName} is too large. Maximum size: ${maxSize} bytes.`, { status: 400 })
-      }
-
-      // Check file type
-      if (allowedTypes.length > 0 && !allowedTypes.includes(file.mimetype)) {
-        return new Response(`File type ${file.mimetype} not allowed.`, { status: 400 })
-      }
-
-      // Check filename security
-      if (!FileValidationTester.testFilename(file)) {
-        return new Response(`Invalid filename: ${file.originalName}`, { status: 400 })
-      }
-    }
-
-    return await next()
-  }),
+    return mock(fn) as MiddlewareFn
+  },
 
   /**
    * Mock image upload middleware
    */
-  imageUploadMiddleware: (options: {
-    maxSize?: number
-    maxWidth?: number
-    maxHeight?: number
-  } = {}): any => mock(async (req: EnhancedRequest, next: any): Promise<Response> => {
-    const files = req.files || []
-    const { maxSize = 2 * 1024 * 1024 } = options
+  imageUploadMiddleware: (options: ImageUploadMiddlewareOptions = {}): MiddlewareFn => {
+    const fn = async (req: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+      const files = req.files || []
+      const { maxSize = 2 * 1024 * 1024 } = options
 
-    for (const file of files) {
-      if (!FileValidationTester.testImageFile(file)) {
-        return new Response(`File ${file.originalName} is not a valid image.`, { status: 400 })
+      for (const file of files) {
+        if (!FileValidationTester.testImageFile(file)) {
+          return new Response(`File ${file.originalName} is not a valid image.`, { status: 400 })
+        }
+
+        if (file.size > maxSize) {
+          return new Response(`Image ${file.originalName} is too large.`, { status: 400 })
+        }
       }
 
-      if (file.size > maxSize) {
-        return new Response(`Image ${file.originalName} is too large.`, { status: 400 })
-      }
+      return await next()
     }
-
-    return await next()
-  }),
+    return mock(fn) as MiddlewareFn
+  },
 
   /**
    * Mock file storage service
@@ -303,32 +341,32 @@ export const fileUploadMocks = {
     store: mock(async (file: UploadedFile, path?: string): Promise<string> => {
       const storagePath = path || `/uploads/${Date.now()}-${file.filename}`
       return storagePath
-    }) as (file: UploadedFile, path?: string) => Promise<string>,
+    }),
 
     delete: mock(async (_path: string): Promise<void> => {
       // Mock file deletion
-    }) as (path: string) => Promise<void>,
+    }),
 
     exists: mock(async (path: string): Promise<boolean> => {
       return !path.includes('not-found')
-    }) as (path: string) => Promise<boolean>,
+    }),
 
     getUrl: mock((path: string): string => {
       return `https://example.com/storage${path}`
-    }) as (path: string) => string,
+    }),
   },
 
   /**
    * Mock virus scanner
    */
   virusScanner: {
-    scan: mock(async (file: UploadedFile): Promise<{ clean: boolean, threat?: string }> => {
+    scan: mock(async (file: UploadedFile): Promise<VirusScanResult> => {
       // Mock virus scanning - mark .exe files as threats
       if (file.originalName.endsWith('.exe') || file.mimetype === 'application/x-executable') {
         return { clean: false, threat: 'Potentially malicious executable' }
       }
       return { clean: true }
-    }) as (file: UploadedFile) => Promise<{ clean: boolean, threat?: string }>,
+    }),
   },
 }
 

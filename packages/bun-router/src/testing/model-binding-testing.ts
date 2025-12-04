@@ -330,60 +330,88 @@ export const modelMocks = {
   }) as typeof MockPostClass,
 }
 
+/** Model constraint function type */
+export type ModelConstraintFn = (model: any, request: EnhancedRequest) => Promise<boolean>
+
+/** Simple model constraint function type (no request) */
+export type SimpleModelConstraintFn = (model: any) => Promise<boolean>
+
 /**
  * Model binding constraint helpers
  */
-export const constraintHelpers = {
+export const constraintHelpers: {
+  belongsTo: (userIdField?: string) => ModelConstraintFn
+  belongsToUser: () => ModelConstraintFn
+  published: () => SimpleModelConstraintFn
+  visible: () => SimpleModelConstraintFn
+  custom: (constraintFn: ModelConstraintFn) => ModelConstraintFn
+  combine: (...constraints: ModelConstraintFn[]) => ModelConstraintFn
+} = {
   /**
    * Create a belongsTo constraint
    */
-  belongsTo: (userIdField: string = 'userId'): any => mock(async (model: any, request: EnhancedRequest): Promise<boolean> => {
-    if (!request.user)
-      return false
-    return model[userIdField] === request.user.id
-  }),
+  belongsTo: (userIdField: string = 'userId'): ModelConstraintFn => {
+    const fn = async (model: any, request: EnhancedRequest): Promise<boolean> => {
+      if (!request.user)
+        return false
+      return model[userIdField] === request.user.id
+    }
+    return mock(fn)
+  },
 
   /**
    * Create a belongsToUser constraint
    */
-  belongsToUser: (): any => mock(async (model: any, request: EnhancedRequest): Promise<boolean> => {
-    if (!request.user)
-      return false
-    return model.userId === request.user.id
-  }),
+  belongsToUser: (): ModelConstraintFn => {
+    const fn = async (model: any, request: EnhancedRequest): Promise<boolean> => {
+      if (!request.user)
+        return false
+      return model.userId === request.user.id
+    }
+    return mock(fn)
+  },
 
   /**
    * Create a published constraint
    */
-  published: (): any => mock(async (model: any): Promise<boolean> => {
-    return model.published === true || model.status === 'published'
-  }),
+  published: (): SimpleModelConstraintFn => {
+    const fn = async (model: any): Promise<boolean> => {
+      return model.published === true || model.status === 'published'
+    }
+    return mock(fn)
+  },
 
   /**
    * Create a visible constraint
    */
-  visible: (): any => mock(async (model: any): Promise<boolean> => {
-    return model.visible !== false && model.hidden !== true
-  }),
+  visible: (): SimpleModelConstraintFn => {
+    const fn = async (model: any): Promise<boolean> => {
+      return model.visible !== false && model.hidden !== true
+    }
+    return mock(fn)
+  },
 
   /**
    * Create a custom constraint
    */
-  custom: (constraintFn: (model: any, request: EnhancedRequest) => Promise<boolean>): any =>
-    mock(constraintFn),
+  custom: (constraintFn: ModelConstraintFn): ModelConstraintFn => {
+    return mock(constraintFn)
+  },
 
   /**
    * Combine multiple constraints with AND logic
    */
-  combine: (...constraints: Array<(model: any, request: EnhancedRequest) => Promise<boolean>>): any =>
-    mock(async (model: any, request: EnhancedRequest): Promise<boolean> => {
+  combine: (...constraints: ModelConstraintFn[]): ModelConstraintFn => {
+    const fn = async (model: any, request: EnhancedRequest): Promise<boolean> => {
       for (const constraint of constraints) {
         if (!(await constraint(model, request))) {
           return false
         }
       }
       return true
-    }),
+    }
+    return mock(fn)
+  },
 }
 
 /**
@@ -463,10 +491,20 @@ export class ModelResolverTester {
   }
 }
 
+/** Route handler function type */
+export type RouteHandlerFn = (request: EnhancedRequest) => Promise<Response>
+
+/** Binding middleware function type */
+export type BindingMiddlewareFn = (request: EnhancedRequest, next: () => Promise<Response>) => Promise<Response>
+
 /**
  * Route model binding test helpers
  */
-export const routeModelHelpers = {
+export const routeModelHelpers: {
+  testRoute: (path: string, params: Record<string, string>, modelBindings: Record<string, any>) => Promise<EnhancedRequest>
+  createHandler: (expectedModels: string[]) => RouteHandlerFn
+  testBindingMiddleware: (bindings: Record<string, any>) => BindingMiddlewareFn
+} = {
   /**
    * Test route with model binding
    */
@@ -490,53 +528,57 @@ export const routeModelHelpers = {
   /**
    * Create a route handler that expects model binding
    */
-  createHandler: (expectedModels: string[]): any => mock(async (request: EnhancedRequest): Promise<Response> => {
-    const context = request.context || {}
+  createHandler: (expectedModels: string[]): RouteHandlerFn => {
+    const fn = async (request: EnhancedRequest): Promise<Response> => {
+      const context = request.context || {}
 
-    for (const modelKey of expectedModels) {
-      if (!context[modelKey]) {
-        return new Response(`Model ${modelKey} not found`, { status: 404 })
+      for (const modelKey of expectedModels) {
+        if (!context[modelKey]) {
+          return new Response(`Model ${modelKey} not found`, { status: 404 })
+        }
       }
-    }
 
-    return new Response(JSON.stringify({
-      params: request.params,
-      models: Object.fromEntries(
-        expectedModels.map(key => [key, context[key]]),
-      ),
-    }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }),
+      return new Response(JSON.stringify({
+        params: request.params,
+        models: Object.fromEntries(
+          expectedModels.map(key => [key, context[key]]),
+        ),
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    return mock(fn)
+  },
 
   /**
    * Test model binding middleware
    */
-  testBindingMiddleware: (
-    bindings: Record<string, any>,
-  ): any => mock(async (request: EnhancedRequest, next: any): Promise<Response> => {
-    request.context = request.context || {}
+  testBindingMiddleware: (bindings: Record<string, any>): BindingMiddlewareFn => {
+    const fn = async (request: EnhancedRequest, next: () => Promise<Response>): Promise<Response> => {
+      request.context = request.context || {}
 
-    for (const [key, resolver] of Object.entries(bindings)) {
-      const paramValue = request.params[key]
-      if (paramValue) {
-        try {
-          if (typeof resolver === 'function') {
-            request.context[key] = await resolver(paramValue)
+      for (const [key, resolver] of Object.entries(bindings)) {
+        const paramValue = request.params[key]
+        if (paramValue) {
+          try {
+            if (typeof resolver === 'function') {
+              request.context[key] = await resolver(paramValue)
+            }
+            else {
+              request.context[key] = resolver
+            }
           }
-          else {
-            request.context[key] = resolver
+          catch (error) {
+            console.error(`Error resolving model ${key}:`, error)
+            return new Response(`${key} not found`, { status: 404 })
           }
-        }
-        catch (error) {
-          console.error(`Error resolving model ${key}:`, error)
-          return new Response(`${key} not found`, { status: 404 })
         }
       }
-    }
 
-    return await next()
-  }),
+      return await next()
+    }
+    return mock(fn)
+  },
 }
 
 /**
@@ -550,17 +592,27 @@ export function createModelResolverTester(): ModelResolverTester {
   return new ModelResolverTester()
 }
 
+/** User scope constraint function */
+export type UserScopeConstraint = (model: any, user: any) => Promise<boolean>
+
+/** Default user scope constraint */
+const defaultUserScopeConstraint: UserScopeConstraint = async (m, u) => m.userId === u.id
+
 /**
  * Test utilities for scoped model binding
  */
-export const scopedBindingHelpers = {
+export const scopedBindingHelpers: {
+  testUserScoped: (model: any, user: any, constraint?: UserScopeConstraint) => Promise<boolean>
+  testRoleAccess: (model: any, user: any, requiredRoles: string[]) => Promise<boolean>
+  testPermissionAccess: (model: any, user: any, requiredPermissions: string[]) => Promise<boolean>
+} = {
   /**
    * Test user-scoped model binding
    */
   testUserScoped: async (
     model: any,
     user: any,
-    constraint: (model: any, user: any) => Promise<boolean> = async (m, u) => m.userId === u.id,
+    constraint: UserScopeConstraint = defaultUserScopeConstraint,
   ): Promise<boolean> => {
     return await constraint(model, user)
   },

@@ -5,6 +5,96 @@ import { mock } from 'bun:test'
 import process from 'node:process'
 import { createMockRequest } from './test-request'
 
+/** Route handler benchmark result */
+export interface RouteHandlerBenchmarkResult {
+  averageTime: number
+  minTime: number
+  maxTime: number
+  totalTime: number
+  throughput: number
+}
+
+/** Middleware benchmark result */
+export interface MiddlewareBenchmarkResult {
+  averageTime: number
+  minTime: number
+  maxTime: number
+  totalTime: number
+}
+
+/** JSON serialization benchmark result */
+export interface JsonBenchmarkResult {
+  averageTime: number
+  minTime: number
+  maxTime: number
+  totalTime: number
+  dataSize: number
+}
+
+/** URL parsing benchmark result */
+export interface UrlParsingBenchmarkResult {
+  averageTime: number
+  minTime: number
+  maxTime: number
+  totalTime: number
+}
+
+/** Memory test result */
+export interface MemoryTestResult {
+  heapUsedBefore: number
+  heapUsedAfter: number
+  heapUsedDelta: number
+  rssBefore: number
+  rssAfter: number
+  rssDelta: number
+}
+
+/** Memory usage result */
+export interface MemoryUsageResult<T> {
+  averageHeapUsed: number
+  maxHeapUsed: number
+  memoryLeakDetected: boolean
+  results: T[]
+}
+
+/** Route handler memory leak result */
+export interface RouteHandlerMemoryLeakResult {
+  memoryLeakDetected: boolean
+  initialMemory: number
+  finalMemory: number
+  memoryGrowth: number
+}
+
+/** Ramp up test options */
+export interface RampUpTestOptions {
+  startConcurrency: number
+  endConcurrency: number
+  rampUpTime: number
+  testDuration: number
+}
+
+/** Ramp up test result */
+export interface RampUpTestResult {
+  concurrency: number
+  requestsPerSecond: number
+  averageResponseTime: number
+  errorRate: number
+}
+
+/** Spike test options */
+export interface SpikeTestOptions {
+  normalLoad: number
+  spikeLoad: number
+  spikeDuration: number
+}
+
+/** Spike test result */
+export interface SpikeTestResult {
+  normalPhase: any
+  spikePhase: any
+  recoveryPhase: any
+}
+
 /**
  * Performance testing utilities
  */
@@ -212,23 +302,31 @@ export class LoadTester {
   }
 }
 
+/** Route matching benchmark result */
+export interface RouteMatchingBenchmarkResult {
+  averageTime: number
+  minTime: number
+  maxTime: number
+  totalTime: number
+  matchRate: number
+}
+
 /**
  * Benchmark testing utilities
  */
-export const benchmarkTests = {
+export const benchmarkTests: {
+  routeHandler: (handler: (req: EnhancedRequest) => Promise<Response>, iterations?: number) => Promise<RouteHandlerBenchmarkResult>
+  middleware: (middleware: (req: EnhancedRequest, next: () => Promise<Response | null>) => Promise<Response | null>, iterations?: number) => Promise<MiddlewareBenchmarkResult>
+  jsonSerialization: (data: any, iterations?: number) => Promise<JsonBenchmarkResult>
+  routeMatching: (routes: Array<{ path: string, handler: any }>, testPaths: string[], iterations?: number) => Promise<RouteMatchingBenchmarkResult>
+} = {
   /**
    * Benchmark route handler performance
    */
   routeHandler: async (
     handler: (req: EnhancedRequest) => Promise<Response>,
     iterations: number = 1000,
-  ): Promise<{
-    averageTime: number
-    minTime: number
-    maxTime: number
-    totalTime: number
-    throughput: number
-  }> => {
+  ): Promise<RouteHandlerBenchmarkResult> => {
     const times: number[] = []
     const request = createMockRequest()
 
@@ -260,12 +358,7 @@ export const benchmarkTests = {
   middleware: async (
     middleware: (req: EnhancedRequest, next: () => Promise<Response | null>) => Promise<Response | null>,
     iterations: number = 1000,
-  ): Promise<{
-    averageTime: number
-    minTime: number
-    maxTime: number
-    totalTime: number
-  }> => {
+  ): Promise<MiddlewareBenchmarkResult> => {
     const times: number[] = []
     const request = createMockRequest()
     const next = mock(async () => new Response('OK'))
@@ -296,13 +389,7 @@ export const benchmarkTests = {
   jsonSerialization: async (
     data: any,
     iterations: number = 10000,
-  ): Promise<{
-    averageTime: number
-    minTime: number
-    maxTime: number
-    totalTime: number
-    dataSize: number
-  }> => {
+  ): Promise<JsonBenchmarkResult> => {
     const times: number[] = []
 
     for (let i = 0; i < iterations; i++) {
@@ -334,13 +421,7 @@ export const benchmarkTests = {
     routes: Array<{ path: string, handler: any }>,
     testPaths: string[],
     iterations: number = 1000,
-  ): Promise<{
-    averageTime: number
-    minTime: number
-    maxTime: number
-    totalTime: number
-    matchRate: number
-  }> => {
+  ): Promise<RouteMatchingBenchmarkResult> => {
     const times: number[] = []
     let matches = 0
 
@@ -381,19 +462,17 @@ export const benchmarkTests = {
 /**
  * Memory testing utilities
  */
-export const memoryTests = {
+export const memoryTests: {
+  measureMemoryUsage: <T>(fn: () => Promise<T> | T, iterations?: number) => Promise<MemoryUsageResult<T>>
+  testRouteHandlerMemoryLeaks: (handler: (req: EnhancedRequest) => Promise<Response>, iterations?: number) => Promise<RouteHandlerMemoryLeakResult>
+} = {
   /**
    * Test memory usage of a function
    */
   measureMemoryUsage: async <T>(
     fn: () => Promise<T> | T,
     iterations: number = 100,
-  ): Promise<{
-    averageHeapUsed: number
-    maxHeapUsed: number
-    memoryLeakDetected: boolean
-    results: T[]
-  }> => {
+  ): Promise<MemoryUsageResult<T>> => {
     const results: T[] = []
     const heapUsages: number[] = []
 
@@ -443,12 +522,7 @@ export const memoryTests = {
   testRouteHandlerMemoryLeaks: async (
     handler: (req: EnhancedRequest) => Promise<Response>,
     iterations: number = 1000,
-  ): Promise<{
-    memoryLeakDetected: boolean
-    initialMemory: number
-    finalMemory: number
-    memoryGrowth: number
-  }> => {
+  ): Promise<RouteHandlerMemoryLeakResult> => {
     if (globalThis.gc)
       globalThis.gc()
     const initialMemory = process.memoryUsage().heapUsed
@@ -480,31 +554,19 @@ export const memoryTests = {
 /**
  * Stress testing utilities
  */
-export const stressTests = {
+export const stressTests: {
+  rampUpTest: (client: TestClient, path: string, options: RampUpTestOptions) => Promise<RampUpTestResult[]>
+  spikeTest: (client: TestClient, path: string, options: SpikeTestOptions) => Promise<SpikeTestResult>
+} = {
   /**
    * Stress test with increasing load
    */
   rampUpTest: async (
     client: TestClient,
     path: string,
-    options: {
-      startConcurrency: number
-      endConcurrency: number
-      rampUpTime: number
-      testDuration: number
-    },
-  ): Promise<Array<{
-    concurrency: number
-    requestsPerSecond: number
-    averageResponseTime: number
-    errorRate: number
-  }>> => {
-    const results: Array<{
-      concurrency: number
-      requestsPerSecond: number
-      averageResponseTime: number
-      errorRate: number
-    }> = []
+    options: RampUpTestOptions,
+  ): Promise<RampUpTestResult[]> => {
+    const results: RampUpTestResult[] = []
 
     const steps = 10
     const stepDuration = options.testDuration / steps
@@ -538,16 +600,8 @@ export const stressTests = {
   spikeTest: async (
     client: TestClient,
     path: string,
-    options: {
-      normalLoad: number
-      spikeLoad: number
-      spikeDuration: number
-    },
-  ): Promise<{
-    normalPhase: any
-    spikePhase: any
-    recoveryPhase: any
-  }> => {
+    options: SpikeTestOptions,
+  ): Promise<SpikeTestResult> => {
     // Normal load phase
     const normalTester = new LoadTester(client, {
       duration: 30000, // 30 seconds

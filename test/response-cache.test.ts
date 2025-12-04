@@ -143,7 +143,7 @@ describe('Response Caching System', () => {
 
       // Wait for TTL to expire and trigger cleanup
       await new Promise(resolve => setTimeout(resolve, 60))
-      cache.cleanup() // Force cleanup to expire entries
+      await cache.cleanup() // Force cleanup to expire entries
 
       // Third request - should miss cache (expired)
       const response3 = await router.handleRequest(new Request('http://localhost/ttl-test'))

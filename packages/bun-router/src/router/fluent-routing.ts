@@ -657,18 +657,37 @@ export class FluentRouter {
   }
 }
 
+/** API route options */
+export interface ApiRouteOptions {
+  method?: string
+  cache?: string[]
+  throttle?: string
+}
+
+/** Protected route options */
+export interface ProtectedRouteOptions {
+  method?: string
+  roles?: string[]
+}
+
+/** Upload route options */
+export interface UploadRouteOptions {
+  maxSize?: number
+  allowedTypes?: string[]
+}
+
 /**
  * Factory functions for common route patterns
  */
-export const RouteFactory = {
+export const RouteFactory: {
+  api: (path: string, handler: RouteHandler, options?: ApiRouteOptions) => FluentRouteBuilder
+  protected: (path: string, handler: RouteHandler, options?: ProtectedRouteOptions) => FluentRouteBuilder
+  upload: (path: string, handler: RouteHandler, options?: UploadRouteOptions) => FluentRouteBuilder
+} = {
   /**
    * API route with caching and throttling
    */
-  api: (path: string, handler: RouteHandler, options: {
-    method?: string
-    cache?: string[]
-    throttle?: string
-  } = {}): FluentRouteBuilder => {
+  api: (path: string, handler: RouteHandler, options: ApiRouteOptions = {}): FluentRouteBuilder => {
     const method = options.method || 'GET'
     const builder = new FluentRouteBuilder(method, path, handler)
 
@@ -686,15 +705,12 @@ export const RouteFactory = {
   /**
    * Protected route with authentication
    */
-  protected: (path: string, handler: RouteHandler, options: {
-    method?: string
-    roles?: string[]
-  } = {}): FluentRouteBuilder => {
+  protected: (path: string, handler: RouteHandler, options: ProtectedRouteOptions = {}): FluentRouteBuilder => {
     const method = options.method || 'GET'
     const builder = new FluentRouteBuilder(method, path, handler)
 
     // Add auth middleware (would need to be implemented)
-    builder.addMiddleware(async (req: EnhancedRequest, next: any) => {
+    builder.addMiddleware(async (req: EnhancedRequest, next: NextFunction) => {
       // Mock auth check
       if (!req.headers.get('Authorization')) {
         return new Response('Unauthorized', { status: 401 })
@@ -708,14 +724,11 @@ export const RouteFactory = {
   /**
    * File upload route
    */
-  upload: (path: string, handler: RouteHandler, _options: {
-    maxSize?: number
-    allowedTypes?: string[]
-  } = {}): FluentRouteBuilder => {
+  upload: (path: string, handler: RouteHandler, _options: UploadRouteOptions = {}): FluentRouteBuilder => {
     const builder = new FluentRouteBuilder('POST', path, handler)
 
     // Add file upload middleware (would need to be implemented)
-    builder.addMiddleware(async (_req: EnhancedRequest, next: any) => {
+    builder.addMiddleware(async (_req: EnhancedRequest, next: NextFunction) => {
       // Mock file upload handling
       return await next()
     })
