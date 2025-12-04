@@ -19,7 +19,7 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
-    "@iconify-json/carbon": "^1.2.14",
+    "@iconify-json/carbon": "^1.2.15",
     "@types/d3": "7.4.3",
     "@unocss/preset-icons": "^66.5.10",
     "@unocss/preset-uno": "^66.5.10",
