@@ -1,0 +1,161 @@
+### 🚀 Features
+
+- add proper streaming support ([83967ef](https://github.com/stacksjs/bun-router/commit/83967ef)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+### 🧹 Chores
+
+- wip ([1d1dbf0](https://github.com/stacksjs/bun-router/commit/1d1dbf0)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update all non-major dependencies (#53) ([0e88f2b](https://github.com/stacksjs/bun-router/commit/0e88f2b)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#53](https://github.com/stacksjs/bun-router/issues/53), [#53](https://github.com/stacksjs/bun-router/issues/53))
+- wip ([bca1141](https://github.com/stacksjs/bun-router/commit/bca1141)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([5c94442](https://github.com/stacksjs/bun-router/commit/5c94442)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([cdd99cc](https://github.com/stacksjs/bun-router/commit/cdd99cc)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([d2a86bb](https://github.com/stacksjs/bun-router/commit/d2a86bb)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **deps**: update all non-major dependencies (#49) ([2515a07](https://github.com/stacksjs/bun-router/commit/2515a07)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#49](https://github.com/stacksjs/bun-router/issues/49), [#49](https://github.com/stacksjs/bun-router/issues/49))
+- **deps**: update dependency actions/checkout to v6.0.0 (#51) ([9a24b59](https://github.com/stacksjs/bun-router/commit/9a24b59)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#51](https://github.com/stacksjs/bun-router/issues/51), [#51](https://github.com/stacksjs/bun-router/issues/51))
+- **deps**: update all non-major dependencies (#50) ([73d8185](https://github.com/stacksjs/bun-router/commit/73d8185)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#50](https://github.com/stacksjs/bun-router/issues/50), [#50](https://github.com/stacksjs/bun-router/issues/50))
+- **deps**: update actions/checkout action to v6 (#52) ([9f3614b](https://github.com/stacksjs/bun-router/commit/9f3614b)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#52](https://github.com/stacksjs/bun-router/issues/52), [#52](https://github.com/stacksjs/bun-router/issues/52))
+- wip ([d2c01bf](https://github.com/stacksjs/bun-router/commit/d2c01bf)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([2d03dd2](https://github.com/stacksjs/bun-router/commit/2d03dd2)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([0da32a2](https://github.com/stacksjs/bun-router/commit/0da32a2)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([af6bbde](https://github.com/stacksjs/bun-router/commit/af6bbde)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update all non-major dependencies (#47) ([f2fe841](https://github.com/stacksjs/bun-router/commit/f2fe841)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#47](https://github.com/stacksjs/bun-router/issues/47), [#47](https://github.com/stacksjs/bun-router/issues/47))
+- **deps**: update softprops/action-gh-release action to v2.4.2 (#45) ([0222e0e](https://github.com/stacksjs/bun-router/commit/0222e0e)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#45](https://github.com/stacksjs/bun-router/issues/45), [#45](https://github.com/stacksjs/bun-router/issues/45))
+- wip ([1fcc6d6](https://github.com/stacksjs/bun-router/commit/1fcc6d6)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([46e5221](https://github.com/stacksjs/bun-router/commit/46e5221)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update all non-major dependencies (#44) ([a4097a8](https://github.com/stacksjs/bun-router/commit/a4097a8)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#44](https://github.com/stacksjs/bun-router/issues/44), [#44](https://github.com/stacksjs/bun-router/issues/44))
+- **deps**: update all non-major dependencies to ^66.5.5 (#43) ([a5bd8c0](https://github.com/stacksjs/bun-router/commit/a5bd8c0)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#43](https://github.com/stacksjs/bun-router/issues/43), [#43](https://github.com/stacksjs/bun-router/issues/43))
+- **deps**: update all non-major dependencies (#41) ([bd6d298](https://github.com/stacksjs/bun-router/commit/bd6d298)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#41](https://github.com/stacksjs/bun-router/issues/41), [#41](https://github.com/stacksjs/bun-router/issues/41))
+- wip ([9c10acf](https://github.com/stacksjs/bun-router/commit/9c10acf)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([01374ec](https://github.com/stacksjs/bun-router/commit/01374ec)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update all non-major dependencies (#40) ([1ee80a7](https://github.com/stacksjs/bun-router/commit/1ee80a7)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#40](https://github.com/stacksjs/bun-router/issues/40), [#40](https://github.com/stacksjs/bun-router/issues/40))
+- **deps**: update dependency bun-plugin-dtsx to ^0.21.16 (#39) ([9a27dba](https://github.com/stacksjs/bun-router/commit/9a27dba)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#39](https://github.com/stacksjs/bun-router/issues/39), [#39](https://github.com/stacksjs/bun-router/issues/39))
+- **deps**: update all non-major dependencies (#34) ([39a2644](https://github.com/stacksjs/bun-router/commit/39a2644)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#34](https://github.com/stacksjs/bun-router/issues/34), [#34](https://github.com/stacksjs/bun-router/issues/34))
+- wip ([a810374](https://github.com/stacksjs/bun-router/commit/a810374)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update all non-major dependencies (#36) ([9b56d46](https://github.com/stacksjs/bun-router/commit/9b56d46)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#36](https://github.com/stacksjs/bun-router/issues/36), [#36](https://github.com/stacksjs/bun-router/issues/36))
+- **deps**: update all non-major dependencies (#35) ([d117059](https://github.com/stacksjs/bun-router/commit/d117059)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#35](https://github.com/stacksjs/bun-router/issues/35), [#35](https://github.com/stacksjs/bun-router/issues/35))
+- wip ([19c9c06](https://github.com/stacksjs/bun-router/commit/19c9c06)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([866ea38](https://github.com/stacksjs/bun-router/commit/866ea38)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([d3607e9](https://github.com/stacksjs/bun-router/commit/d3607e9)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([0ff16d2](https://github.com/stacksjs/bun-router/commit/0ff16d2)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update all non-major dependencies (#33) ([d53f389](https://github.com/stacksjs/bun-router/commit/d53f389)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#33](https://github.com/stacksjs/bun-router/issues/33), [#33](https://github.com/stacksjs/bun-router/issues/33))
+- **deps**: update all non-major dependencies (#32) ([e1b9ab7](https://github.com/stacksjs/bun-router/commit/e1b9ab7)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#32](https://github.com/stacksjs/bun-router/issues/32), [#32](https://github.com/stacksjs/bun-router/issues/32))
+- wip ([210b539](https://github.com/stacksjs/bun-router/commit/210b539)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update dependency vite to 7.1.11 (#26) ([4764845](https://github.com/stacksjs/bun-router/commit/4764845)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#26](https://github.com/stacksjs/bun-router/issues/26), [#26](https://github.com/stacksjs/bun-router/issues/26))
+- **deps**: update dependency actions/checkout to v5.0.0 (#29) ([0b8070d](https://github.com/stacksjs/bun-router/commit/0b8070d)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#29](https://github.com/stacksjs/bun-router/issues/29), [#29](https://github.com/stacksjs/bun-router/issues/29))
+- wip ([20da93e](https://github.com/stacksjs/bun-router/commit/20da93e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([4869262](https://github.com/stacksjs/bun-router/commit/4869262)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([2a9fbbf](https://github.com/stacksjs/bun-router/commit/2a9fbbf)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([cdf839e](https://github.com/stacksjs/bun-router/commit/cdf839e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([5e01912](https://github.com/stacksjs/bun-router/commit/5e01912)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update dependency @vitejs/plugin-vue to 6.0.1 (updated) (#16) ([0d4e065](https://github.com/stacksjs/bun-router/commit/0d4e065)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#16](https://github.com/stacksjs/bun-router/issues/16), [#16](https://github.com/stacksjs/bun-router/issues/16))
+- wip ([5b57dcc](https://github.com/stacksjs/bun-router/commit/5b57dcc)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update dependency vue-tsc to 3.1.1 (#27) ([b0f06d6](https://github.com/stacksjs/bun-router/commit/b0f06d6)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#27](https://github.com/stacksjs/bun-router/issues/27), [#27](https://github.com/stacksjs/bun-router/issues/27))
+- wip ([390c266](https://github.com/stacksjs/bun-router/commit/390c266)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([60e8bdd](https://github.com/stacksjs/bun-router/commit/60e8bdd)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([ae36fa1](https://github.com/stacksjs/bun-router/commit/ae36fa1)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([8bfc858](https://github.com/stacksjs/bun-router/commit/8bfc858)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([9276052](https://github.com/stacksjs/bun-router/commit/9276052)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([e498e74](https://github.com/stacksjs/bun-router/commit/e498e74)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([9f57c8b](https://github.com/stacksjs/bun-router/commit/9f57c8b)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([8831b6c](https://github.com/stacksjs/bun-router/commit/8831b6c)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([9b08a8b](https://github.com/stacksjs/bun-router/commit/9b08a8b)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([b3e406b](https://github.com/stacksjs/bun-router/commit/b3e406b)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([cee107a](https://github.com/stacksjs/bun-router/commit/cee107a)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([4513849](https://github.com/stacksjs/bun-router/commit/4513849)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([5a69106](https://github.com/stacksjs/bun-router/commit/5a69106)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([d744388](https://github.com/stacksjs/bun-router/commit/d744388)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([93fb67f](https://github.com/stacksjs/bun-router/commit/93fb67f)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([532dde8](https://github.com/stacksjs/bun-router/commit/532dde8)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([8f2a0d6](https://github.com/stacksjs/bun-router/commit/8f2a0d6)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([f19821b](https://github.com/stacksjs/bun-router/commit/f19821b)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([c6705dd](https://github.com/stacksjs/bun-router/commit/c6705dd)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([8bf0569](https://github.com/stacksjs/bun-router/commit/8bf0569)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([5e7ab2f](https://github.com/stacksjs/bun-router/commit/5e7ab2f)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([4fda9ac](https://github.com/stacksjs/bun-router/commit/4fda9ac)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([e3df40a](https://github.com/stacksjs/bun-router/commit/e3df40a)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([db8fbee](https://github.com/stacksjs/bun-router/commit/db8fbee)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([9184f3d](https://github.com/stacksjs/bun-router/commit/9184f3d)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([4f9d5e8](https://github.com/stacksjs/bun-router/commit/4f9d5e8)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([07d542e](https://github.com/stacksjs/bun-router/commit/07d542e)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([67aab70](https://github.com/stacksjs/bun-router/commit/67aab70)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([e9dbbfd](https://github.com/stacksjs/bun-router/commit/e9dbbfd)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([4ce5dd2](https://github.com/stacksjs/bun-router/commit/4ce5dd2)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([ef7a612](https://github.com/stacksjs/bun-router/commit/ef7a612)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([2323953](https://github.com/stacksjs/bun-router/commit/2323953)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([e5f5bc8](https://github.com/stacksjs/bun-router/commit/e5f5bc8)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([9f0d503](https://github.com/stacksjs/bun-router/commit/9f0d503)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([0ef5a66](https://github.com/stacksjs/bun-router/commit/0ef5a66)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([c75e762](https://github.com/stacksjs/bun-router/commit/c75e762)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([59c515a](https://github.com/stacksjs/bun-router/commit/59c515a)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([7367969](https://github.com/stacksjs/bun-router/commit/7367969)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([ba4829e](https://github.com/stacksjs/bun-router/commit/ba4829e)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([488eb28](https://github.com/stacksjs/bun-router/commit/488eb28)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([977c52f](https://github.com/stacksjs/bun-router/commit/977c52f)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([67d1d36](https://github.com/stacksjs/bun-router/commit/67d1d36)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([365dc4b](https://github.com/stacksjs/bun-router/commit/365dc4b)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([a570554](https://github.com/stacksjs/bun-router/commit/a570554)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([66323dc](https://github.com/stacksjs/bun-router/commit/66323dc)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([b489f8f](https://github.com/stacksjs/bun-router/commit/b489f8f)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([d0ad11c](https://github.com/stacksjs/bun-router/commit/d0ad11c)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([a4c058b](https://github.com/stacksjs/bun-router/commit/a4c058b)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([5577fc7](https://github.com/stacksjs/bun-router/commit/5577fc7)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([9d25ddb](https://github.com/stacksjs/bun-router/commit/9d25ddb)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([4d599b9](https://github.com/stacksjs/bun-router/commit/4d599b9)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([c050074](https://github.com/stacksjs/bun-router/commit/c050074)) _(by Chris <chrisbreuer93@gmail.com>)_
+- update tools ([b9398a4](https://github.com/stacksjs/bun-router/commit/b9398a4)) _(by Adelino Ngomacha <adelinob335@gmail.com>)_
+- update tools ([9ade182](https://github.com/stacksjs/bun-router/commit/9ade182)) _(by Adelino Ngomacha <adelinob335@gmail.com>)_
+- **deps**: update all non-major dependencies (#8) ([a9b3e7f](https://github.com/stacksjs/bun-router/commit/a9b3e7f)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#8](https://github.com/stacksjs/bun-router/issues/8), [#8](https://github.com/stacksjs/bun-router/issues/8))
+- **deps**: update dependency bunfig to ^0.8.4 (#7) ([c804b46](https://github.com/stacksjs/bun-router/commit/c804b46)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#7](https://github.com/stacksjs/bun-router/issues/7), [#7](https://github.com/stacksjs/bun-router/issues/7))
+- wip ([a9a620f](https://github.com/stacksjs/bun-router/commit/a9a620f)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([52e229c](https://github.com/stacksjs/bun-router/commit/52e229c)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([d634dbd](https://github.com/stacksjs/bun-router/commit/d634dbd)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([28ecdbe](https://github.com/stacksjs/bun-router/commit/28ecdbe)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([525e2e1](https://github.com/stacksjs/bun-router/commit/525e2e1)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([0ba9506](https://github.com/stacksjs/bun-router/commit/0ba9506)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([72a1cf3](https://github.com/stacksjs/bun-router/commit/72a1cf3)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([40f2648](https://github.com/stacksjs/bun-router/commit/40f2648)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([6b54350](https://github.com/stacksjs/bun-router/commit/6b54350)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([d8b2c4a](https://github.com/stacksjs/bun-router/commit/d8b2c4a)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([65ff156](https://github.com/stacksjs/bun-router/commit/65ff156)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([0234c53](https://github.com/stacksjs/bun-router/commit/0234c53)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([bd4dbf5](https://github.com/stacksjs/bun-router/commit/bd4dbf5)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([b6f1c84](https://github.com/stacksjs/bun-router/commit/b6f1c84)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **deps**: update dependency @types/bun to ^1.2.11 (#6) ([837bd89](https://github.com/stacksjs/bun-router/commit/837bd89)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#6](https://github.com/stacksjs/bun-router/issues/6), [#6](https://github.com/stacksjs/bun-router/issues/6))
+- wip ([339c871](https://github.com/stacksjs/bun-router/commit/339c871)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([924c9c3](https://github.com/stacksjs/bun-router/commit/924c9c3)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([6c77d7f](https://github.com/stacksjs/bun-router/commit/6c77d7f)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([81ee1ad](https://github.com/stacksjs/bun-router/commit/81ee1ad)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([23c218d](https://github.com/stacksjs/bun-router/commit/23c218d)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([0cea467](https://github.com/stacksjs/bun-router/commit/0cea467)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([7d82d91](https://github.com/stacksjs/bun-router/commit/7d82d91)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([b866020](https://github.com/stacksjs/bun-router/commit/b866020)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([8b54672](https://github.com/stacksjs/bun-router/commit/8b54672)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([ba06728](https://github.com/stacksjs/bun-router/commit/ba06728)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([aac60e4](https://github.com/stacksjs/bun-router/commit/aac60e4)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([cb576c9](https://github.com/stacksjs/bun-router/commit/cb576c9)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([aac43ed](https://github.com/stacksjs/bun-router/commit/aac43ed)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([15cb2b4](https://github.com/stacksjs/bun-router/commit/15cb2b4)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([371d4be](https://github.com/stacksjs/bun-router/commit/371d4be)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([0a874bf](https://github.com/stacksjs/bun-router/commit/0a874bf)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([5b57f13](https://github.com/stacksjs/bun-router/commit/5b57f13)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([a4ccae9](https://github.com/stacksjs/bun-router/commit/a4ccae9)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([142f030](https://github.com/stacksjs/bun-router/commit/142f030)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([d46f9bc](https://github.com/stacksjs/bun-router/commit/d46f9bc)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([5f748ae](https://github.com/stacksjs/bun-router/commit/5f748ae)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([372468d](https://github.com/stacksjs/bun-router/commit/372468d)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([859cb68](https://github.com/stacksjs/bun-router/commit/859cb68)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([eae23fa](https://github.com/stacksjs/bun-router/commit/eae23fa)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **deps**: update all non-major dependencies (#5) ([0f3a66b](https://github.com/stacksjs/bun-router/commit/0f3a66b)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#5](https://github.com/stacksjs/bun-router/issues/5), [#5](https://github.com/stacksjs/bun-router/issues/5))
+- wip ([44794c6](https://github.com/stacksjs/bun-router/commit/44794c6)) _(by Chris <chrisbreuer93@gmail.com>)_
+- initial commit ([6899dd3](https://github.com/stacksjs/bun-router/commit/6899dd3)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+### 📄 Miscellaneous
+
+- Merge pull request #25 from stacksjs/buddy-bot/update-major-update---actions/checkout-1760992831306 ([7f69c0d](https://github.com/stacksjs/bun-router/commit/7f69c0d)) _(by Chris <chrisbreuer93@gmail.com>)_ ([#25](https://github.com/stacksjs/bun-router/issues/25), [#25](https://github.com/stacksjs/bun-router/issues/25))
+
+### Contributors
+
+- _Adelino Ngomacha <adelinob335@gmail.com>_
+- _Chris <chrisbreuer93@gmail.com>_
+- _[renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot])_
+- _glennmichael123 <gtorregosa@gmail.com>_
