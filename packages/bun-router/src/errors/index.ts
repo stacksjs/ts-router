@@ -16,3 +16,6 @@ export * from './exceptions'
 
 // Graceful degradation
 export * from './graceful-degradation'
+
+// Enhanced router errors
+export * from './router-errors'

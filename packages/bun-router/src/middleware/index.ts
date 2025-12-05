@@ -13,6 +13,7 @@ import Csrf from './csrf'
 import JsonBody from './json_body'
 import { rateLimit as createRateLimit } from './rate_limit'
 import RequestId from './request_id'
+import RequestSigning from './request_signing'
 import Session from './session'
 
 // Export middleware classes
@@ -37,6 +38,9 @@ export { default as RateLimit } from './rate_limit'
 // Export factory functions for easier usage
 export { rateLimit } from './rate_limit'
 export { default as RequestId } from './request_id'
+export { InMemoryNonceStore, default as RequestSigning, requestSigning, signRequest, verifySignature } from './request_signing'
+export type { NonceStore, RequestSigningOptions, SignatureAlgorithm, SignedPart } from './request_signing'
+export { SignatureError } from './request_signing'
 export { default as RequestTracer, requestTracer } from './request_tracer'
 export { default as Security } from './security'
 export { security } from './security'
@@ -82,6 +86,9 @@ export const middleware: Record<string, any> = {
     validator: () => true, // Default just passes through - must be configured correctly
   }),
   'Middleware/RateLimit': createRateLimit(),
+  'Middleware/RequestSigning': new RequestSigning({
+    secret: '', // Must be configured
+  }),
 }
 
 export default middleware

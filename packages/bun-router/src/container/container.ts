@@ -5,6 +5,8 @@
  * lifecycle management, and contextual binding support
  */
 
+import { CircularDependencyException } from '../errors/router-errors'
+
 // Extend Reflect with metadata methods
 declare global {
   // eslint-disable-next-line ts/no-namespace
@@ -300,12 +302,20 @@ export class Container {
   private resolveInternal<T>(token: Token, context: ResolutionContext): T {
     // Check for circular dependencies
     if (context.resolving.has(token)) {
-      throw new Error(`Circular dependency detected: ${this.tokenToString(token)}`)
+      // Build the dependency chain for better error message
+      const chain = Array.from(context.resolving).map(t => this.tokenToString(t))
+      chain.push(this.tokenToString(token))
+      throw new CircularDependencyException(chain)
     }
 
     // Check depth limit
     if (context.depth > this.options.maxDepth) {
-      throw new Error(`Maximum resolution depth exceeded: ${this.options.maxDepth}`)
+      const chain = Array.from(context.resolving).map(t => this.tokenToString(t))
+      throw new Error(
+        `Maximum resolution depth exceeded (${this.options.maxDepth}).\n`
+        + `This usually indicates a circular or very deep dependency chain.\n`
+        + `Current resolution chain:\n${chain.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}`,
+      )
     }
 
     context.resolving.add(token)
