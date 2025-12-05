@@ -469,7 +469,7 @@ onMounted(async () => {
                 v-model="body"
                 rows="10"
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono"
-                placeholder="{ &quot;name&quot;: &quot;John&quot;, &quot;email&quot;: &quot;{{TEST_EMAIL}}&quot; }"
+                placeholder='{ "name": "John", "email": "test@example.com" }'
               />
 
               <div v-if="['POST', 'PUT', 'PATCH'].includes(method) && resolvedBody !== body" class="mt-2 text-sm text-gray-500">
