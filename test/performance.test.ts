@@ -236,7 +236,7 @@ describe('Performance Monitoring System', () => {
       })
 
       await router.use(async (req, next) => tracer.handle(req, next))
-      router.get('/test', (req) => {
+      router.get('/test', (req: Request) => {
         // Manually set the trace ID in the response for testing purposes
         const traceId = req.headers.get('x-trace-id') || 'new-trace-id'
         const response = new Response('OK')
@@ -259,9 +259,9 @@ describe('Performance Monitoring System', () => {
       })
 
       router.use(async (req, next) => tracer.handle(req, next))
-      router.get('/test', (req) => {
+      router.get('/test', (req: Request) => {
         // Create a child span during request processing
-        const childSpanId = tracer.createChildSpan(req.spanId!, 'database-query')
+        const childSpanId = tracer.createChildSpan((req as Request & { spanId?: string }).spanId!, 'database-query')
         if (childSpanId) {
           tracer.addTag(childSpanId, 'db.query', 'SELECT * FROM users')
           tracer.addLog(childSpanId, 'info', 'Query executed')
@@ -419,7 +419,7 @@ describe('Performance Monitoring System', () => {
       testRouter.use(async (req, next) => dashboard.handle(req, next))
 
       // Mock authentication handling
-      testRouter.get('/performance', (req) => {
+      testRouter.get('/performance', (req: Request) => {
         const authHeader = req.headers.get('Authorization')
         if (!authHeader || !authHeader.startsWith('Basic ')) {
           return new Response('Unauthorized', { status: 401 })

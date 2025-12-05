@@ -199,7 +199,7 @@ describe('Response Caching System', () => {
       })
 
       await router.use(async (req, next) => cache.handle(req, next))
-      router.get('/test', (req) => {
+      router.get('/test', (req: Request) => {
         const lang = req.headers.get('Accept-Language') || 'en'
         return new Response(`Hello in ${lang}`)
       })

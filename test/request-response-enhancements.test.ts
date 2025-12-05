@@ -320,7 +320,7 @@ describe('Request/Response Enhancements', () => {
         jsonBody: { name: 'John', email: 'john@example.com' },
         formBody: {},
         validated: {},
-      } as EnhancedRequest
+      } as unknown as EnhancedRequest
 
       let nextCalled = false
       const next = async () => {
@@ -346,7 +346,7 @@ describe('Request/Response Enhancements', () => {
         jsonBody: { name: 'a', email: 'invalid-email' },
         formBody: {},
         validated: {},
-      } as EnhancedRequest
+      } as unknown as EnhancedRequest
 
       const next = async () => new Response('OK')
 
