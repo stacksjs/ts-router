@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
 import type { EnhancedRequest, RouterConfig } from '../packages/bun-router/src/types'
+import { describe, expect, test } from 'bun:test'
 import { resolveHandler, wrapResponse } from '../packages/bun-router/src/router/handler-resolver'
 
 describe('Handler Resolver', () => {
@@ -149,7 +149,6 @@ describe('Handler Resolver', () => {
     })
 
     test('should handle handler returning undefined', async () => {
-      // eslint-disable-next-line ts/no-confusing-void-expression
       const handler = () => undefined
       const req = createMockRequest()
 
@@ -173,7 +172,7 @@ describe('Handler Resolver', () => {
       const req = createMockRequest()
 
       const response = await resolveHandler(handler, req, mockConfig)
-      const json = await response.json()
+      const json = await response.json() as { user: { name: string }, posts: { id: number, title: string }[] }
       expect(json.user.name).toBe('John')
       expect(json.posts).toHaveLength(1)
     })
