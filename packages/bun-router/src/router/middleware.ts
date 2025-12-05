@@ -1,6 +1,6 @@
 import type { EnhancedRequest, MiddlewareHandler, NextFunction, Route } from '../types'
 import type { Router } from './router'
-import { isRouteHandler } from '../utils'
+import { resolveHandler as resolveHandlerUtil, wrapResponse } from './handler-resolver'
 
 /**
  * Middleware handling extension for Router class
@@ -157,58 +157,28 @@ export function registerMiddlewareHandling(RouterClass: typeof Router): void {
 
     /**
      * Resolve an action handler
+     *
+     * Supports:
+     * - Functions returning Response or any value (auto-wrapped)
+     * - String file paths like 'UserAction.ts', './actions/UserAction'
+     * - Controller@method patterns like 'UserController@index'
+     * - Class constructors with handle() method
+     * - Class instances with handle() method
      */
     resolveHandler: {
       async value(handler: any, req: EnhancedRequest): Promise<Response> {
-        if (isRouteHandler(handler)) {
-          // If it's a function, call it with the request
-          return await handler(req)
-        }
-
-        if (typeof handler === 'string') {
-          try {
-            // Try to import from actions directory
-            const importedHandler = await import(`../actions/${handler}`)
-
-            if (importedHandler.default) {
-              if (typeof importedHandler.default === 'function') {
-                // If it's a function, call it directly
-                if (importedHandler.default.prototype && typeof importedHandler.default.prototype.handle === 'function') {
-                  // If it's a class with a handle method, instantiate it
-                  const HandlerClass = importedHandler.default
-                  const handlerInstance = new HandlerClass()
-                  return await handlerInstance.handle(req)
-                }
-                // Regular function handler
-                return await importedHandler.default(req)
-              }
-
-              // If it's an object with a handle method
-              if (typeof importedHandler.default.handle === 'function') {
-                return await importedHandler.default.handle(req)
-              }
-            }
-          }
-          catch (error) {
-            console.error(`Failed to load action handler "${handler}":`, error)
-            throw new Error(`Failed to load action handler "${handler}"`)
-          }
-        }
-
-        // If it's a class constructor, instantiate it and call handle
-        if (typeof handler === 'function' && handler.prototype && typeof handler.prototype.handle === 'function') {
-          const HandlerClass = handler
-          const handlerInstance = new HandlerClass()
-          return await handlerInstance.handle(req)
-        }
-
-        // If it's an object with a handle method
-        if (handler && typeof handler.handle === 'function') {
-          return await handler.handle(req)
-        }
-
-        throw new Error(`Invalid action handler: ${typeof handler}`)
+        return resolveHandlerUtil(handler, req, this.config)
       },
+      writable: true,
+      configurable: true,
+    },
+
+    /**
+     * Wrap a value in a Response object
+     * Useful for handlers that return non-Response values
+     */
+    wrapResponse: {
+      value: wrapResponse,
       writable: true,
       configurable: true,
     },

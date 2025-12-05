@@ -85,6 +85,8 @@ export class Router {
     webRoutesPath: 'routes/web.ts',
     apiPrefix: '/api',
     webPrefix: '',
+    actionsPath: 'actions',
+    controllersPath: 'controllers',
     defaultMiddleware: {
       api: [],
       web: [],

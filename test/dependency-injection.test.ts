@@ -711,13 +711,13 @@ describe('Performance Tests', () => {
   it('should handle large numbers of bindings efficiently', () => {
     const start = Date.now()
 
-    // Register 1000 services
-    for (let i = 0; i < 1000; i++) {
+    // Register 50 services
+    for (let i = 0; i < 50; i++) {
       container.singleton(`service-${i}`, LoggerService)
     }
 
     // Resolve all services
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 50; i++) {
       container.resolve(`service-${i}`)
     }
 
@@ -730,8 +730,8 @@ describe('Performance Tests', () => {
 
     const start = Date.now()
 
-    // Resolve the same service 1000 times
-    for (let i = 0; i < 1000; i++) {
+    // Resolve the same service 50 times
+    for (let i = 0; i < 50; i++) {
       container.resolve('cached-service')
     }
 

@@ -712,6 +712,16 @@ export interface RouterConfig {
   webRoutesPath?: string
   apiPrefix?: string
   webPrefix?: string
+  /**
+   * Base path for action handlers (default: 'actions')
+   * Used when resolving string-based handlers like 'UserAction.ts'
+   */
+  actionsPath?: string
+  /**
+   * Base path for controllers (default: 'controllers')
+   * Used when resolving Controller@method patterns
+   */
+  controllersPath?: string
   defaultMiddleware?: {
     api?: (string | MiddlewareHandler)[]
     web?: (string | MiddlewareHandler)[]

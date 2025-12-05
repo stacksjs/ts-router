@@ -170,5 +170,8 @@ export * from '../routing/route-caching'
 export * from '../routing/route-throttling'
 export * from '../routing/subdomain-routing'
 
+// Export handler resolution utilities
+export { createHandlerResolver, resolveHandler, wrapResponse } from './handler-resolver'
+
 // Export validation integration
 export * from './validation-integration'
