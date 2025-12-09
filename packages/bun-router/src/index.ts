@@ -1,6 +1,7 @@
 export { default as Auth } from './auth'
 export * from './auth'
 export * from './config'
+export * as Errors from './errors'
 export * from './middleware'
 export * from './router'
 export * from './testing'
