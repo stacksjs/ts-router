@@ -47,11 +47,8 @@ export default class Cors {
       return new Response('Not Found', { status: 404 })
     }
 
-    // Debug: log original response body
-    const originalBody = await response.text()
-    console.log('[CORS] Original body:', originalBody)
-    console.log('[CORS] Original body length:', originalBody.length)
-
+    // Read body as text to avoid stream consumption issues
+    const body = await response.text()
     const newHeaders = new Headers(response.headers)
 
     // Set CORS headers
@@ -68,7 +65,7 @@ export default class Cors {
     }
 
     // Return new response with CORS headers
-    return new Response(originalBody, {
+    return new Response(body, {
       status: response.status,
       statusText: response.statusText,
       headers: newHeaders,
