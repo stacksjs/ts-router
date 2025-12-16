@@ -366,6 +366,57 @@ export interface EnhancedRequestMethods {
    * Get input as array
    */
   array: <T = unknown>(key: string) => T[]
+
+  /**
+   * Get input value from any source (query, body, params)
+   * Laravel-style request.get()
+   */
+  get: <T = unknown>(key: string, defaultValue?: T) => T
+
+  /**
+   * Get all input data
+   */
+  all: () => RequestInput
+
+  /**
+   * Get only specified keys
+   */
+  only: <T extends Record<string, unknown> = Record<string, unknown>>(keys: string[]) => T
+
+  /**
+   * Get all except specified keys
+   */
+  except: <T extends Record<string, unknown> = Record<string, unknown>>(keys: string[]) => T
+
+  /**
+   * Check if input has a key
+   */
+  has: (key: string | string[]) => boolean
+
+  /**
+   * Check if input has any of the keys
+   */
+  hasAny: (keys: string[]) => boolean
+
+  /**
+   * Check if input is filled (not empty)
+   */
+  filled: (key: string | string[]) => boolean
+
+  /**
+   * Check if input is missing
+   */
+  missing: (key: string | string[]) => boolean
+
+  /**
+   * Merge additional data into input
+   */
+  merge: (data: Record<string, unknown>) => void
+
+  /**
+   * Get input value or fail
+   */
+  input: <T = unknown>(key: string, defaultValue?: T) => T
 }
 
 // ============================================================================
@@ -672,6 +723,116 @@ export function enhanceRequestWithMethods(request: EnhancedRequest): EnhancedReq
     }
 
     return value !== undefined && value !== null ? [value as T] : []
+  }
+
+  /**
+   * Get input value from any source (query, body, params) - Laravel style
+   */
+  enhanced.get = <T = unknown>(key: string, defaultValue?: T): T => {
+    const input = getAllInput()
+    const value = input[key]
+    return (value !== undefined ? value : defaultValue) as T
+  }
+
+  /**
+   * Get all input data
+   */
+  enhanced.all = (): RequestInput => {
+    return getAllInput()
+  }
+
+  /**
+   * Get only specified keys
+   */
+  enhanced.only = <T extends Record<string, unknown> = Record<string, unknown>>(keys: string[]): T => {
+    const input = getAllInput()
+    const result = {} as T
+    for (const key of keys) {
+      if (key in input) {
+        (result as Record<string, unknown>)[key] = input[key]
+      }
+    }
+    return result
+  }
+
+  /**
+   * Get all except specified keys
+   */
+  enhanced.except = <T extends Record<string, unknown> = Record<string, unknown>>(keys: string[]): T => {
+    const input = getAllInput()
+    const result = { ...input } as T
+    for (const key of keys) {
+      delete (result as Record<string, unknown>)[key]
+    }
+    return result
+  }
+
+  /**
+   * Check if input has a key (or all keys if array)
+   */
+  enhanced.has = (key: string | string[]): boolean => {
+    const input = getAllInput()
+    if (Array.isArray(key)) {
+      return key.every(k => k in input && input[k] !== undefined)
+    }
+    return key in input && input[key] !== undefined
+  }
+
+  /**
+   * Check if input has any of the keys
+   */
+  enhanced.hasAny = (keys: string[]): boolean => {
+    const input = getAllInput()
+    return keys.some(k => k in input && input[k] !== undefined)
+  }
+
+  /**
+   * Check if input is filled (not empty)
+   */
+  enhanced.filled = (key: string | string[]): boolean => {
+    const input = getAllInput()
+    const isFilled = (k: string): boolean => {
+      const value = input[k]
+      return value !== undefined
+        && value !== null
+        && value !== ''
+        && !(Array.isArray(value) && value.length === 0)
+    }
+
+    if (Array.isArray(key)) {
+      return key.every(isFilled)
+    }
+    return isFilled(key)
+  }
+
+  /**
+   * Check if input is missing
+   */
+  enhanced.missing = (key: string | string[]): boolean => {
+    const input = getAllInput()
+    if (Array.isArray(key)) {
+      return key.every(k => !(k in input) || input[k] === undefined)
+    }
+    return !(key in input) || input[key] === undefined
+  }
+
+  /**
+   * Merge additional data into input
+   */
+  enhanced.merge = (data: Record<string, unknown>): void => {
+    if (request.jsonBody && typeof request.jsonBody === 'object') {
+      Object.assign(request.jsonBody, data)
+    }
+    else {
+      (request as any).jsonBody = data
+    }
+  }
+
+  /**
+   * Get input value - alias for get() for Laravel compatibility
+   */
+  enhanced.input = <T = unknown>(key: string, defaultValue?: T): T => {
+    return enhanced.get(key, defaultValue)
   }
 
   return enhanced

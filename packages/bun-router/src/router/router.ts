@@ -14,6 +14,7 @@ import type {
   WebSocketConfig,
   WebSocketData,
 } from '../types'
+import { enhanceRequestWithMethods } from '../request/enhanced-request'
 import { createRateLimitMiddleware, parseThrottleString } from '../routing/route-throttling'
 import { extractParamNames, joinPaths, matchPath } from '../utils'
 
@@ -783,7 +784,8 @@ export class Router {
     // Add cookie methods to the request
     Object.assign(enhancedReq, { cookies: { ...getCookies(), ...cookies } })
 
-    return enhancedReq
+    // Add Laravel-style request methods (get, all, only, except, has, etc.)
+    return enhanceRequestWithMethods(enhancedReq)
   }
 
   /**
