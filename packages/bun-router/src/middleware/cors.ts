@@ -41,11 +41,17 @@ export default class Cors {
       return new Response(null, { status: 204, headers })
     }
 
-    // For non-OPTIONS requests, create a new response after handling the request
+    // For non-OPTIONS requests, add CORS headers to the response
     const response = await next()
     if (!response) {
       return new Response('Not Found', { status: 404 })
     }
+
+    // Debug: log original response body
+    const originalBody = await response.text()
+    console.log('[CORS] Original body:', originalBody)
+    console.log('[CORS] Original body length:', originalBody.length)
+
     const newHeaders = new Headers(response.headers)
 
     // Set CORS headers
@@ -62,7 +68,7 @@ export default class Cors {
     }
 
     // Return new response with CORS headers
-    return new Response(response.body, {
+    return new Response(originalBody, {
       status: response.status,
       statusText: response.statusText,
       headers: newHeaders,
