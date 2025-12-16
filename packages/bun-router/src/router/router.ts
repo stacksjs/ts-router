@@ -540,6 +540,20 @@ export class Router {
       // Create URL for route matching
       const url = new URL(req.url)
 
+      // Handle CORS preflight OPTIONS requests FIRST before route matching
+      // This ensures CORS works even for routes that don't explicitly handle OPTIONS
+      if (req.method === 'OPTIONS') {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+            'Access-Control-Max-Age': '86400',
+          },
+        })
+      }
+
       // Get domain from the host header
       const hostname = url.hostname || req.headers.get('host')?.split(':')[0] || 'localhost'
 
