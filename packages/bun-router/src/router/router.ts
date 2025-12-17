@@ -996,17 +996,22 @@ export class Router {
     ;(enhancedReq as any).boolean = (key: string, defaultValue: boolean = false): boolean => {
       const input = getAllInput()
       const value = input[key]
-      if (value === undefined || value === null) return defaultValue
-      if (typeof value === 'boolean') return value
-      if (value === 'true' || value === '1' || value === 1) return true
-      if (value === 'false' || value === '0' || value === 0) return false
+      if (value === undefined || value === null)
+        return defaultValue
+      if (typeof value === 'boolean')
+        return value
+      if (value === 'true' || value === '1' || value === 1)
+        return true
+      if (value === 'false' || value === '0' || value === 0)
+        return false
       return defaultValue
     }
 
     ;(enhancedReq as any).array = <T = unknown>(key: string): T[] => {
       const input = getAllInput()
       const value = input[key]
-      if (Array.isArray(value)) return value as T[]
+      if (Array.isArray(value))
+        return value as T[]
       return value !== undefined && value !== null ? [value as T] : []
     }
 
