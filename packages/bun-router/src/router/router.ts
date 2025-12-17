@@ -14,7 +14,6 @@ import type {
   WebSocketConfig,
   WebSocketData,
 } from '../types'
-import { enhanceRequestWithMethods } from '../request/enhanced-request'
 import { createRateLimitMiddleware, parseThrottleString } from '../routing/route-throttling'
 import { extractParamNames, joinPaths, matchPath } from '../utils'
 
@@ -773,19 +772,176 @@ export class Router {
       getAll: () => ({ ...getCookies() }),
     }
 
+    // Parse query string
+    const url = new URL(req.url)
+    const query: Record<string, string> = {}
+    url.searchParams.forEach((value, key) => {
+      query[key] = value
+    })
+
     // Create enhanced request
     const enhancedReq = Object.assign(req, {
       params,
-      cookies: getCookies(), // Set cookies as plain object for direct access
+      query,
+      cookies: getCookies(),
       _cookiesToSet: [],
       _cookiesToDelete: [],
+      jsonBody: null as any,
+      formBody: null as any,
     }) as unknown as EnhancedRequest
 
     // Add cookie methods to the request
     Object.assign(enhancedReq, { cookies: { ...getCookies(), ...cookies } })
 
-    // Add Laravel-style request methods (get, all, only, except, has, etc.)
-    return enhanceRequestWithMethods(enhancedReq)
+    // Helper to get all input data
+    const getAllInput = (): Record<string, any> => {
+      const input: Record<string, any> = {}
+
+      // Query parameters
+      for (const [key, value] of Object.entries(query)) {
+        input[key] = value
+      }
+
+      // JSON body
+      if (enhancedReq.jsonBody && typeof enhancedReq.jsonBody === 'object') {
+        for (const [key, value] of Object.entries(enhancedReq.jsonBody)) {
+          input[key] = value
+        }
+      }
+
+      // Form body
+      if (enhancedReq.formBody && typeof enhancedReq.formBody === 'object') {
+        for (const [key, value] of Object.entries(enhancedReq.formBody)) {
+          input[key] = value
+        }
+      }
+
+      // Route params
+      for (const [key, value] of Object.entries(params)) {
+        input[key] = value
+      }
+
+      return input
+    }
+
+    // Add Laravel-style request methods
+    Object.assign(enhancedReq, {
+      // Get input from any source
+      get: <T = any>(key: string, defaultValue?: T): T => {
+        const input = getAllInput()
+        const value = input[key]
+        return (value !== undefined ? value : defaultValue) as T
+      },
+
+      // Alias for get
+      input: <T = any>(key: string, defaultValue?: T): T => {
+        const input = getAllInput()
+        const value = input[key]
+        return (value !== undefined ? value : defaultValue) as T
+      },
+
+      // Get all input
+      all: (): Record<string, any> => getAllInput(),
+
+      // Get only specified keys
+      only: <T extends Record<string, unknown>>(keys: string[]): T => {
+        const input = getAllInput()
+        const result = {} as T
+        for (const key of keys) {
+          if (key in input) {
+            (result as any)[key] = input[key]
+          }
+        }
+        return result
+      },
+
+      // Get all except specified keys
+      except: <T extends Record<string, unknown>>(keys: string[]): T => {
+        const input = getAllInput()
+        const result = { ...input } as T
+        for (const key of keys) {
+          delete (result as any)[key]
+        }
+        return result
+      },
+
+      // Check if has key(s)
+      has: (key: string | string[]): boolean => {
+        const input = getAllInput()
+        if (Array.isArray(key)) {
+          return key.every(k => k in input && input[k] !== undefined)
+        }
+        return key in input && input[key] !== undefined
+      },
+
+      // Check if has any of the keys
+      hasAny: (keys: string[]): boolean => {
+        const input = getAllInput()
+        return keys.some(k => k in input && input[k] !== undefined)
+      },
+
+      // Check if filled (not empty)
+      filled: (key: string | string[]): boolean => {
+        const input = getAllInput()
+        const isFilled = (k: string): boolean => {
+          const value = input[k]
+          return value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0)
+        }
+        if (Array.isArray(key)) {
+          return key.every(isFilled)
+        }
+        return isFilled(key)
+      },
+
+      // Check if missing
+      missing: (key: string | string[]): boolean => {
+        const input = getAllInput()
+        if (Array.isArray(key)) {
+          return key.every(k => !(k in input) || input[k] === undefined)
+        }
+        return !(key in input) || input[key] === undefined
+      },
+
+      // Type casting helpers
+      string: (key: string, defaultValue: string = ''): string => {
+        const input = getAllInput()
+        const value = input[key]
+        return value !== undefined && value !== null ? String(value) : defaultValue
+      },
+
+      integer: (key: string, defaultValue: number = 0): number => {
+        const input = getAllInput()
+        const value = input[key]
+        const parsed = Number.parseInt(String(value), 10)
+        return Number.isNaN(parsed) ? defaultValue : parsed
+      },
+
+      float: (key: string, defaultValue: number = 0): number => {
+        const input = getAllInput()
+        const value = input[key]
+        const parsed = Number.parseFloat(String(value))
+        return Number.isNaN(parsed) ? defaultValue : parsed
+      },
+
+      boolean: (key: string, defaultValue: boolean = false): boolean => {
+        const input = getAllInput()
+        const value = input[key]
+        if (value === undefined || value === null) return defaultValue
+        if (typeof value === 'boolean') return value
+        if (value === 'true' || value === '1' || value === 1) return true
+        if (value === 'false' || value === '0' || value === 0) return false
+        return defaultValue
+      },
+
+      array: <T = unknown>(key: string): T[] => {
+        const input = getAllInput()
+        const value = input[key]
+        if (Array.isArray(value)) return value as T[]
+        return value !== undefined && value !== null ? [value as T] : []
+      },
+    })
+
+    return enhancedReq
   }
 
   /**
