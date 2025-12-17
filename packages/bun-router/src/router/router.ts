@@ -3,6 +3,7 @@ import type { MiddlewareDependency, MiddlewarePipeline, MiddlewarePipelineStats,
 import type {
   ActionHandler,
   CookieOptions,
+  CookieToSet,
   EnhancedRequest,
   MiddlewareHandler,
   NextFunction,
@@ -595,17 +596,65 @@ export class Router {
         return new Response('No response from middleware chain', { status: 500 })
       }
 
-      // No route found, try the fallback handler
+      // No route found - still run global middleware for CORS headers on 404
+      if (this.globalMiddleware.length > 0) {
+        const notFoundHandler = async (_req: EnhancedRequest, _next: NextFunction) => {
+          if (this.fallbackHandler) {
+            return await this.resolveHandler(this.fallbackHandler, enhancedReq)
+          }
+          return new Response(JSON.stringify({ error: 'Not Found' }), {
+            status: 404,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+        const middlewareStack = [...this.globalMiddleware, notFoundHandler]
+        const response = await this.runMiddleware(enhancedReq, middlewareStack)
+        if (response) {
+          return this.applyModifiedCookies(response, enhancedReq)
+        }
+      }
+
+      // No global middleware, try the fallback handler directly
       if (this.fallbackHandler) {
         const response = await this.resolveHandler(this.fallbackHandler, enhancedReq)
         return this.applyModifiedCookies(response, enhancedReq)
       }
 
       // No fallback handler, return a 404
-      return new Response('Not Found', { status: 404 })
+      return new Response(JSON.stringify({ error: 'Not Found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
     catch (error) {
       console.error('Error handling request:', error)
+
+      // Still run global middleware for CORS headers on errors
+      if (this.globalMiddleware.length > 0) {
+        const enhancedReq = this.enhanceRequest(req, {})
+        const errorHandler = async (_req: EnhancedRequest, _next: NextFunction) => {
+          if (this.errorHandler) {
+            return this.errorHandler(error as Error)
+          }
+          return new Response(JSON.stringify({
+            error: 'Internal Server Error',
+            message: error instanceof Error ? error.message : String(error),
+          }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+        const middlewareStack = [...this.globalMiddleware, errorHandler]
+        try {
+          const response = await this.runMiddleware(enhancedReq, middlewareStack)
+          if (response) {
+            return response
+          }
+        }
+        catch {
+          // Middleware itself failed, fall through to default error
+        }
+      }
 
       // Use custom error handler if available
       if (this.errorHandler) {
@@ -613,7 +662,13 @@ export class Router {
       }
 
       // Default error response
-      return new Response('Internal Server Error', { status: 500 })
+      return new Response(JSON.stringify({
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : String(error),
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
   }
 
@@ -752,26 +807,6 @@ export class Router {
       return parsedCookies
     }
 
-    // Create cookie utilities with lazy parsing
-    const cookies = {
-      get: (name: string) => getCookies()[name],
-      set: (name: string, value: string, options: CookieOptions = {}) => {
-        const enhancedRequest = req as EnhancedRequest
-        if (!enhancedRequest._cookiesToSet) {
-          enhancedRequest._cookiesToSet = []
-        }
-        enhancedRequest._cookiesToSet.push({ name, value, options })
-      },
-      delete: (name: string, options: CookieOptions = {}) => {
-        const enhancedRequest = req as EnhancedRequest
-        if (!enhancedRequest._cookiesToDelete) {
-          enhancedRequest._cookiesToDelete = []
-        }
-        enhancedRequest._cookiesToDelete.push({ name, options })
-      },
-      getAll: () => ({ ...getCookies() }),
-    }
-
     // Parse query string
     const url = new URL(req.url)
     const query: Record<string, string> = {}
@@ -779,21 +814,50 @@ export class Router {
       query[key] = value
     })
 
-    // Create enhanced request
-    const enhancedReq = Object.assign(req, {
+    // Create a wrapper object that proxies to the original request
+    // This is necessary because native Request objects don't allow property assignment in Bun
+    const enhancedReq = {
+      // Proxy the native Request properties/methods
+      get url() { return req.url },
+      get method() { return req.method },
+      get headers() { return req.headers },
+      get body() { return req.body },
+      get bodyUsed() { return req.bodyUsed },
+      get cache() { return req.cache },
+      get credentials() { return req.credentials },
+      get destination() { return req.destination },
+      get integrity() { return req.integrity },
+      get keepalive() { return req.keepalive },
+      get mode() { return req.mode },
+      get redirect() { return req.redirect },
+      get referrer() { return req.referrer },
+      get referrerPolicy() { return req.referrerPolicy },
+      get signal() { return req.signal },
+      arrayBuffer: () => req.arrayBuffer(),
+      blob: () => req.blob(),
+      clone: () => req.clone(),
+      formData: () => req.formData(),
+      json: () => req.json(),
+      text: () => req.text(),
+
+      // Enhanced properties
       params,
       query,
-      cookies: getCookies(),
-      _cookiesToSet: [],
-      _cookiesToDelete: [],
       jsonBody: null as any,
       formBody: null as any,
-    }) as unknown as EnhancedRequest
+      _cookiesToSet: [] as CookieToSet[],
+      _cookiesToDelete: [] as { name: string, options: CookieOptions }[],
 
-    // Add cookie methods to the request
-    Object.assign(enhancedReq, { cookies: { ...getCookies(), ...cookies } })
+    } as EnhancedRequest & {
+      cookies: {
+        get: (name: string) => string | undefined
+        set: (name: string, value: string, options?: CookieOptions) => void
+        delete: (name: string, options?: CookieOptions) => void
+        getAll: () => Record<string, string>
+      }
+    }
 
-    // Helper to get all input data
+    // Helper to get all input data - needs to be defined before adding to object
     const getAllInput = (): Record<string, any> => {
       const input: Record<string, any> = {}
 
@@ -824,124 +888,126 @@ export class Router {
       return input
     }
 
-    // Add Laravel-style request methods
-    Object.assign(enhancedReq, {
-      // Get input from any source
-      get: <T = any>(key: string, defaultValue?: T): T => {
-        const input = getAllInput()
-        const value = input[key]
-        return (value !== undefined ? value : defaultValue) as T
+    // Add cookie utilities
+    enhancedReq.cookies = {
+      ...getCookies(),
+      get: (name: string) => getCookies()[name],
+      set: (name: string, value: string, options: CookieOptions = {}) => {
+        enhancedReq._cookiesToSet.push({ name, value, options })
       },
-
-      // Alias for get
-      input: <T = any>(key: string, defaultValue?: T): T => {
-        const input = getAllInput()
-        const value = input[key]
-        return (value !== undefined ? value : defaultValue) as T
+      delete: (name: string, options: CookieOptions = {}) => {
+        enhancedReq._cookiesToDelete.push({ name, options })
       },
+      getAll: () => ({ ...getCookies() }),
+    }
 
-      // Get all input
-      all: (): Record<string, any> => getAllInput(),
+    // Add Laravel-style request methods directly to the wrapper object
+    // These are the methods that provide Laravel-like request handling
+    ;(enhancedReq as any).get = <T = any>(key: string, defaultValue?: T): T => {
+      const input = getAllInput()
+      const value = input[key]
+      return (value !== undefined ? value : defaultValue) as T
+    }
 
-      // Get only specified keys
-      only: <T extends Record<string, unknown>>(keys: string[]): T => {
-        const input = getAllInput()
-        const result = {} as T
-        for (const key of keys) {
-          if (key in input) {
-            (result as any)[key] = input[key]
-          }
+    ;(enhancedReq as any).input = <T = any>(key: string, defaultValue?: T): T => {
+      const input = getAllInput()
+      const value = input[key]
+      return (value !== undefined ? value : defaultValue) as T
+    }
+
+    ;(enhancedReq as any).all = (): Record<string, any> => getAllInput()
+
+    ;(enhancedReq as any).only = <T extends Record<string, unknown>>(keys: string[]): T => {
+      const input = getAllInput()
+      const result = {} as T
+      for (const key of keys) {
+        if (key in input) {
+          (result as any)[key] = input[key]
         }
-        return result
-      },
+      }
+      return result
+    }
 
-      // Get all except specified keys
-      except: <T extends Record<string, unknown>>(keys: string[]): T => {
-        const input = getAllInput()
-        const result = { ...input } as T
-        for (const key of keys) {
-          delete (result as any)[key]
-        }
-        return result
-      },
+    ;(enhancedReq as any).except = <T extends Record<string, unknown>>(keys: string[]): T => {
+      const input = getAllInput()
+      const result = { ...input } as T
+      for (const key of keys) {
+        delete (result as any)[key]
+      }
+      return result
+    }
 
-      // Check if has key(s)
-      has: (key: string | string[]): boolean => {
-        const input = getAllInput()
-        if (Array.isArray(key)) {
-          return key.every(k => k in input && input[k] !== undefined)
-        }
-        return key in input && input[key] !== undefined
-      },
+    ;(enhancedReq as any).has = (key: string | string[]): boolean => {
+      const input = getAllInput()
+      if (Array.isArray(key)) {
+        return key.every(k => k in input && input[k] !== undefined)
+      }
+      return key in input && input[key] !== undefined
+    }
 
-      // Check if has any of the keys
-      hasAny: (keys: string[]): boolean => {
-        const input = getAllInput()
-        return keys.some(k => k in input && input[k] !== undefined)
-      },
+    ;(enhancedReq as any).hasAny = (keys: string[]): boolean => {
+      const input = getAllInput()
+      return keys.some(k => k in input && input[k] !== undefined)
+    }
 
-      // Check if filled (not empty)
-      filled: (key: string | string[]): boolean => {
-        const input = getAllInput()
-        const isFilled = (k: string): boolean => {
-          const value = input[k]
-          return value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0)
-        }
-        if (Array.isArray(key)) {
-          return key.every(isFilled)
-        }
-        return isFilled(key)
-      },
+    ;(enhancedReq as any).filled = (key: string | string[]): boolean => {
+      const input = getAllInput()
+      const isFilled = (k: string): boolean => {
+        const value = input[k]
+        return value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0)
+      }
+      if (Array.isArray(key)) {
+        return key.every(isFilled)
+      }
+      return isFilled(key)
+    }
 
-      // Check if missing
-      missing: (key: string | string[]): boolean => {
-        const input = getAllInput()
-        if (Array.isArray(key)) {
-          return key.every(k => !(k in input) || input[k] === undefined)
-        }
-        return !(key in input) || input[key] === undefined
-      },
+    ;(enhancedReq as any).missing = (key: string | string[]): boolean => {
+      const input = getAllInput()
+      if (Array.isArray(key)) {
+        return key.every(k => !(k in input) || input[k] === undefined)
+      }
+      return !(key in input) || input[key] === undefined
+    }
 
-      // Type casting helpers
-      string: (key: string, defaultValue: string = ''): string => {
-        const input = getAllInput()
-        const value = input[key]
-        return value !== undefined && value !== null ? String(value) : defaultValue
-      },
+    ;(enhancedReq as any).string = (key: string, defaultValue: string = ''): string => {
+      const input = getAllInput()
+      const value = input[key]
+      return value !== undefined && value !== null ? String(value) : defaultValue
+    }
 
-      integer: (key: string, defaultValue: number = 0): number => {
-        const input = getAllInput()
-        const value = input[key]
-        const parsed = Number.parseInt(String(value), 10)
-        return Number.isNaN(parsed) ? defaultValue : parsed
-      },
+    ;(enhancedReq as any).integer = (key: string, defaultValue: number = 0): number => {
+      const input = getAllInput()
+      const value = input[key]
+      const parsed = Number.parseInt(String(value), 10)
+      return Number.isNaN(parsed) ? defaultValue : parsed
+    }
 
-      float: (key: string, defaultValue: number = 0): number => {
-        const input = getAllInput()
-        const value = input[key]
-        const parsed = Number.parseFloat(String(value))
-        return Number.isNaN(parsed) ? defaultValue : parsed
-      },
+    ;(enhancedReq as any).float = (key: string, defaultValue: number = 0): number => {
+      const input = getAllInput()
+      const value = input[key]
+      const parsed = Number.parseFloat(String(value))
+      return Number.isNaN(parsed) ? defaultValue : parsed
+    }
 
-      boolean: (key: string, defaultValue: boolean = false): boolean => {
-        const input = getAllInput()
-        const value = input[key]
-        if (value === undefined || value === null) return defaultValue
-        if (typeof value === 'boolean') return value
-        if (value === 'true' || value === '1' || value === 1) return true
-        if (value === 'false' || value === '0' || value === 0) return false
-        return defaultValue
-      },
+    ;(enhancedReq as any).boolean = (key: string, defaultValue: boolean = false): boolean => {
+      const input = getAllInput()
+      const value = input[key]
+      if (value === undefined || value === null) return defaultValue
+      if (typeof value === 'boolean') return value
+      if (value === 'true' || value === '1' || value === 1) return true
+      if (value === 'false' || value === '0' || value === 0) return false
+      return defaultValue
+    }
 
-      array: <T = unknown>(key: string): T[] => {
-        const input = getAllInput()
-        const value = input[key]
-        if (Array.isArray(value)) return value as T[]
-        return value !== undefined && value !== null ? [value as T] : []
-      },
-    })
+    ;(enhancedReq as any).array = <T = unknown>(key: string): T[] => {
+      const input = getAllInput()
+      const value = input[key]
+      if (Array.isArray(value)) return value as T[]
+      return value !== undefined && value !== null ? [value as T] : []
+    }
 
-    return enhancedReq
+    return enhancedReq as EnhancedRequest
   }
 
   /**

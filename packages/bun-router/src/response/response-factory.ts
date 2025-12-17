@@ -49,13 +49,45 @@ export interface ResponseCookieOptions {
 }
 
 // ============================================================================
+// Response Factory Interface
+// ============================================================================
+
+export interface ResponseFactory {
+  json: <T>(data: T, options?: JsonResponseOptions) => Response
+  noContent: (headers?: Record<string, string>) => Response
+  download: (filePath: string, filename?: string, headers?: Record<string, string>) => Promise<Response>
+  file: (filePath: string, headers?: Record<string, string>) => Promise<Response>
+  streamDownload: (generator: () => AsyncGenerator<string | Uint8Array, void, unknown>, filename: string, options?: StreamDownloadOptions) => Response
+  redirect: (url: string, status?: 301 | 302 | 303 | 307 | 308) => Response
+  redirectPermanent: (url: string) => Response
+  redirectTemporary: (url: string) => Response
+  back: (request: Request, fallback?: string) => Response
+  view: (html: string, status?: ResponseStatus, headers?: Record<string, string>) => Response
+  text: (text: string, status?: ResponseStatus, headers?: Record<string, string>) => Response
+  xml: (xml: string, status?: ResponseStatus, headers?: Record<string, string>) => Response
+  success: <T>(data?: T, message?: string, status?: ResponseStatus) => Response
+  error: (message: string, status?: ResponseStatus, errors?: Record<string, string[]>) => Response
+  paginate: <T>(data: T[], options: { page: number, perPage: number, total: number, path: string }) => Response
+  created: <T>(data?: T, location?: string) => Response
+  accepted: <T>(data?: T) => Response
+  notFound: (message?: string) => Response
+  unauthorized: (message?: string) => Response
+  forbidden: (message?: string) => Response
+  badRequest: (message?: string, errors?: Record<string, string[]>) => Response
+  validationError: (errors: Record<string, string[]>, message?: string) => Response
+  unprocessableEntity: (message?: string, errors?: Record<string, string[]>) => Response
+  serverError: (message?: string) => Response
+  tooManyRequests: (message?: string, retryAfter?: number) => Response
+}
+
+// ============================================================================
 // Response Factory
 // ============================================================================
 
 /**
  * Response factory with common response helpers
  */
-export const response = {
+export const response: ResponseFactory = {
   /**
    * Create a JSON response with proper typing
    */
@@ -358,9 +390,23 @@ export const response = {
   },
 
   /**
+   * Create a bad request response (400)
+   */
+  badRequest: (message: string = 'Bad request', errors?: Record<string, string[]>): Response => {
+    return response.error(message, 400, errors)
+  },
+
+  /**
    * Create a validation error response (422)
    */
   validationError: (errors: Record<string, string[]>, message: string = 'Validation failed'): Response => {
+    return response.error(message, 422, errors)
+  },
+
+  /**
+   * Create an unprocessable entity response (422) - alias for validationError
+   */
+  unprocessableEntity: (message: string = 'Unprocessable entity', errors?: Record<string, string[]>): Response => {
     return response.error(message, 422, errors)
   },
 
