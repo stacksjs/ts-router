@@ -541,9 +541,12 @@ export class Router {
       // Create URL for route matching
       const url = new URL(req.url)
 
+      console.log(`[bun-router] handleRequest: ${req.method} ${url.pathname}`)
+
       // Handle CORS preflight OPTIONS requests FIRST before route matching
       // This ensures CORS works even for routes that don't explicitly handle OPTIONS
       if (req.method === 'OPTIONS') {
+        console.log('[bun-router] Handling OPTIONS preflight')
         return new Response(null, {
           status: 204,
           headers: {
