@@ -851,14 +851,7 @@ export class Router {
       _cookiesToSet: [] as CookieToSet[],
       _cookiesToDelete: [] as { name: string, options: CookieOptions }[],
 
-    } as EnhancedRequest & {
-      cookies: {
-        get: (name: string) => string | undefined
-        set: (name: string, value: string, options?: CookieOptions) => void
-        delete: (name: string, options?: CookieOptions) => void
-        getAll: () => Record<string, string>
-      }
-    }
+    } as EnhancedRequest
 
     // Helper to get all input data - needs to be defined before adding to object
     const getAllInput = (): Record<string, any> => {
@@ -893,13 +886,12 @@ export class Router {
 
     // Add cookie utilities
     enhancedReq.cookies = {
-      ...getCookies(),
       get: (name: string) => getCookies()[name],
       set: (name: string, value: string, options: CookieOptions = {}) => {
-        enhancedReq._cookiesToSet.push({ name, value, options })
+        enhancedReq._cookiesToSet!.push({ name, value, options })
       },
       delete: (name: string, options: CookieOptions = {}) => {
-        enhancedReq._cookiesToDelete.push({ name, options })
+        enhancedReq._cookiesToDelete!.push({ name, options })
       },
       getAll: () => ({ ...getCookies() }),
     }

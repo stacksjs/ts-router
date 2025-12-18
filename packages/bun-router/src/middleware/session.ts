@@ -12,7 +12,7 @@ export default class Session {
     req.session = {}
 
     // Get session ID from cookie if it exists
-    const sessionId = req.cookies?.[sessionConfig?.name || 'session'] || this.generateSessionId()
+    const sessionId = req.cookies?.get(sessionConfig?.name || 'session') || this.generateSessionId()
 
     // If there's a session ID, retrieve the session data
     if (sessionId && Session.sessions.has(sessionId)) {

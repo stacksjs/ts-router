@@ -17,6 +17,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
 
         // Create server options
         const serverOptions: any = {
+          idleTimeout: 300, // 5 minutes default timeout (for long-running requests like AI)
           ...options,
           fetch: this.handleRequest.bind(this),
         }

@@ -1,5 +1,22 @@
-import type { EnhancedRequest, UploadedFile } from '../types'
+import type { CookieAccessor, CookieOptions, EnhancedRequest, UploadedFile } from '../types'
 import type { TestFile, TestRequestOptions } from './types'
+
+/**
+ * Creates a CookieAccessor from a plain Record<string, string>
+ */
+function createCookieAccessor(cookies: Record<string, string>): CookieAccessor {
+  const cookieStore = { ...cookies }
+  return {
+    get: (name: string) => cookieStore[name],
+    set: (name: string, value: string, _options?: CookieOptions) => {
+      cookieStore[name] = value
+    },
+    delete: (name: string, _options?: CookieOptions) => {
+      delete cookieStore[name]
+    },
+    getAll: () => ({ ...cookieStore }),
+  }
+}
 
 /**
  * Creates a mock EnhancedRequest for testing
@@ -38,7 +55,7 @@ export class TestRequestBuilder {
       requestId: `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       ip: '127.0.0.1',
       userAgent: () => 'BunRouter-TestClient/1.0',
-      cookies: options.cookies || {},
+      cookies: createCookieAccessor(options.cookies || {}),
       startTime: Date.now(),
       traceId: `trace-${Date.now()}`,
       spanId: `span-${Date.now()}`,
@@ -147,7 +164,8 @@ export class TestRequestBuilder {
    * Set cookies
    */
   cookies(cookies: Record<string, string>): TestRequestBuilder {
-    this.request.cookies = { ...this.request.cookies, ...cookies }
+    const existingCookies = this.request.cookies?.getAll() || {}
+    this.request.cookies = createCookieAccessor({ ...existingCookies, ...cookies })
     return this
   }
 
