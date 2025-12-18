@@ -1,71 +1,63 @@
 import type { EnhancedRequest, NextFunction } from '../types'
-import { config } from '../config'
+
+// Hardcoded CORS headers - no config dependency
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+  'Access-Control-Max-Age': '86400',
+  'Access-Control-Allow-Credentials': 'true',
+}
 
 export default class Cors {
-  async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
-    const corsConfig = config.server?.cors || {}
+  private getCorsHeaders(): Record<string, string> {
+    return { ...CORS_HEADERS }
+  }
 
-    // If CORS is disabled, continue to next middleware
-    if (!corsConfig.enabled) {
-      const response = await next()
-      return response || new Response('Not Found', { status: 404 })
-    }
+  async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {
+    const corsHeaders = this.getCorsHeaders()
 
     // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {
-      const headers: Record<string, string> = {
-        'Access-Control-Allow-Origin': typeof corsConfig.origin === 'string'
-          ? corsConfig.origin
-          : '*',
-        'Access-Control-Allow-Methods': Array.isArray(corsConfig.methods)
-          ? corsConfig.methods.join(', ')
-          : 'GET, POST, PUT, DELETE, PATCH',
-        'Access-Control-Max-Age': (corsConfig.maxAge || 86400).toString(),
-      }
-
-      // Add allowed headers
-      if (corsConfig.allowedHeaders && corsConfig.allowedHeaders.length > 0) {
-        headers['Access-Control-Allow-Headers'] = corsConfig.allowedHeaders.join(', ')
-      }
-
-      // Add exposed headers
-      if (corsConfig.exposedHeaders && corsConfig.exposedHeaders.length > 0) {
-        headers['Access-Control-Expose-Headers'] = corsConfig.exposedHeaders.join(', ')
-      }
-
-      // Add credentials if enabled
-      if (corsConfig.credentials) {
-        headers['Access-Control-Allow-Credentials'] = 'true'
-      }
-
-      return new Response(null, { status: 204, headers })
+      return new Response(null, { status: 204, headers: corsHeaders })
     }
 
-    // For non-OPTIONS requests, create a new response after handling the request
-    const response = await next()
-    if (!response) {
-      return new Response('Not Found', { status: 404 })
-    }
-    const newHeaders = new Headers(response.headers)
-
-    // Set CORS headers
-    newHeaders.set('Access-Control-Allow-Origin', typeof corsConfig.origin === 'string'
-      ? corsConfig.origin
-      : '*')
-
-    if (corsConfig.credentials) {
-      newHeaders.set('Access-Control-Allow-Credentials', 'true')
+    // Helper to add CORS headers to any response
+    const addCorsHeaders = (response: Response): Response => {
+      const newHeaders = new Headers(response.headers)
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        newHeaders.set(key, value)
+      })
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders,
+      })
     }
 
-    if (corsConfig.exposedHeaders && corsConfig.exposedHeaders.length > 0) {
-      newHeaders.set('Access-Control-Expose-Headers', corsConfig.exposedHeaders.join(', '))
-    }
+    try {
+      // For non-OPTIONS requests, add CORS headers to the response
+      const response = await next()
+      if (!response) {
+        return new Response(JSON.stringify({ error: 'Not Found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
 
-    // Return new response with CORS headers
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: newHeaders,
-    })
+      // Add CORS headers to the response
+      return addCorsHeaders(response)
+    }
+    catch (error) {
+      // Error occurred - return error response WITH CORS headers
+      console.error('[CORS] Error in middleware chain:', error)
+      return new Response(JSON.stringify({
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : String(error),
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
   }
 }

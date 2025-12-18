@@ -763,6 +763,16 @@ export interface CookieOptions {
   sameSite?: 'strict' | 'lax' | 'none'
 }
 
+/**
+ * Cookie accessor interface with utility methods
+ */
+export interface CookieAccessor {
+  get: (name: string) => string | undefined
+  set: (name: string, value: string, options?: CookieOptions) => void
+  delete: (name: string, options?: CookieOptions) => void
+  getAll: () => Record<string, string>
+}
+
 export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip' | 'cookies' | 'route'> {
   /**
    * Route parameters extracted from the URL
@@ -825,9 +835,9 @@ export interface EnhancedRequest extends Request, Omit<RequestMacroMethods, 'ip'
    */
   ip?: string
   /**
-   * Cookies parsed from the request
+   * Cookies parsed from the request with utility methods
    */
-  cookies?: Record<string, string>
+  cookies?: CookieAccessor
   /**
    * Flash messages (temporary messages for the next request)
    */

@@ -17,6 +17,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
 
         // Create server options
         const serverOptions: any = {
+          idleTimeout: 300, // 5 minutes default timeout (for long-running requests like AI)
           ...options,
           fetch: this.handleRequest.bind(this),
         }
@@ -105,6 +106,21 @@ export function registerServerHandling(RouterClass: typeof Router): void {
           // Create URL for route matching
           const url = new URL(req.url)
 
+          // Handle CORS preflight OPTIONS requests FIRST before route matching
+          // This ensures CORS works even for routes that don't explicitly handle OPTIONS
+          if (req.method === 'OPTIONS') {
+            return new Response(null, {
+              status: 204,
+              headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+                'Access-Control-Max-Age': '86400',
+                'Access-Control-Allow-Credentials': 'true',
+              },
+            })
+          }
+
           // Get domain from the host header
           const hostname = url.hostname || req.headers.get('host')?.split(':')[0] || 'localhost'
 
@@ -152,8 +168,16 @@ export function registerServerHandling(RouterClass: typeof Router): void {
             return this.applyModifiedCookies(response, enhancedReq)
           }
 
-          // No fallback handler, return a 404
-          return new Response('Not Found', { status: 404 })
+          // No fallback handler, return a 404 with CORS headers
+          return new Response(JSON.stringify({ success: false, message: 'Not Found' }), {
+            status: 404,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+            },
+          })
         }
         catch (error) {
           console.error('Error handling request:', error)
@@ -163,8 +187,20 @@ export function registerServerHandling(RouterClass: typeof Router): void {
             return this.errorHandler(error as Error)
           }
 
-          // Default error response
-          return new Response('Internal Server Error', { status: 500 })
+          // Default error response with CORS headers
+          return new Response(JSON.stringify({
+            success: false,
+            message: 'Internal Server Error',
+            error: error instanceof Error ? error.message : String(error),
+          }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+            },
+          })
         }
       },
       writable: true,

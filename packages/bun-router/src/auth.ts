@@ -337,7 +337,7 @@ export class ApiKeyManager {
       case 'query':
         return new URL(req.url).searchParams.get(keyName || 'api_key') || null
       case 'cookie':
-        return req.cookies?.[keyName || 'api_key'] || null
+        return req.cookies?.get(keyName || 'api_key') || null
       default:
         return null
     }
