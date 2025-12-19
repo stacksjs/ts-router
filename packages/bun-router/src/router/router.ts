@@ -507,27 +507,7 @@ export class Router {
     if (this.config.verbose) {
       const port = this.serverInstance.port
       const hostname = this.serverInstance.hostname
-      console.log(`Server running at http://${hostname}:${port}`)
-
-      // Show routes in verbose mode
-      console.log('\nRoutes:')
-      const routesByMethod: Record<string, Route[]> = {}
-
-      for (const route of this.routes) {
-        if (!routesByMethod[route.method]) {
-          routesByMethod[route.method] = []
-        }
-        routesByMethod[route.method].push(route)
-      }
-
-      for (const [method, routes] of Object.entries(routesByMethod)) {
-        console.log(`\n${method}:`)
-        for (const route of routes) {
-          console.log(`  ${route.path}${route.name ? ` (${route.name})` : ''}`)
-        }
-      }
-
-      console.log('\n')
+      console.log(`\n🚀 Server running at http://${hostname}:${port}\n`)
     }
 
     return this.serverInstance
@@ -541,12 +521,13 @@ export class Router {
       // Create URL for route matching
       const url = new URL(req.url)
 
-      console.log(`[bun-router] handleRequest: ${req.method} ${url.pathname}`)
+      if (this.config.verbose) {
+        console.log(`${req.method} ${url.pathname}`)
+      }
 
       // Handle CORS preflight OPTIONS requests FIRST before route matching
       // This ensures CORS works even for routes that don't explicitly handle OPTIONS
       if (req.method === 'OPTIONS') {
-        console.log('[bun-router] Handling OPTIONS preflight')
         return new Response(null, {
           status: 204,
           headers: {

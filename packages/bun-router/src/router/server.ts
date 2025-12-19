@@ -17,7 +17,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
 
         // Create server options
         const serverOptions: any = {
-          idleTimeout: 300, // 5 minutes default timeout (for long-running requests like AI)
+          idleTimeout: 255, // Max allowed timeout (255 seconds)
           ...options,
           fetch: this.handleRequest.bind(this),
         }
@@ -33,27 +33,7 @@ export function registerServerHandling(RouterClass: typeof Router): void {
         if (this.config.verbose) {
           const port = this.serverInstance.port
           const hostname = this.serverInstance.hostname
-          console.log(`🚀 Server running at http://${hostname}:${port}`)
-
-          // Show routes in verbose mode
-          console.log('\nRoutes:')
-          const routesByMethod: Record<string, Route[]> = {}
-
-          for (const route of this.routes) {
-            if (!routesByMethod[route.method]) {
-              routesByMethod[route.method] = []
-            }
-            routesByMethod[route.method].push(route)
-          }
-
-          for (const [method, routes] of Object.entries(routesByMethod)) {
-            console.log(`\n${method}:`)
-            for (const route of routes) {
-              console.log(`  ${route.path}${route.name ? ` (${route.name})` : ''}`)
-            }
-          }
-
-          console.log('\n')
+          console.log(`\n🚀 Server running at http://${hostname}:${port}\n`)
         }
 
         return this.serverInstance
