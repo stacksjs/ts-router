@@ -132,8 +132,17 @@ export default class RateLimit implements Middleware {
       }
       : undefined
 
-    // Initialize the rate limiter
-    this.limiter = await createRateLimiter(limiterOptions)
+    // Initialize the rate limiter (suppress noisy logs from ts-rate-limiter)
+    const originalConsoleLog = console.log
+    const originalConsoleWarn = console.warn
+    console.log = () => {}
+    console.warn = () => {}
+    try {
+      this.limiter = await createRateLimiter(limiterOptions)
+    } finally {
+      console.log = originalConsoleLog
+      console.warn = originalConsoleWarn
+    }
   }
 
   private defaultHandler(req: Request, result: any): Response {

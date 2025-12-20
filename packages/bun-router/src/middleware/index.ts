@@ -74,21 +74,44 @@ export function auth(): Auth {
   })
 }
 
-// Named middleware mapping for string-based middleware references
-export const middleware: Record<string, any> = {
-  'Middleware/Cors': new Cors(),
-  'Middleware/JsonBody': new JsonBody(),
-  'Middleware/RequestId': new RequestId(),
-  'Middleware/Session': new Session(),
-  'Middleware/Csrf': new Csrf(),
-  'Middleware/Auth': new Auth({
-    type: 'bearer',
-    validator: () => true, // Default just passes through - must be configured correctly
-  }),
-  'Middleware/RateLimit': createRateLimit(),
-  'Middleware/RequestSigning': new RequestSigning({
-    secret: '', // Must be configured
-  }),
+// Named middleware mapping for string-based middleware references (lazy-loaded)
+let _middleware: Record<string, any> | null = null
+
+function getMiddleware(): Record<string, any> {
+  if (!_middleware) {
+    _middleware = {
+      'Middleware/Cors': new Cors(),
+      'Middleware/JsonBody': new JsonBody(),
+      'Middleware/RequestId': new RequestId(),
+      'Middleware/Session': new Session(),
+      'Middleware/Csrf': new Csrf(),
+      'Middleware/Auth': new Auth({
+        type: 'bearer',
+        validator: () => true,
+      }),
+      'Middleware/RateLimit': createRateLimit(),
+      'Middleware/RequestSigning': new RequestSigning({
+        secret: '',
+      }),
+    }
+  }
+  return _middleware
 }
+
+export const middleware = new Proxy({} as Record<string, any>, {
+  get(_target, prop) {
+    return getMiddleware()[prop as string]
+  },
+  ownKeys() {
+    return Object.keys(getMiddleware())
+  },
+  getOwnPropertyDescriptor(_target, prop) {
+    const value = getMiddleware()[prop as string]
+    if (value !== undefined) {
+      return { configurable: true, enumerable: true, value }
+    }
+    return undefined
+  },
+})
 
 export default middleware
