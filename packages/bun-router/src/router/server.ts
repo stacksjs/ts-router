@@ -142,6 +142,23 @@ export function registerServerHandling(RouterClass: typeof Router): void {
             return new Response('No response from middleware chain', { status: 500 })
           }
 
+          // No route found - check if the path exists with a different method (405 vs 404)
+          const allowedMethods = this.getAllowedMethods(url.pathname, hostname)
+
+          // If there are allowed methods, return 405 Method Not Allowed
+          if (allowedMethods.length > 0) {
+            return new Response(JSON.stringify({ success: false, message: 'Method Not Allowed' }), {
+              status: 405,
+              headers: {
+                'Content-Type': 'application/json',
+                'Allow': allowedMethods.join(', '),
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+              },
+            })
+          }
+
           // No route found, try the fallback handler
           if (this.fallbackHandler) {
             const response = await this.resolveHandler(this.fallbackHandler, enhancedReq)
