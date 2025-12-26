@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@unocss/reset": "^66.5.10",
+    "@unocss/reset": "^66.5.11",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
     "d3": "7.9.0",
@@ -21,12 +21,12 @@
   "devDependencies": {
     "@iconify-json/carbon": "^1.2.15",
     "@types/d3": "7.4.3",
-    "@unocss/preset-icons": "^66.5.10",
-    "@unocss/preset-uno": "^66.5.10",
-    "@unocss/preset-web-fonts": "^66.5.10",
-    "@unocss/transformer-directives": "^66.5.10",
+    "@unocss/preset-icons": "^66.5.11",
+    "@unocss/preset-uno": "^66.5.11",
+    "@unocss/preset-web-fonts": "^66.5.11",
+    "@unocss/transformer-directives": "^66.5.11",
     "@vitejs/plugin-vue": "^6.0.3",
-    "unocss": "^66.5.10",
+    "unocss": "^66.5.11",
     "vite": "^7.3.0",
     "vue-tsc": "^3.2.1"
   }
