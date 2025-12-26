@@ -1,5 +1,5 @@
 {
-  "name": "bun-router",
+  "name": "@stacksjs/bun-router",
   "type": "module",
   "version": "0.0.1",
   "description": "A",
