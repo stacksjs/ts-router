@@ -139,7 +139,8 @@ export default class RateLimit implements Middleware {
     console.warn = () => {}
     try {
       this.limiter = await createRateLimiter(limiterOptions)
-    } finally {
+    }
+    finally {
       console.log = originalConsoleLog
       console.warn = originalConsoleWarn
     }

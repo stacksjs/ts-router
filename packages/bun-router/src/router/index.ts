@@ -115,6 +115,7 @@ declare module './router' {
 
     // Optimized route matching methods
     matchRoute: (path: string, method: string, domain?: string) => { route: Route, params: Record<string, string> } | undefined
+    getAllowedMethods: (path: string, domain?: string) => string[]
     clearRouteCache: () => void
     getCacheStats: () => any
     getRouteStats: () => any

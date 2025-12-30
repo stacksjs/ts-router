@@ -580,7 +580,33 @@ export class Router {
         return new Response('No response from middleware chain', { status: 500 })
       }
 
-      // No route found - still run global middleware for CORS headers on 404
+      // No route found - check if the path exists with a different method (405 vs 404)
+      const allowedMethods = this.getAllowedMethods(url.pathname, hostname)
+
+      // If there are allowed methods, return 405 Method Not Allowed
+      if (allowedMethods.length > 0) {
+        const methodNotAllowedHandler = async (_req: EnhancedRequest, _next: NextFunction) => {
+          return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+            status: 405,
+            headers: {
+              'Content-Type': 'application/json',
+              'Allow': allowedMethods.join(', '),
+            },
+          })
+        }
+
+        if (this.globalMiddleware.length > 0) {
+          const middlewareStack = [...this.globalMiddleware, methodNotAllowedHandler]
+          const response = await this.runMiddleware(enhancedReq, middlewareStack)
+          if (response) {
+            return this.applyModifiedCookies(response, enhancedReq)
+          }
+        }
+
+        return methodNotAllowedHandler(enhancedReq, async () => new Response(null))
+      }
+
+      // No route found with any method - still run global middleware for CORS headers on 404
       if (this.globalMiddleware.length > 0) {
         const notFoundHandler = async (_req: EnhancedRequest, _next: NextFunction) => {
           if (this.fallbackHandler) {
@@ -654,6 +680,78 @@ export class Router {
         headers: { 'Content-Type': 'application/json' },
       })
     }
+  }
+
+  /**
+   * Get all allowed HTTP methods for a given path
+   * Used to determine if a 405 Method Not Allowed should be returned instead of 404
+   */
+  getAllowedMethods(path: string, domain?: string): string[] {
+    const url = new URL(path, 'http://localhost')
+    const methods: Set<string> = new Set()
+    const allMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
+
+    for (const method of allMethods) {
+      // Check static routes
+      if (this.staticRoutes.has(method)) {
+        const staticRoute = this.staticRoutes.get(method)!.get(url.pathname)
+        if (staticRoute && (!domain || !staticRoute.domain || staticRoute.domain === domain)) {
+          methods.add(method)
+          continue
+        }
+      }
+
+      // Get potential routes
+      const potentialRoutes: Route[] = domain && this.domains[domain]
+        ? this.domains[domain]
+        : this.routes
+
+      // Filter routes to only those matching the HTTP method
+      const methodRoutes = potentialRoutes.filter((route: Route) => route.method === method)
+
+      // Check exact match
+      for (const route of methodRoutes) {
+        if (route.path === url.pathname) {
+          methods.add(method)
+          break
+        }
+      }
+
+      // Check pattern match if not already found
+      if (!methods.has(method)) {
+        for (const route of methodRoutes) {
+          if (route.pattern) {
+            const match = route.pattern.exec(url)
+            if (match) {
+              methods.add(method)
+              break
+            }
+          }
+        }
+      }
+
+      // Check wildcard routes if not already found
+      if (!methods.has(method)) {
+        const wildcardRoutes = potentialRoutes.filter((route: Route) =>
+          route.method === method && route.path.endsWith('*'),
+        )
+
+        for (const route of wildcardRoutes) {
+          const basePath = route.path.slice(0, -1)
+          if (url.pathname.startsWith(basePath)) {
+            methods.add(method)
+            break
+          }
+        }
+      }
+    }
+
+    // If GET is allowed, HEAD is implicitly allowed too
+    if (methods.has('GET')) {
+      methods.add('HEAD')
+    }
+
+    return Array.from(methods)
   }
 
   /**
