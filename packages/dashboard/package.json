@@ -19,7 +19,7 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@iconify-json/carbon": "^1.2.15",
+    "@iconify-json/carbon": "^1.2.16",
     "@types/d3": "7.4.3",
     "@unocss/preset-icons": "^66.5.12",
     "@unocss/preset-uno": "^66.5.12",
@@ -27,7 +27,7 @@
     "@unocss/transformer-directives": "^66.5.12",
     "@vitejs/plugin-vue": "^6.0.3",
     "unocss": "^66.5.12",
-    "vite": "^7.3.0",
-    "vue-tsc": "^3.2.1"
+    "vite": "^7.3.1",
+    "vue-tsc": "^3.2.2"
   }
 }
