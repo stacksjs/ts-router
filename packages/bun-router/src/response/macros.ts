@@ -12,9 +12,9 @@ export interface ResponseMacro {
 }
 
 export interface ApiResponse<T = any> {
-  success: boolean
   data?: T
   message?: string
+  error?: string
   errors?: Record<string, string[]>
   meta?: Record<string, any>
   links?: Record<string, string>
@@ -132,19 +132,13 @@ export const BuiltInResponseMacros = {
    * Success response with data
    */
   success: (data?: any, message?: string, status = 200): Response => {
-    const response: ApiResponse = {
-      success: true,
-      data,
-      message,
-      timestamp: new Date().toISOString(),
-    }
+    const body: Record<string, unknown> = {}
+    if (data !== undefined) body.data = data
+    if (message !== undefined) body.message = message
 
-    return new Response(JSON.stringify(response), {
+    return new Response(JSON.stringify(body), {
       status,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Response-Time': new Date().toISOString(),
-      },
+      headers: { 'Content-Type': 'application/json' },
     })
   },
 
@@ -152,19 +146,12 @@ export const BuiltInResponseMacros = {
    * Error response with message and errors
    */
   error: (message: string, errors?: Record<string, string[]>, status = 400): Response => {
-    const response: ApiResponse = {
-      success: false,
-      message,
-      errors,
-      timestamp: new Date().toISOString(),
-    }
+    const body: Record<string, unknown> = { error: message }
+    if (errors !== undefined) body.errors = errors
 
-    return new Response(JSON.stringify(response), {
+    return new Response(JSON.stringify(body), {
       status,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Response-Time': new Date().toISOString(),
-      },
+      headers: { 'Content-Type': 'application/json' },
     })
   },
 
@@ -256,7 +243,6 @@ export const BuiltInResponseMacros = {
     const to = Math.min(from + pagination.per_page - 1, pagination.total)
 
     const response: PaginatedResponse<T> = {
-      success: true,
       data,
       message,
       meta: {
@@ -276,15 +262,11 @@ export const BuiltInResponseMacros = {
           ? `${pagination.path}?page=${pagination.current_page - 1}`
           : undefined,
       },
-      timestamp: new Date().toISOString(),
     }
 
     return new Response(JSON.stringify(response), {
       status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Response-Time': new Date().toISOString(),
-      },
+      headers: { 'Content-Type': 'application/json' },
     })
   },
 
@@ -500,20 +482,14 @@ export const ResponseMacroFactory = {
    */
   api: (defaultMeta?: Record<string, any>) => {
     return (data?: any, message?: string, status = 200): Response => {
-      const response: ApiResponse = {
-        success: status >= 200 && status < 300,
-        data,
-        message,
-        meta: defaultMeta,
-        timestamp: new Date().toISOString(),
-      }
+      const body: Record<string, unknown> = {}
+      if (data !== undefined) body.data = data
+      if (message !== undefined) body.message = message
+      if (defaultMeta !== undefined) body.meta = defaultMeta
 
-      return new Response(JSON.stringify(response), {
+      return new Response(JSON.stringify(body), {
         status,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Response-Time': new Date().toISOString(),
-        },
+        headers: { 'Content-Type': 'application/json' },
       })
     }
   },
@@ -523,20 +499,15 @@ export const ResponseMacroFactory = {
    */
   versionedApi: (version: string) => {
     return (data?: any, message?: string, status = 200): Response => {
-      const response: ApiResponse = {
-        success: status >= 200 && status < 300,
-        data,
-        message,
-        meta: { version },
-        timestamp: new Date().toISOString(),
-      }
+      const body: Record<string, unknown> = { meta: { version } }
+      if (data !== undefined) body.data = data
+      if (message !== undefined) body.message = message
 
-      return new Response(JSON.stringify(response), {
+      return new Response(JSON.stringify(body), {
         status,
         headers: {
           'Content-Type': 'application/json',
           'X-API-Version': version,
-          'X-Response-Time': new Date().toISOString(),
         },
       })
     }
@@ -547,19 +518,12 @@ export const ResponseMacroFactory = {
    */
   customError: (defaultStatus: number = 400, defaultMessage: string = 'An error occurred'): (message?: string, errors?: Record<string, string[]>, status?: number) => Response => {
     return (message: string = defaultMessage, errors?: Record<string, string[]>, status: number = defaultStatus): Response => {
-      const response: ApiResponse = {
-        success: false,
-        message,
-        errors,
-        timestamp: new Date().toISOString(),
-      }
+      const body: Record<string, unknown> = { error: message }
+      if (errors !== undefined) body.errors = errors
 
-      return new Response(JSON.stringify(response), {
+      return new Response(JSON.stringify(body), {
         status,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Response-Time': new Date().toISOString(),
-        },
+        headers: { 'Content-Type': 'application/json' },
       })
     }
   },

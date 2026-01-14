@@ -286,24 +286,19 @@ export const response: ResponseFactory = {
    * Create a success response (API)
    */
   success: <T>(data?: T, message?: string, status: ResponseStatus = 200): Response => {
-    return response.json({
-      success: true,
-      data,
-      message,
-      timestamp: new Date().toISOString(),
-    }, { status })
+    const body: Record<string, unknown> = {}
+    if (data !== undefined) body.data = data
+    if (message !== undefined) body.message = message
+    return response.json(body, { status })
   },
 
   /**
    * Create an error response (API)
    */
   error: (message: string, status: ResponseStatus = 400, errors?: Record<string, string[]>): Response => {
-    return response.json({
-      success: false,
-      message,
-      errors,
-      timestamp: new Date().toISOString(),
-    }, { status })
+    const body: Record<string, unknown> = { error: message }
+    if (errors !== undefined) body.errors = errors
+    return response.json(body, { status })
   },
 
   /**
@@ -324,7 +319,6 @@ export const response: ResponseFactory = {
     const to = Math.min(page * perPage, total)
 
     return response.json({
-      success: true,
       data,
       meta: {
         current_page: page,
@@ -350,22 +344,18 @@ export const response: ResponseFactory = {
     if (location) {
       headers.Location = location
     }
-    return response.json({
-      success: true,
-      data,
-      timestamp: new Date().toISOString(),
-    }, { status: 201, headers })
+    const body: Record<string, unknown> = {}
+    if (data !== undefined) body.data = data
+    return response.json(body, { status: 201, headers })
   },
 
   /**
    * Create an accepted response (202)
    */
   accepted: <T>(data?: T): Response => {
-    return response.json({
-      success: true,
-      data,
-      timestamp: new Date().toISOString(),
-    }, { status: 202 })
+    const body: Record<string, unknown> = {}
+    if (data !== undefined) body.data = data
+    return response.json(body, { status: 202 })
   },
 
   /**
@@ -425,11 +415,7 @@ export const response: ResponseFactory = {
     if (retryAfter) {
       headers['Retry-After'] = String(retryAfter)
     }
-    return new Response(JSON.stringify({
-      success: false,
-      message,
-      timestamp: new Date().toISOString(),
-    }), {
+    return new Response(JSON.stringify({ error: message }), {
       status: 429,
       headers: {
         'Content-Type': 'application/json',
