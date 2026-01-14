@@ -89,7 +89,7 @@ export function extractApiKey(req: EnhancedRequest, source: 'header' | 'query' |
         if (typeof req.cookies.get === 'function') {
           return req.cookies.get(key) || null
         }
-        return (req.cookies as Record<string, string>)[key] || null
+        return (req.cookies as unknown as Record<string, string>)[key] || null
       }
       return null
     default:
