@@ -133,8 +133,10 @@ export const BuiltInResponseMacros = {
    */
   success: (data?: any, message?: string, status = 200): Response => {
     const body: Record<string, unknown> = {}
-    if (data !== undefined) body.data = data
-    if (message !== undefined) body.message = message
+    if (data !== undefined)
+      body.data = data
+    if (message !== undefined)
+      body.message = message
 
     return new Response(JSON.stringify(body), {
       status,
@@ -147,7 +149,8 @@ export const BuiltInResponseMacros = {
    */
   error: (message: string, errors?: Record<string, string[]>, status = 400): Response => {
     const body: Record<string, unknown> = { error: message }
-    if (errors !== undefined) body.errors = errors
+    if (errors !== undefined)
+      body.errors = errors
 
     return new Response(JSON.stringify(body), {
       status,
@@ -483,9 +486,12 @@ export const ResponseMacroFactory = {
   api: (defaultMeta?: Record<string, any>) => {
     return (data?: any, message?: string, status = 200): Response => {
       const body: Record<string, unknown> = {}
-      if (data !== undefined) body.data = data
-      if (message !== undefined) body.message = message
-      if (defaultMeta !== undefined) body.meta = defaultMeta
+      if (data !== undefined)
+        body.data = data
+      if (message !== undefined)
+        body.message = message
+      if (defaultMeta !== undefined)
+        body.meta = defaultMeta
 
       return new Response(JSON.stringify(body), {
         status,
@@ -500,8 +506,10 @@ export const ResponseMacroFactory = {
   versionedApi: (version: string) => {
     return (data?: any, message?: string, status = 200): Response => {
       const body: Record<string, unknown> = { meta: { version } }
-      if (data !== undefined) body.data = data
-      if (message !== undefined) body.message = message
+      if (data !== undefined)
+        body.data = data
+      if (message !== undefined)
+        body.message = message
 
       return new Response(JSON.stringify(body), {
         status,
@@ -519,7 +527,8 @@ export const ResponseMacroFactory = {
   customError: (defaultStatus: number = 400, defaultMessage: string = 'An error occurred'): (message?: string, errors?: Record<string, string[]>, status?: number) => Response => {
     return (message: string = defaultMessage, errors?: Record<string, string[]>, status: number = defaultStatus): Response => {
       const body: Record<string, unknown> = { error: message }
-      if (errors !== undefined) body.errors = errors
+      if (errors !== undefined)
+        body.errors = errors
 
       return new Response(JSON.stringify(body), {
         status,

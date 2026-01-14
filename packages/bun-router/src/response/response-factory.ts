@@ -287,8 +287,10 @@ export const response: ResponseFactory = {
    */
   success: <T>(data?: T, message?: string, status: ResponseStatus = 200): Response => {
     const body: Record<string, unknown> = {}
-    if (data !== undefined) body.data = data
-    if (message !== undefined) body.message = message
+    if (data !== undefined)
+      body.data = data
+    if (message !== undefined)
+      body.message = message
     return response.json(body, { status })
   },
 
@@ -297,7 +299,8 @@ export const response: ResponseFactory = {
    */
   error: (message: string, status: ResponseStatus = 400, errors?: Record<string, string[]>): Response => {
     const body: Record<string, unknown> = { error: message }
-    if (errors !== undefined) body.errors = errors
+    if (errors !== undefined)
+      body.errors = errors
     return response.json(body, { status })
   },
 
@@ -345,7 +348,8 @@ export const response: ResponseFactory = {
       headers.Location = location
     }
     const body: Record<string, unknown> = {}
-    if (data !== undefined) body.data = data
+    if (data !== undefined)
+      body.data = data
     return response.json(body, { status: 201, headers })
   },
 
@@ -354,7 +358,8 @@ export const response: ResponseFactory = {
    */
   accepted: <T>(data?: T): Response => {
     const body: Record<string, unknown> = {}
-    if (data !== undefined) body.data = data
+    if (data !== undefined)
+      body.data = data
     return response.json(body, { status: 202 })
   },
 
