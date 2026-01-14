@@ -98,7 +98,7 @@ function getMiddleware(): Record<string, any> {
   return _middleware
 }
 
-export const middleware = new Proxy({} as Record<string, any>, {
+export const middleware: Record<string, any> = new Proxy({} as Record<string, any>, {
   get(_target, prop) {
     return getMiddleware()[prop as string]
   },
