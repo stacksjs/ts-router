@@ -1,7 +1,8 @@
+import { config } from '../config'
 import type { EnhancedRequest, NextFunction } from '../types'
 
-// Hardcoded CORS headers - no config dependency
-const CORS_HEADERS: Record<string, string> = {
+// Default CORS headers
+const DEFAULT_CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
@@ -11,7 +12,17 @@ const CORS_HEADERS: Record<string, string> = {
 
 export default class Cors {
   private getCorsHeaders(): Record<string, string> {
-    return { ...CORS_HEADERS }
+    const corsConfig = (config.server as any)?.cors
+    if (corsConfig && corsConfig.enabled) {
+      return {
+        'Access-Control-Allow-Origin': corsConfig.origin || '*',
+        'Access-Control-Allow-Methods': Array.isArray(corsConfig.methods) ? corsConfig.methods.join(', ') : DEFAULT_CORS_HEADERS['Access-Control-Allow-Methods'],
+        'Access-Control-Allow-Headers': Array.isArray(corsConfig.allowedHeaders) ? corsConfig.allowedHeaders.join(', ') : DEFAULT_CORS_HEADERS['Access-Control-Allow-Headers'],
+        'Access-Control-Max-Age': String(corsConfig.maxAge || 86400),
+        'Access-Control-Allow-Credentials': String(corsConfig.credentials || false),
+      }
+    }
+    return { ...DEFAULT_CORS_HEADERS }
   }
 
   async handle(req: EnhancedRequest, next: NextFunction): Promise<Response> {

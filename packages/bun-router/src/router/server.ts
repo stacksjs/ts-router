@@ -86,19 +86,25 @@ export function registerServerHandling(RouterClass: typeof Router): void {
           // Create URL for route matching
           const url = new URL(req.url)
 
-          // Handle CORS preflight OPTIONS requests FIRST before route matching
-          // This ensures CORS works even for routes that don't explicitly handle OPTIONS
+          // Handle CORS preflight OPTIONS requests - but check for registered OPTIONS routes first
+          // This ensures explicitly registered OPTIONS routes work while still providing CORS support
           if (req.method === 'OPTIONS') {
-            return new Response(null, {
-              status: 204,
-              headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
-                'Access-Control-Max-Age': '86400',
-                'Access-Control-Allow-Credentials': 'true',
-              },
-            })
+            const hostname = url.hostname || req.headers.get('host')?.split(':')[0] || 'localhost'
+            const optionsMatch = this.matchRoute(url.pathname, 'OPTIONS', hostname)
+            if (!optionsMatch) {
+              // No explicit OPTIONS route - return generic CORS preflight response
+              return new Response(null, {
+                status: 204,
+                headers: {
+                  'Access-Control-Allow-Origin': '*',
+                  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+                  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+                  'Access-Control-Max-Age': '86400',
+                  'Access-Control-Allow-Credentials': 'true',
+                },
+              })
+            }
+            // Let the registered OPTIONS route handle it (fall through to normal route matching)
           }
 
           // Get domain from the host header

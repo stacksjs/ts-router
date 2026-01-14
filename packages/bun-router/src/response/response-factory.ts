@@ -286,7 +286,7 @@ export const response: ResponseFactory = {
    * Create a success response (API)
    */
   success: <T>(data?: T, message?: string, status: ResponseStatus = 200): Response => {
-    const body: Record<string, unknown> = {}
+    const body: Record<string, unknown> = { success: true }
     if (data !== undefined)
       body.data = data
     if (message !== undefined)
@@ -298,7 +298,7 @@ export const response: ResponseFactory = {
    * Create an error response (API)
    */
   error: (message: string, status: ResponseStatus = 400, errors?: Record<string, string[]>): Response => {
-    const body: Record<string, unknown> = { error: message }
+    const body: Record<string, unknown> = { success: false, message }
     if (errors !== undefined)
       body.errors = errors
     return response.json(body, { status })
@@ -347,7 +347,7 @@ export const response: ResponseFactory = {
     if (location) {
       headers.Location = location
     }
-    const body: Record<string, unknown> = {}
+    const body: Record<string, unknown> = { success: true }
     if (data !== undefined)
       body.data = data
     return response.json(body, { status: 201, headers })
@@ -357,7 +357,7 @@ export const response: ResponseFactory = {
    * Create an accepted response (202)
    */
   accepted: <T>(data?: T): Response => {
-    const body: Record<string, unknown> = {}
+    const body: Record<string, unknown> = { success: true }
     if (data !== undefined)
       body.data = data
     return response.json(body, { status: 202 })
@@ -420,7 +420,7 @@ export const response: ResponseFactory = {
     if (retryAfter) {
       headers['Retry-After'] = String(retryAfter)
     }
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ message }), {
       status: 429,
       headers: {
         'Content-Type': 'application/json',

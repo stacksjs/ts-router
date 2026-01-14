@@ -66,7 +66,7 @@ describe('Router', () => {
       expect(await postResponse.text()).toBe('Multi')
 
       const putResponse = await router.handleRequest(new Request('http://localhost/multi', { method: 'PUT' }))
-      expect(putResponse.status).toBe(404)
+      expect(putResponse.status).toBe(405) // Method Not Allowed - path exists but method is not registered
     })
 
     it('should register a route for any HTTP method', async () => {

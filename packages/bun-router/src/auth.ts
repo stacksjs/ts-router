@@ -337,7 +337,15 @@ export class ApiKeyManager {
       case 'query':
         return new URL(req.url).searchParams.get(keyName || 'api_key') || null
       case 'cookie':
-        return req.cookies?.get(keyName || 'api_key') || null
+        // Handle both Map-like cookies (with .get()) and plain object cookies
+        if (req.cookies) {
+          const key = keyName || 'api_key'
+          if (typeof req.cookies.get === 'function') {
+            return req.cookies.get(key) || null
+          }
+          return (req.cookies as Record<string, string>)[key] || null
+        }
+        return null
       default:
         return null
     }

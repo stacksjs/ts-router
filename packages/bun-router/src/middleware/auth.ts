@@ -84,7 +84,14 @@ export function extractApiKey(req: EnhancedRequest, source: 'header' | 'query' |
     case 'query':
       return new URL(req.url).searchParams.get(key)
     case 'cookie':
-      return req.cookies?.get(key) || null
+      // Handle both Map-like cookies (with .get()) and plain object cookies
+      if (req.cookies) {
+        if (typeof req.cookies.get === 'function') {
+          return req.cookies.get(key) || null
+        }
+        return (req.cookies as Record<string, string>)[key] || null
+      }
+      return null
     default:
       return null
   }

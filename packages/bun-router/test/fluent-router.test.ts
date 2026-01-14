@@ -240,9 +240,9 @@ describe('FluentRouter', () => {
       const showResponse = await router.handleRequest(new Request('http://localhost/items/1'))
       expect(showResponse.status).toBe(200)
 
-      // Store should NOT work (not in only)
+      // Store should NOT work (not in only) - returns 405 because /items path exists for GET
       const storeResponse = await router.handleRequest(new Request('http://localhost/items', { method: 'POST' }))
-      expect(storeResponse.status).toBe(404)
+      expect(storeResponse.status).toBe(405)
     })
 
     it('should support resource options with except', async () => {
@@ -266,9 +266,9 @@ describe('FluentRouter', () => {
       const indexResponse = await router.handleRequest(new Request('http://localhost/products'))
       expect(indexResponse.status).toBe(200)
 
-      // Destroy should NOT work (in except)
+      // Destroy should NOT work (in except) - returns 405 because /products/:id path exists for GET
       const destroyResponse = await router.handleRequest(new Request('http://localhost/products/1', { method: 'DELETE' }))
-      expect(destroyResponse.status).toBe(404)
+      expect(destroyResponse.status).toBe(405)
     })
   })
 
