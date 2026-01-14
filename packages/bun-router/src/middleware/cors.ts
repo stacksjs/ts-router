@@ -1,5 +1,5 @@
-import { config } from '../config'
 import type { EnhancedRequest, NextFunction } from '../types'
+import { config } from '../config'
 
 // Default CORS headers
 const DEFAULT_CORS_HEADERS: Record<string, string> = {
