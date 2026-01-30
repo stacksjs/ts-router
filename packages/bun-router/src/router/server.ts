@@ -12,6 +12,11 @@ export function registerServerHandling(RouterClass: typeof Router): void {
      */
     serve: {
       async value(options: ServerOptions = {}): Promise<Server<any>> {
+        // Initialize automatic file-based routing (discovers views from src/views, views, etc.)
+        if (this._initFileRoutes) {
+          await this._initFileRoutes()
+        }
+
         // Invalidate route cache before starting server
         this.invalidateCache()
 
