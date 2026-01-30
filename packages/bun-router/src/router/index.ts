@@ -1,5 +1,6 @@
 import type { ActionHandler, Route } from '../types'
 import { Dependencies, globalMiddlewarePipeline, MiddlewareFactory, MiddlewarePipeline, SkipConditions } from '../middleware/pipeline'
+import { registerFileBasedRouting } from './file-based-routing'
 import { registerFileStreaming } from './file-streaming'
 import { FluentRouteBuilder, FluentRouter, RouteFactory, router, RouterUtils } from './fluent-routing'
 import { registerGroupOrganization } from './group-organization'
@@ -28,6 +29,7 @@ registerGroupOrganization(Router)
 registerServerHandling(Router)
 registerRouteBuilding(Router)
 registerModelBinding(Router)
+registerFileBasedRouting(Router)
 
 // Export the Router class and fluent routing features
 export { Router }
@@ -176,3 +178,6 @@ export { createHandlerResolver, resolveHandler, wrapResponse } from './handler-r
 
 // Export validation integration
 export * from './validation-integration'
+
+// Export file-based routing
+export type { DiscoveredRoute, FileBasedRoutingConfig } from './file-based-routing'
